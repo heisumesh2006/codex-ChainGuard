@@ -1,0 +1,126 @@
+# =========================================================
+# ChainGuard-AI .gitignore
+# =========================================================
+
+# -------------------------
+# Python
+# -------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# Python virtual environments
+.venv/
+venv/
+env/
+ENV/
+module2/.venv/
+
+# -------------------------
+# Environment / Secrets
+# -------------------------
+.env
+.env.*
+!.env.example
+
+*.pem
+*.key
+*.secret
+*.secrets
+private_keys/
+wallets/
+
+# -------------------------
+# Node / Hardhat
+# -------------------------
+node_modules/
+**/node_modules/
+
+cache/
+**/cache/
+
+artifacts/
+**/artifacts/
+
+typechain/
+typechain-types/
+
+coverage/
+coverage.json
+
+# -------------------------
+# Hardhat local blockchain data
+# -------------------------
+*.log
+hardhat-node.log
+hardhat.log
+
+# -------------------------
+# Temporary files
+# -------------------------
+tmp/
+temp/
+*.tmp
+*.temp
+*.bak
+*.swp
+*.swo
+~$*
+
+# -------------------------
+# IDE / Editor
+# -------------------------
+.vscode/
+.idea/
+*.code-workspace
+
+# -------------------------
+# OS generated files
+# -------------------------
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# -------------------------
+# Python packaging
+# -------------------------
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# -------------------------
+# Jupyter
+# -------------------------
+.ipynb_checkpoints/
+
+# -------------------------
+# Test temporary folders
+# -------------------------
+tmp*/
+temp*/
+**/tmp*/
+**/temp*/
+
+# =========================================================
+# IMPORTANT PROJECT OUTPUTS — DO NOT IGNORE
+# =========================================================
+
+# Keep these because they are project evidence/results:
+!module4/data/
+!module4/data/**
+!module5/data/
+!module5/data/**
+!module6/data/
+!module6/data/**
+
+# Keep trained ML model if present
+!module4/models/
+!module4/models/**
+
+# Keep source code, Solidity contracts, tests, README files,
+# metrics.json, final_report.json and final_report.md
