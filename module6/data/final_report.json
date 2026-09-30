@@ -1,0 +1,977 @@
+{
+  "system_configuration": {
+    "agents": 4,
+    "trust_root": "ROOT_AUTHORIZER",
+    "blockchain": "Hardhat local Ethereum",
+    "ml_model": "IsolationForest",
+    "revocation_scope": "FULL_AGENT_ONLY",
+    "canonical_deployment": "module6/data/deployment.json"
+  },
+  "blockchain_deployment": {
+    "contract_address": "0x0B1a87021ec75fBaE919b1e86b2B1335FFC8F4d3",
+    "chain_id": 31337,
+    "schema": "AgentTrustRegistry detailed on-chain revocation metadata"
+  },
+  "scenario_counts": {
+    "BLOCKED_CHECK": 4,
+    "ROOT_ADMIN": 2,
+    "LEGITIMATE": 2,
+    "ATTACK": 3,
+    "NORMAL": 5,
+    "ANOMALY": 5,
+    "total": 21
+  },
+  "scenarios": [
+    {
+      "scenario": "CHECK_READ_CATALOG",
+      "actor": "Agent_A",
+      "action": "CHECK_READ_CATALOG",
+      "record_id": "action:7b1f6b2e-00ee-459a-9f6b-d0832218ea8b",
+      "expected_class": "BLOCKED_CHECK",
+      "authorized": false,
+      "drift_applicable": true,
+      "drift_flagged": true,
+      "drift_score": 0.14669421545598027,
+      "trace_verdict": "UNAUTHORIZED_ROOT",
+      "revoked": false,
+      "revocation_proof_available": false,
+      "chain_verified": true,
+      "chain_check_status": "VERIFIED_NO_VALID_AUTHORITY",
+      "final_decision": "BLOCK",
+      "detected_by": [
+        "Module1",
+        "Module3",
+        "Module4"
+      ],
+      "resolution_time_ms": 174.20280000078492,
+      "step_latencies": {
+        "authorization_ms": 0.005399997462518513,
+        "trace_context_ms": 48.46900000120513,
+        "drift_scoring_ms": 17.65930000692606,
+        "revocation_check_ms": 49.7046000091359,
+        "chain_verification_ms": 58.201899999403395,
+        "verdict_assembly_ms": 0.007299997378140688
+      },
+      "reasons": [
+        "Module 1 real-time authorization denied the action",
+        "Authority trace returned UNAUTHORIZED_ROOT: Agent_A has no trusted root-issued READ_CATALOG credential",
+        "Behavior deviates from the trained normal baseline"
+      ]
+    },
+    {
+      "scenario": "CHECK_PROCESS_PAYMENT",
+      "actor": "Agent_B",
+      "action": "CHECK_PROCESS_PAYMENT",
+      "record_id": "action:d6314de7-f9e5-45e7-988b-cd042cb85a00",
+      "expected_class": "BLOCKED_CHECK",
+      "authorized": false,
+      "drift_applicable": true,
+      "drift_flagged": true,
+      "drift_score": 0.16169206656884827,
+      "trace_verdict": "UNAUTHORIZED_ROOT",
+      "revoked": false,
+      "revocation_proof_available": false,
+      "chain_verified": true,
+      "chain_check_status": "VERIFIED_NO_VALID_AUTHORITY",
+      "final_decision": "BLOCK",
+      "detected_by": [
+        "Module1",
+        "Module3",
+        "Module4"
+      ],
+      "resolution_time_ms": 300.22929998813197,
+      "step_latencies": {
+        "authorization_ms": 0.006100002792663872,
+        "trace_context_ms": 82.93479999701958,
+        "drift_scoring_ms": 52.384200011147186,
+        "revocation_check_ms": 68.94040000042878,
+        "chain_verification_ms": 95.4731000092579,
+        "verdict_assembly_ms": 0.014399993233382702
+      },
+      "reasons": [
+        "Module 1 real-time authorization denied the action",
+        "Authority trace returned UNAUTHORIZED_ROOT: Agent_B has no trusted root-issued PROCESS_PAYMENT credential",
+        "Behavior deviates from the trained normal baseline"
+      ]
+    },
+    {
+      "scenario": "CHECK_VERIFY_ORDER",
+      "actor": "Agent_C",
+      "action": "CHECK_VERIFY_ORDER",
+      "record_id": "action:15033e3a-0625-4f63-b165-6675d986b099",
+      "expected_class": "BLOCKED_CHECK",
+      "authorized": false,
+      "drift_applicable": true,
+      "drift_flagged": true,
+      "drift_score": 0.15904161314626075,
+      "trace_verdict": "UNAUTHORIZED_ROOT",
+      "revoked": true,
+      "revocation_proof_available": true,
+      "chain_verified": true,
+      "chain_check_status": "VERIFIED_NO_VALID_AUTHORITY",
+      "final_decision": "BLOCK",
+      "detected_by": [
+        "Module1",
+        "Module3",
+        "Module4"
+      ],
+      "resolution_time_ms": 842.5053000100888,
+      "step_latencies": {
+        "authorization_ms": 0.006300004315562546,
+        "trace_context_ms": 95.93989999848418,
+        "drift_scoring_ms": 50.812999994377606,
+        "revocation_check_ms": 462.6338000089163,
+        "chain_verification_ms": 232.62830000021495,
+        "verdict_assembly_ms": 0.005199995939619839
+      },
+      "reasons": [
+        "Module 1 real-time authorization denied the action",
+        "Authority trace returned UNAUTHORIZED_ROOT: Agent_C has no trusted root-issued VERIFY_ORDER credential",
+        "Behavior deviates from the trained normal baseline"
+      ]
+    },
+    {
+      "scenario": "CHECK_CREATE_AGENT",
+      "actor": "Agent_D",
+      "action": "CHECK_CREATE_AGENT",
+      "record_id": "action:29e2bfb2-1d51-4d62-9d70-e5df168c919f",
+      "expected_class": "BLOCKED_CHECK",
+      "authorized": false,
+      "drift_applicable": true,
+      "drift_flagged": true,
+      "drift_score": 0.14919318697587236,
+      "trace_verdict": "UNAUTHORIZED_ROOT",
+      "revoked": false,
+      "revocation_proof_available": false,
+      "chain_verified": true,
+      "chain_check_status": "VERIFIED_NO_VALID_AUTHORITY",
+      "final_decision": "BLOCK",
+      "detected_by": [
+        "Module1",
+        "Module3",
+        "Module4"
+      ],
+      "resolution_time_ms": 264.5518999925116,
+      "step_latencies": {
+        "authorization_ms": 0.004599991370923817,
+        "trace_context_ms": 70.67470000765752,
+        "drift_scoring_ms": 45.67740000493359,
+        "revocation_check_ms": 91.71190000779461,
+        "chain_verification_ms": 56.28400000568945,
+        "verdict_assembly_ms": 0.0037999998312443495
+      },
+      "reasons": [
+        "Module 1 real-time authorization denied the action",
+        "Authority trace returned UNAUTHORIZED_ROOT: Agent_D has no trusted root-issued CREATE_AGENT credential",
+        "Behavior deviates from the trained normal baseline"
+      ]
+    },
+    {
+      "scenario": "ROOT_PERMISSION_GRANTED",
+      "actor": "ROOT_AUTHORIZER",
+      "action": "ROOT_PERMISSION_GRANTED",
+      "record_id": "action:b4ac4c97-22fe-45d5-9543-a3b22367b5f8",
+      "expected_class": "ROOT_ADMIN",
+      "authorized": true,
+      "drift_applicable": false,
+      "drift_flagged": false,
+      "drift_score": null,
+      "trace_verdict": "VALID_CHAIN",
+      "revoked": false,
+      "revocation_proof_available": false,
+      "chain_verified": true,
+      "chain_check_status": "VERIFIED_VALID_CHAIN",
+      "final_decision": "ALLOW",
+      "detected_by": [],
+      "resolution_time_ms": 405.90749999682885,
+      "step_latencies": {
+        "authorization_ms": 0.002900007530115545,
+        "trace_context_ms": 330.99879999645054,
+        "drift_scoring_ms": 0.0016999983927235007,
+        "revocation_check_ms": 0.000300002284348011,
+        "chain_verification_ms": 74.70660000399221,
+        "verdict_assembly_ms": 0.005600013537332416
+      },
+      "reasons": [
+        "Authorized with verified chain evidence and no significant drift"
+      ]
+    },
+    {
+      "scenario": "DELEGATE_CREATE_AGENT",
+      "actor": "Agent_A",
+      "action": "DELEGATE_CREATE_AGENT",
+      "record_id": "action:e14a9263-b1b8-450f-9cfd-d1aa27da258b",
+      "expected_class": "LEGITIMATE",
+      "authorized": true,
+      "drift_applicable": true,
+      "drift_flagged": true,
+      "drift_score": 0.18173798684316234,
+      "trace_verdict": "VALID_CHAIN",
+      "revoked": false,
+      "revocation_proof_available": false,
+      "chain_verified": true,
+      "chain_check_status": "VERIFIED_VALID_CHAIN",
+      "final_decision": "REVIEW",
+      "detected_by": [
+        "Module4"
+      ],
+      "resolution_time_ms": 722.1146999945631,
+      "step_latencies": {
+        "authorization_ms": 0.0033999967854470015,
+        "trace_context_ms": 453.5548999992898,
+        "drift_scoring_ms": 50.19380000885576,
+        "revocation_check_ms": 81.80739999806974,
+        "chain_verification_ms": 136.3502000021981,
+        "verdict_assembly_ms": 0.002700006007216871
+      },
+      "reasons": [
+        "Behavior deviates from the trained normal baseline"
+      ]
+    },
+    {
+      "scenario": "DELEGATE_CREATE_AGENT",
+      "actor": "Agent_B",
+      "action": "DELEGATE_CREATE_AGENT",
+      "record_id": "action:9e9b0044-ade5-45d1-8890-d94620a4cf76",
+      "expected_class": "LEGITIMATE",
+      "authorized": true,
+      "drift_applicable": true,
+      "drift_flagged": true,
+      "drift_score": 0.22540518856516467,
+      "trace_verdict": "VALID_CHAIN",
+      "revoked": false,
+      "revocation_proof_available": false,
+      "chain_verified": true,
+      "chain_check_status": "VERIFIED_VALID_CHAIN",
+      "final_decision": "REVIEW",
+      "detected_by": [
+        "Module4"
+      ],
+      "resolution_time_ms": 701.7156000074465,
+      "step_latencies": {
+        "authorization_ms": 0.0029999937396496534,
+        "trace_context_ms": 454.1910999978427,
+        "drift_scoring_ms": 61.702000006334856,
+        "revocation_check_ms": 56.46730000444222,
+        "chain_verification_ms": 129.15909998991992,
+        "verdict_assembly_ms": 0.0021999876480549574
+      },
+      "reasons": [
+        "Behavior deviates from the trained normal baseline"
+      ]
+    },
+    {
+      "scenario": "SELF_ESCALATION",
+      "actor": "Agent_D",
+      "action": "SELF_ESCALATION_ATTEMPT",
+      "record_id": "action:3c51685f-2f8a-4144-ac62-a2a06835b147",
+      "expected_class": "ATTACK",
+      "authorized": false,
+      "drift_applicable": true,
+      "drift_flagged": true,
+      "drift_score": 0.18242529363962123,
+      "trace_verdict": "UNAUTHORIZED_ROOT",
+      "revoked": false,
+      "revocation_proof_available": false,
+      "chain_verified": true,
+      "chain_check_status": "VERIFIED_NO_VALID_AUTHORITY",
+      "final_decision": "BLOCK",
+      "detected_by": [
+        "Module1",
+        "Module3",
+        "Module4"
+      ],
+      "resolution_time_ms": 291.76880000159144,
+      "step_latencies": {
+        "authorization_ms": 0.0035999983083456755,
+        "trace_context_ms": 81.05439999781083,
+        "drift_scoring_ms": 43.0527999997139,
+        "revocation_check_ms": 82.5798999867402,
+        "chain_verification_ms": 84.87799999420531,
+        "verdict_assembly_ms": 0.0044000043999403715
+      },
+      "reasons": [
+        "Module 1 real-time authorization denied the action",
+        "Authority trace returned UNAUTHORIZED_ROOT: Agent_D could not grant itself CREATE_AGENT; no trusted root authority exists",
+        "Behavior deviates from the trained normal baseline"
+      ]
+    },
+    {
+      "scenario": "UNAUTHORIZED_DELEGATION",
+      "actor": "Agent_D",
+      "action": "UNAUTHORIZED_DELEGATION_ATTEMPT",
+      "record_id": "action:e2614258-0095-4703-9fa8-4106d535fbd7",
+      "expected_class": "ATTACK",
+      "authorized": false,
+      "drift_applicable": true,
+      "drift_flagged": true,
+      "drift_score": 0.20138035074038596,
+      "trace_verdict": "BROKEN_CHAIN",
+      "revoked": false,
+      "revocation_proof_available": false,
+      "chain_verified": true,
+      "chain_check_status": "VERIFIED_NO_VALID_AUTHORITY",
+      "final_decision": "BLOCK",
+      "detected_by": [
+        "Module1",
+        "Module3",
+        "Module4"
+      ],
+      "resolution_time_ms": 298.4691999881761,
+      "step_latencies": {
+        "authorization_ms": 0.0040000013541430235,
+        "trace_context_ms": 76.6213000024436,
+        "drift_scoring_ms": 41.337600006954744,
+        "revocation_check_ms": 82.11370000208262,
+        "chain_verification_ms": 98.19679999782238,
+        "verdict_assembly_ms": 0.0041000021155923605
+      },
+      "reasons": [
+        "Module 1 real-time authorization denied the action",
+        "Authority trace returned BROKEN_CHAIN: Agent_D lacked a rooted CREATE_AGENT permission and could not delegate it",
+        "Behavior deviates from the trained normal baseline"
+      ]
+    },
+    {
+      "scenario": "AGENT_DECOMMISSIONED",
+      "actor": "ROOT_AUTHORIZER",
+      "action": "AGENT_DECOMMISSIONED",
+      "record_id": "action:7982b7e9-5e6d-4411-9a41-1998af7cafa0",
+      "expected_class": "ROOT_ADMIN",
+      "authorized": true,
+      "drift_applicable": false,
+      "drift_flagged": false,
+      "drift_score": null,
+      "trace_verdict": "VALID_CHAIN",
+      "revoked": false,
+      "revocation_proof_available": false,
+      "chain_verified": true,
+      "chain_check_status": "VERIFIED_CONTEXT",
+      "final_decision": "ALLOW",
+      "detected_by": [],
+      "resolution_time_ms": 774.4245000067167,
+      "step_latencies": {
+        "authorization_ms": 0.0033999967854470015,
+        "trace_context_ms": 150.05520000704564,
+        "drift_scoring_ms": 0.0021000014385208488,
+        "revocation_check_ms": 0.00039998849388211966,
+        "chain_verification_ms": 624.1827000048943,
+        "verdict_assembly_ms": 0.00449999060947448
+      },
+      "reasons": [
+        "Authorized with verified chain evidence and no significant drift"
+      ]
+    },
+    {
+      "scenario": "POST_DECOMMISSION_ACTIVITY",
+      "actor": "Agent_C",
+      "action": "POST_DECOMMISSION_ACTIVITY",
+      "record_id": "action:b7877bd8-d540-454f-bc4a-c52887803df8",
+      "expected_class": "ATTACK",
+      "authorized": false,
+      "drift_applicable": true,
+      "drift_flagged": true,
+      "drift_score": 0.21995610068854543,
+      "trace_verdict": "AUTHORITY_REVOKED_AT_TIME_OF_ACTION",
+      "revoked": true,
+      "revocation_proof_available": true,
+      "chain_verified": true,
+      "chain_check_status": "VERIFIED_REVOCATION",
+      "final_decision": "BLOCK",
+      "detected_by": [
+        "Module1",
+        "Module3",
+        "Module4",
+        "Module5"
+      ],
+      "resolution_time_ms": 1529.5515999896452,
+      "step_latencies": {
+        "authorization_ms": 0.003000008291564882,
+        "trace_context_ms": 739.2957999982173,
+        "drift_scoring_ms": 44.77129998849705,
+        "revocation_check_ms": 493.66120000195224,
+        "chain_verification_ms": 251.64180000138003,
+        "verdict_assembly_ms": 0.006700007361359894
+      },
+      "reasons": [
+        "Module 1 real-time authorization denied the action",
+        "Authority trace returned AUTHORITY_REVOKED_AT_TIME_OF_ACTION: Agent_C was decommissioned at 2026-09-30T15:16:08.961649+00:00 before this action",
+        "Behavior deviates from the trained normal baseline",
+        "Action occurred after the chain-retrieved revocation timestamp"
+      ]
+    },
+    {
+      "scenario": "NORMAL",
+      "actor": "Agent_B",
+      "action": "USE_PERMISSION",
+      "record_id": "synthetic:000925",
+      "expected_class": "NORMAL",
+      "authorized": true,
+      "drift_applicable": true,
+      "drift_flagged": false,
+      "drift_score": 0.027363661542327167,
+      "trace_verdict": "VALID_CHAIN",
+      "revoked": false,
+      "revocation_proof_available": false,
+      "chain_verified": true,
+      "chain_check_status": "VERIFIED_VALID_CHAIN",
+      "final_decision": "ALLOW",
+      "detected_by": [],
+      "resolution_time_ms": 297.61720000533387,
+      "step_latencies": {
+        "authorization_ms": 0.019800005247816443,
+        "trace_context_ms": 172.4924000009196,
+        "drift_scoring_ms": 45.50619999645278,
+        "revocation_check_ms": 79.41679999930784,
+        "chain_verification_ms": 0.011600001016631722,
+        "verdict_assembly_ms": 0.0026999914553016424
+      },
+      "reasons": [
+        "Authorized with verified chain evidence and no significant drift"
+      ]
+    },
+    {
+      "scenario": "NORMAL",
+      "actor": "Agent_B",
+      "action": "USE_PERMISSION",
+      "record_id": "synthetic:000932",
+      "expected_class": "NORMAL",
+      "authorized": true,
+      "drift_applicable": true,
+      "drift_flagged": false,
+      "drift_score": -0.014305819568164513,
+      "trace_verdict": "VALID_CHAIN",
+      "revoked": false,
+      "revocation_proof_available": false,
+      "chain_verified": true,
+      "chain_check_status": "VERIFIED_VALID_CHAIN",
+      "final_decision": "ALLOW",
+      "detected_by": [],
+      "resolution_time_ms": 305.5271999910474,
+      "step_latencies": {
+        "authorization_ms": 0.018999999156221747,
+        "trace_context_ms": 170.34959999728017,
+        "drift_scoring_ms": 41.52460000477731,
+        "revocation_check_ms": 93.4545999916736,
+        "chain_verification_ms": 0.011399999493733048,
+        "verdict_assembly_ms": 0.002900007530115545
+      },
+      "reasons": [
+        "Authorized with verified chain evidence and no significant drift"
+      ]
+    },
+    {
+      "scenario": "NORMAL",
+      "actor": "Agent_D",
+      "action": "USE_PERMISSION",
+      "record_id": "synthetic:001924",
+      "expected_class": "NORMAL",
+      "authorized": true,
+      "drift_applicable": true,
+      "drift_flagged": false,
+      "drift_score": 0.046588455218439906,
+      "trace_verdict": "VALID_CHAIN",
+      "revoked": false,
+      "revocation_proof_available": false,
+      "chain_verified": true,
+      "chain_check_status": "VERIFIED_VALID_CHAIN",
+      "final_decision": "ALLOW",
+      "detected_by": [],
+      "resolution_time_ms": 350.70000000996515,
+      "step_latencies": {
+        "authorization_ms": 0.013199998647905886,
+        "trace_context_ms": 190.33610000042245,
+        "drift_scoring_ms": 40.936599994893186,
+        "revocation_check_ms": 119.20539999846369,
+        "chain_verification_ms": 0.014199991710484028,
+        "verdict_assembly_ms": 0.0029999937396496534
+      },
+      "reasons": [
+        "Authorized with verified chain evidence and no significant drift"
+      ]
+    },
+    {
+      "scenario": "NORMAL",
+      "actor": "Agent_B",
+      "action": "USE_PERMISSION",
+      "record_id": "synthetic:000933",
+      "expected_class": "NORMAL",
+      "authorized": true,
+      "drift_applicable": true,
+      "drift_flagged": false,
+      "drift_score": -0.004508551123693083,
+      "trace_verdict": "VALID_CHAIN",
+      "revoked": false,
+      "revocation_proof_available": false,
+      "chain_verified": true,
+      "chain_check_status": "VERIFIED_VALID_CHAIN",
+      "final_decision": "ALLOW",
+      "detected_by": [],
+      "resolution_time_ms": 335.18959999491926,
+      "step_latencies": {
+        "authorization_ms": 0.019000013708136976,
+        "trace_context_ms": 200.42449999891687,
+        "drift_scoring_ms": 46.276499997475185,
+        "revocation_check_ms": 88.2772000040859,
+        "chain_verification_ms": 0.007800001185387373,
+        "verdict_assembly_ms": 0.0016999983927235007
+      },
+      "reasons": [
+        "Authorized with verified chain evidence and no significant drift"
+      ]
+    },
+    {
+      "scenario": "NORMAL",
+      "actor": "Agent_D",
+      "action": "USE_PERMISSION",
+      "record_id": "synthetic:001925",
+      "expected_class": "NORMAL",
+      "authorized": true,
+      "drift_applicable": true,
+      "drift_flagged": false,
+      "drift_score": -0.03714500639570484,
+      "trace_verdict": "VALID_CHAIN",
+      "revoked": false,
+      "revocation_proof_available": false,
+      "chain_verified": true,
+      "chain_check_status": "VERIFIED_VALID_CHAIN",
+      "final_decision": "ALLOW",
+      "detected_by": [],
+      "resolution_time_ms": 277.95259999402333,
+      "step_latencies": {
+        "authorization_ms": 0.009700001101009548,
+        "trace_context_ms": 163.19449999718927,
+        "drift_scoring_ms": 42.42100000556093,
+        "revocation_check_ms": 72.17349999700673,
+        "chain_verification_ms": 0.0109999964479357,
+        "verdict_assembly_ms": 0.0026000052457675338
+      },
+      "reasons": [
+        "Authorized with verified chain evidence and no significant drift"
+      ]
+    },
+    {
+      "scenario": "SCOPE_CREEP",
+      "actor": "Agent_B",
+      "action": "USE_PERMISSION",
+      "record_id": "synthetic:002004",
+      "expected_class": "ANOMALY",
+      "authorized": true,
+      "drift_applicable": true,
+      "drift_flagged": true,
+      "drift_score": 0.18413918593829603,
+      "trace_verdict": "VALID_CHAIN",
+      "revoked": false,
+      "revocation_proof_available": false,
+      "chain_verified": true,
+      "chain_check_status": "VERIFIED_VALID_CHAIN",
+      "final_decision": "REVIEW",
+      "detected_by": [
+        "Module4"
+      ],
+      "resolution_time_ms": 418.235499993898,
+      "step_latencies": {
+        "authorization_ms": 0.0185999961104244,
+        "trace_context_ms": 274.34720000019297,
+        "drift_scoring_ms": 48.10129999532364,
+        "revocation_check_ms": 95.5660000036005,
+        "chain_verification_ms": 0.013900003978051245,
+        "verdict_assembly_ms": 0.0023000029614195228
+      },
+      "reasons": [
+        "Behavior deviates from the trained normal baseline"
+      ]
+    },
+    {
+      "scenario": "SCOPE_CREEP",
+      "actor": "Agent_B",
+      "action": "USE_PERMISSION",
+      "record_id": "synthetic:002008",
+      "expected_class": "ANOMALY",
+      "authorized": true,
+      "drift_applicable": true,
+      "drift_flagged": true,
+      "drift_score": 0.1935073322455243,
+      "trace_verdict": "VALID_CHAIN",
+      "revoked": false,
+      "revocation_proof_available": false,
+      "chain_verified": true,
+      "chain_check_status": "VERIFIED_VALID_CHAIN",
+      "final_decision": "REVIEW",
+      "detected_by": [
+        "Module4"
+      ],
+      "resolution_time_ms": 445.1240000053076,
+      "step_latencies": {
+        "authorization_ms": 0.019500002963468432,
+        "trace_context_ms": 333.27339999959804,
+        "drift_scoring_ms": 44.31820000172593,
+        "revocation_check_ms": 67.31470000522677,
+        "chain_verification_ms": 0.011199997970834374,
+        "verdict_assembly_ms": 0.0024999899324029684
+      },
+      "reasons": [
+        "Behavior deviates from the trained normal baseline"
+      ]
+    },
+    {
+      "scenario": "SCOPE_CREEP",
+      "actor": "Agent_B",
+      "action": "USE_PERMISSION",
+      "record_id": "synthetic:002012",
+      "expected_class": "ANOMALY",
+      "authorized": true,
+      "drift_applicable": true,
+      "drift_flagged": true,
+      "drift_score": 0.20608885011547995,
+      "trace_verdict": "VALID_CHAIN",
+      "revoked": false,
+      "revocation_proof_available": false,
+      "chain_verified": true,
+      "chain_check_status": "VERIFIED_VALID_CHAIN",
+      "final_decision": "REVIEW",
+      "detected_by": [
+        "Module4"
+      ],
+      "resolution_time_ms": 440.8504000020912,
+      "step_latencies": {
+        "authorization_ms": 0.016599995433352888,
+        "trace_context_ms": 318.8032000034582,
+        "drift_scoring_ms": 41.998999993666075,
+        "revocation_check_ms": 79.84640001086518,
+        "chain_verification_ms": 0.012100004823878407,
+        "verdict_assembly_ms": 0.0022000021999701858
+      },
+      "reasons": [
+        "Behavior deviates from the trained normal baseline"
+      ]
+    },
+    {
+      "scenario": "SCOPE_CREEP",
+      "actor": "Agent_B",
+      "action": "USE_PERMISSION",
+      "record_id": "synthetic:002016",
+      "expected_class": "ANOMALY",
+      "authorized": true,
+      "drift_applicable": true,
+      "drift_flagged": true,
+      "drift_score": 0.201032918124474,
+      "trace_verdict": "VALID_CHAIN",
+      "revoked": false,
+      "revocation_proof_available": false,
+      "chain_verified": true,
+      "chain_check_status": "VERIFIED_VALID_CHAIN",
+      "final_decision": "REVIEW",
+      "detected_by": [
+        "Module4"
+      ],
+      "resolution_time_ms": 442.45109999610577,
+      "step_latencies": {
+        "authorization_ms": 0.015399986295960844,
+        "trace_context_ms": 318.1029999977909,
+        "drift_scoring_ms": 41.80819999601226,
+        "revocation_check_ms": 82.38180000626016,
+        "chain_verification_ms": 0.005399997462518513,
+        "verdict_assembly_ms": 0.0009999930625781417
+      },
+      "reasons": [
+        "Behavior deviates from the trained normal baseline"
+      ]
+    },
+    {
+      "scenario": "SCOPE_CREEP",
+      "actor": "Agent_B",
+      "action": "USE_PERMISSION",
+      "record_id": "synthetic:002020",
+      "expected_class": "ANOMALY",
+      "authorized": true,
+      "drift_applicable": true,
+      "drift_flagged": true,
+      "drift_score": 0.19621576616160652,
+      "trace_verdict": "VALID_CHAIN",
+      "revoked": false,
+      "revocation_proof_available": false,
+      "chain_verified": true,
+      "chain_check_status": "VERIFIED_VALID_CHAIN",
+      "final_decision": "REVIEW",
+      "detected_by": [
+        "Module4"
+      ],
+      "resolution_time_ms": 422.1599000011338,
+      "step_latencies": {
+        "authorization_ms": 0.008100003469735384,
+        "trace_context_ms": 333.9757999929134,
+        "drift_scoring_ms": 40.31099998974241,
+        "revocation_check_ms": 47.78239999723155,
+        "chain_verification_ms": 0.006000002031214535,
+        "verdict_assembly_ms": 0.001200009137392044
+      },
+      "reasons": [
+        "Behavior deviates from the trained normal baseline"
+      ]
+    }
+  ],
+  "layer_by_layer_attack_detection": [
+    {
+      "scenario": "SELF_ESCALATION",
+      "actor": "Agent_D",
+      "record_id": "action:3c51685f-2f8a-4144-ac62-a2a06835b147",
+      "detected_by": [
+        "Module1",
+        "Module3",
+        "Module4"
+      ],
+      "final_decision": "BLOCK"
+    },
+    {
+      "scenario": "UNAUTHORIZED_DELEGATION",
+      "actor": "Agent_D",
+      "record_id": "action:e2614258-0095-4703-9fa8-4106d535fbd7",
+      "detected_by": [
+        "Module1",
+        "Module3",
+        "Module4"
+      ],
+      "final_decision": "BLOCK"
+    },
+    {
+      "scenario": "POST_DECOMMISSION_ACTIVITY",
+      "actor": "Agent_C",
+      "record_id": "action:b7877bd8-d540-454f-bc4a-c52887803df8",
+      "detected_by": [
+        "Module1",
+        "Module3",
+        "Module4",
+        "Module5"
+      ],
+      "final_decision": "BLOCK"
+    },
+    {
+      "scenario": "SCOPE_CREEP",
+      "actor": "Agent_B",
+      "record_id": "synthetic:002004",
+      "detected_by": [
+        "Module4"
+      ],
+      "final_decision": "REVIEW"
+    },
+    {
+      "scenario": "SCOPE_CREEP",
+      "actor": "Agent_B",
+      "record_id": "synthetic:002008",
+      "detected_by": [
+        "Module4"
+      ],
+      "final_decision": "REVIEW"
+    },
+    {
+      "scenario": "SCOPE_CREEP",
+      "actor": "Agent_B",
+      "record_id": "synthetic:002012",
+      "detected_by": [
+        "Module4"
+      ],
+      "final_decision": "REVIEW"
+    },
+    {
+      "scenario": "SCOPE_CREEP",
+      "actor": "Agent_B",
+      "record_id": "synthetic:002016",
+      "detected_by": [
+        "Module4"
+      ],
+      "final_decision": "REVIEW"
+    },
+    {
+      "scenario": "SCOPE_CREEP",
+      "actor": "Agent_B",
+      "record_id": "synthetic:002020",
+      "detected_by": [
+        "Module4"
+      ],
+      "final_decision": "REVIEW"
+    }
+  ],
+  "end_to_end_attack_coverage": 1.0,
+  "modules": {
+    "module2_blockchain": {
+      "registered_identities": 5,
+      "credentials_issued": 7,
+      "delegations_anchored": 2,
+      "revocations_anchored": 1,
+      "action_hashes_anchored": 11,
+      "proofs_verified": 14,
+      "proofs_total": 14,
+      "anchoring_latency_average_ms": 2579.6290714285715,
+      "anchoring_latency_worst_ms": 3711.2180000000003,
+      "anchoring_latency_total_ms": 36114.807,
+      "contract_address": "0x0B1a87021ec75fBaE919b1e86b2B1335FFC8F4d3",
+      "chain_id": 31337
+    },
+    "module3_tracing": {
+      "test_count": 5,
+      "correctly_classified": 5,
+      "delegation_trace_accuracy": 1.0,
+      "average_trace_latency_ms": 354.10773999465164,
+      "worst_case_trace_latency_ms": 737.9002999950899
+    },
+    "module4_anomaly": {
+      "isolation_forest": {
+        "precision": 0.8518518518518519,
+        "recall": 0.9583333333333334,
+        "f1": 0.9019607843137255,
+        "confusion_matrix": [
+          [
+            280,
+            20
+          ],
+          [
+            5,
+            115
+          ]
+        ],
+        "false_positive_rate": 0.06666666666666667,
+        "per_category": {
+          "POST_DECOMMISSION_ACTIVITY": {
+            "count": 30,
+            "recall": 1.0
+          },
+          "SCOPE_CREEP": {
+            "count": 30,
+            "recall": 1.0
+          },
+          "SELF_ESCALATION": {
+            "count": 30,
+            "recall": 0.8333333333333334
+          },
+          "UNAUTHORIZED_DELEGATION": {
+            "count": 30,
+            "recall": 1.0
+          }
+        }
+      },
+      "rule_baseline": {
+        "precision": 1.0,
+        "recall": 0.75,
+        "f1": 0.8571428571428571,
+        "confusion_matrix": [
+          [
+            300,
+            0
+          ],
+          [
+            30,
+            90
+          ]
+        ],
+        "false_positive_rate": 0.0,
+        "per_category": {
+          "POST_DECOMMISSION_ACTIVITY": {
+            "count": 30,
+            "recall": 1.0
+          },
+          "SCOPE_CREEP": {
+            "count": 30,
+            "recall": 0.0
+          },
+          "SELF_ESCALATION": {
+            "count": 30,
+            "recall": 1.0
+          },
+          "UNAUTHORIZED_DELEGATION": {
+            "count": 30,
+            "recall": 1.0
+          }
+        }
+      },
+      "latency": {
+        "average_ms": 44.57129547646175,
+        "worst_case_ms": 111.5871999936644,
+        "feature_average_ms": 0.8234016671069965,
+        "scoring_average_ms": 43.74789380935475
+      },
+      "dataset": {
+        "normal_count": 2000,
+        "attack_counts": {
+          "SELF_ESCALATION": 30,
+          "UNAUTHORIZED_DELEGATION": 30,
+          "POST_DECOMMISSION_ACTIVITY": 30,
+          "SCOPE_CREEP": 30
+        },
+        "train_normal_count": 1400,
+        "validation_normal_count": 300,
+        "test_normal_count": 300
+      },
+      "threshold": 0.05470855580990606
+    },
+    "module5_revocation": {
+      "post_revocation_attempts": 2,
+      "caught_by_realtime": 1,
+      "caught_by_audit": 2,
+      "caught_by_either": 2,
+      "revocation_completeness": 1.0,
+      "public_lookup_latency_ms": 132.9069999968245,
+      "public_lookup_samples_ms": [
+        280.2683999907458,
+        56.39759999758098,
+        62.0550000021467
+      ],
+      "revocation_to_proof_latency_ms": 847.3519000108354,
+      "proof_verification": true
+    }
+  },
+  "end_to_end_latency": {
+    "average_ms": {
+      "authorization_ms": 0.009742857184305433,
+      "trace_context_ms": 240.9090285710547,
+      "drift_scoring_ms": 40.03799047634294,
+      "revocation_check_ms": 109.28760476305061,
+      "chain_verification_ms": 87.7051000002428,
+      "verdict_assembly_ms": 0.003952380558032365
+    },
+    "worst_case_ms": {
+      "authorization_ms": 0.019800005247816443,
+      "trace_context_ms": 739.2957999982173,
+      "drift_scoring_ms": 61.702000006334856,
+      "revocation_check_ms": 493.66120000195224,
+      "chain_verification_ms": 624.1827000048943,
+      "verdict_assembly_ms": 0.014399993233382702
+    },
+    "total_average_ms": 478.15469999858624,
+    "total_worst_case_ms": 1529.5515999896452,
+    "pipeline_bottleneck_step": "trace_context_ms"
+  },
+  "overall_test_results": {
+    "source_fingerprint": "112f11f23a3d3dbac8182f8ad1425d3ad54e16d7c41cc596ac1d709a0afef52a",
+    "contract_compile": {
+      "passed": true,
+      "result": "Hardhat: no contracts to compile"
+    },
+    "contract_tests": {
+      "passed": true,
+      "test_count": 1
+    },
+    "python_tests": {
+      "passed": true,
+      "test_count": 43
+    },
+    "module1_demo": {
+      "passed": true,
+      "attack_attempts": 3,
+      "blocked_attacks": 3,
+      "detection_rate_percent": 100.0
+    },
+    "integration_scenarios": {
+      "scenario_count": 21,
+      "scenario_assertions_passed": true
+    }
+  },
+  "known_limitations": [
+    "Behavioral evaluation uses a reproducible synthetic dataset, not production traffic.",
+    "The registry runs on a local Hardhat chain without production consensus.",
+    "The prototype has four agents and one root authority.",
+    "Module 4 SELF_ESCALATION recall is below 100% on its held-out set.",
+    "Only full-agent revocation is supported.",
+    "These results do not establish production detection or latency performance."
+  ]
+}

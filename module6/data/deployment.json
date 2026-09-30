@@ -1,0 +1,7 @@
+{
+  "contract_address": "0x0B1a87021ec75fBaE919b1e86b2B1335FFC8F4d3",
+  "chain_id": 31337,
+  "deployment_transaction_hash": "0xcc65b6022cf14550e7aa52da1b4447466153a8a79c41c90b1e04cb7bd6d7cc8c",
+  "block_number": 573,
+  "rpc_url": "http://127.0.0.1:8545"
+}
