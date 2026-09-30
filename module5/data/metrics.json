@@ -1,0 +1,15 @@
+{
+  "post_revocation_attempts": 2,
+  "caught_by_realtime": 1,
+  "caught_by_audit": 2,
+  "caught_by_either": 2,
+  "revocation_completeness": 1.0,
+  "public_lookup_latency_ms": 132.9069999968245,
+  "public_lookup_samples_ms": [
+    280.2683999907458,
+    56.39759999758098,
+    62.0550000021467
+  ],
+  "revocation_to_proof_latency_ms": 847.3519000108354,
+  "proof_verification": true
+}

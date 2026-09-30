@@ -1,0 +1,615 @@
+{
+  "version": 2,
+  "records": {
+    "delegation:c34de2d5eabddcc750df951cc3f24aa66fa019cc789c9c6a4380f7b269287621": {
+      "kind": "delegation",
+      "status": "anchored",
+      "source": {
+        "record_id": "delegation:a2c567dc-963d-4da8-8885-3446ca3112e4",
+        "delegator": "Agent_A",
+        "delegatee": "Agent_B",
+        "permission": "CREATE_AGENT",
+        "authority_source": "ROOT_AUTHORIZER",
+        "status": "ACTIVE",
+        "timestamp": "2026-09-30T14:50:22.709032+00:00"
+      },
+      "proof": {
+        "record_id": "delegation:c34de2d5eabddcc750df951cc3f24aa66fa019cc789c9c6a4380f7b269287621",
+        "onchain_record_id": "0x0dab1feb5471c48be68a39dfb29a6c4a89f59648af891071660eb41943cbc78d",
+        "source_record_id": "delegation:a2c567dc-963d-4da8-8885-3446ca3112e4",
+        "kind": "delegation",
+        "content_hash": "c34de2d5eabddcc750df951cc3f24aa66fa019cc789c9c6a4380f7b269287621",
+        "tx_id": "0x3e30d868891ef48f9b44d3525640bcaabcf3702c3d15ba840030cccd82eb600a",
+        "transaction_hash": "0x3e30d868891ef48f9b44d3525640bcaabcf3702c3d15ba840030cccd82eb600a",
+        "block_number": 458,
+        "block_hash": "0x41adc433122dec56c5a7a6cf895c426d2e562d87b6c4d227ea75bee719531850",
+        "contract_address": "0xE7FF84Df24A9a252B6E8A5BB093aC52B1d8bEEdf",
+        "chain_id": 31337,
+        "timestamp": "2026-09-30T14:50:23.919993+00:00",
+        "rpc_url": "http://127.0.0.1:8545"
+      }
+    },
+    "delegation:aaf13796af0d2825e5a695f7ab88d49f503c364045db6d68417cef83fe4ec056": {
+      "kind": "delegation",
+      "status": "anchored",
+      "source": {
+        "record_id": "delegation:74ef0e58-7084-4439-8a85-77ee304da18f",
+        "delegator": "Agent_B",
+        "delegatee": "Agent_C",
+        "permission": "CREATE_AGENT",
+        "authority_source": "ROOT_AUTHORIZER",
+        "status": "REVOKED",
+        "timestamp": "2026-09-30T14:50:22.709053+00:00"
+      },
+      "proof": {
+        "record_id": "delegation:aaf13796af0d2825e5a695f7ab88d49f503c364045db6d68417cef83fe4ec056",
+        "onchain_record_id": "0x2db5bd2825a128228ce71309d508c46e0677fc8764166769cf03c3ac6033868a",
+        "source_record_id": "delegation:74ef0e58-7084-4439-8a85-77ee304da18f",
+        "kind": "delegation",
+        "content_hash": "aaf13796af0d2825e5a695f7ab88d49f503c364045db6d68417cef83fe4ec056",
+        "tx_id": "0xd210f35a01ce6ad240f0f3c997d36260c3607da19c5e8cbcb88bd00485a41288",
+        "transaction_hash": "0xd210f35a01ce6ad240f0f3c997d36260c3607da19c5e8cbcb88bd00485a41288",
+        "block_number": 460,
+        "block_hash": "0xee1f45a2456e7f81989ef58836677040ed06e8b8f830683f2c7cb3d4adf83234",
+        "contract_address": "0xE7FF84Df24A9a252B6E8A5BB093aC52B1d8bEEdf",
+        "chain_id": 31337,
+        "timestamp": "2026-09-30T14:50:24.228487+00:00",
+        "rpc_url": "http://127.0.0.1:8545"
+      }
+    },
+    "revocation:5315959235c8b6be67ffce7e150460cfbe28b73b0f717997e3e13e61d27b8b97": {
+      "kind": "revocation",
+      "status": "anchored",
+      "source": {
+        "record_id": "action:f0f04a4e-88f7-4d19-95eb-9b0a01eafd36",
+        "actor": "ROOT_AUTHORIZER",
+        "action": "AGENT_DECOMMISSIONED",
+        "timestamp": "2026-09-30T14:50:22.709137+00:00",
+        "claimed_authority": "ROOT_AUTHORIZER",
+        "result": "REVOKED",
+        "decommissioned_agent": "Agent_C",
+        "previous_permissions": [
+          "PROCESS_PAYMENT",
+          "CREATE_AGENT"
+        ],
+        "revoked_permissions": [
+          {
+            "permission": "PROCESS_PAYMENT",
+            "revoked_at": "2026-09-30T14:50:22.709127+00:00",
+            "revoked_by": "ROOT_AUTHORIZER"
+          },
+          {
+            "permission": "CREATE_AGENT",
+            "revoked_at": "2026-09-30T14:50:22.709127+00:00",
+            "revoked_by": "ROOT_AUTHORIZER"
+          }
+        ],
+        "decommissioned_at": "2026-09-30T14:50:22.709127+00:00",
+        "reason": "Attack simulation"
+      },
+      "proof": {
+        "record_id": "revocation:5315959235c8b6be67ffce7e150460cfbe28b73b0f717997e3e13e61d27b8b97",
+        "onchain_record_id": "0x76200bdd859682eeada19e733b13d007c10f77747e01f0cdf972ff2c823e1dd4",
+        "source_record_id": "action:f0f04a4e-88f7-4d19-95eb-9b0a01eafd36",
+        "kind": "revocation",
+        "content_hash": "5315959235c8b6be67ffce7e150460cfbe28b73b0f717997e3e13e61d27b8b97",
+        "tx_id": "0x9a9ec24c6aedaaecdeaccf1265b69dd3bb59615dfdf196443157eca30138e349",
+        "transaction_hash": "0x9a9ec24c6aedaaecdeaccf1265b69dd3bb59615dfdf196443157eca30138e349",
+        "block_number": 462,
+        "block_hash": "0x3c8032158dc9d21c0b1ebb3e21047ee441441d7d88295a6368bdb0927dea3bfd",
+        "contract_address": "0xE7FF84Df24A9a252B6E8A5BB093aC52B1d8bEEdf",
+        "chain_id": 31337,
+        "timestamp": "2026-09-30T14:50:24.653145+00:00",
+        "rpc_url": "http://127.0.0.1:8545"
+      }
+    },
+    "action:5680c5272ed8072ca4a8b6f6e900e6d6a2d45aada18442a62cf44a4e42b0e3e9": {
+      "kind": "action",
+      "status": "anchored",
+      "source": {
+        "record_id": "action:ddf8140c-bd33-40d9-944a-025b5362b494",
+        "actor": "Agent_A",
+        "action": "CHECK_READ_CATALOG",
+        "timestamp": "2026-09-30T14:50:22.708911+00:00",
+        "claimed_authority": "Agent_A",
+        "result": "BLOCKED",
+        "reason": "PERMISSION_NOT_GRANTED"
+      },
+      "proof": {
+        "record_id": "action:5680c5272ed8072ca4a8b6f6e900e6d6a2d45aada18442a62cf44a4e42b0e3e9",
+        "onchain_record_id": "0x235c5210772631d73aaecd003008e0922981422fa1ab60b2b719159644207dfe",
+        "source_record_id": "action:ddf8140c-bd33-40d9-944a-025b5362b494",
+        "kind": "action",
+        "content_hash": "5680c5272ed8072ca4a8b6f6e900e6d6a2d45aada18442a62cf44a4e42b0e3e9",
+        "tx_id": "0x6a401ce32e3190c3e05f5e458650ccf006650dbc7019c8199efaff0f09fb554a",
+        "transaction_hash": "0x6a401ce32e3190c3e05f5e458650ccf006650dbc7019c8199efaff0f09fb554a",
+        "block_number": 463,
+        "block_hash": "0x32f7528234812dd3339f585d89d7d65337c2807a266e8f7cb8412b28c3c76b71",
+        "contract_address": "0xE7FF84Df24A9a252B6E8A5BB093aC52B1d8bEEdf",
+        "chain_id": 31337,
+        "timestamp": "2026-09-30T14:50:24.817396+00:00",
+        "rpc_url": "http://127.0.0.1:8545"
+      }
+    },
+    "action:f2eeb0acec87f5fa43b599daca77935bcc211172aaddb19a149f3939db27871e": {
+      "kind": "action",
+      "status": "anchored",
+      "source": {
+        "record_id": "action:2c405153-4a9a-4eca-88b0-3cb1d21e255d",
+        "actor": "Agent_B",
+        "action": "CHECK_PROCESS_PAYMENT",
+        "timestamp": "2026-09-30T14:50:22.708956+00:00",
+        "claimed_authority": "Agent_B",
+        "result": "BLOCKED",
+        "reason": "PERMISSION_NOT_GRANTED"
+      },
+      "proof": {
+        "record_id": "action:f2eeb0acec87f5fa43b599daca77935bcc211172aaddb19a149f3939db27871e",
+        "onchain_record_id": "0xb99c9b85b077e25759e601b92c05aee0d2cb1e7b2fe0568ac4429514d5cb5068",
+        "source_record_id": "action:2c405153-4a9a-4eca-88b0-3cb1d21e255d",
+        "kind": "action",
+        "content_hash": "f2eeb0acec87f5fa43b599daca77935bcc211172aaddb19a149f3939db27871e",
+        "tx_id": "0x3fdaf4ff36005f657fa8e20ec955e3227b64502e94e880c89c49da3d834abeb5",
+        "transaction_hash": "0x3fdaf4ff36005f657fa8e20ec955e3227b64502e94e880c89c49da3d834abeb5",
+        "block_number": 464,
+        "block_hash": "0x4aeb140dd4c3217569829dab2b3f77f4cdc27263f31c76a70b7e7c8145cf14fc",
+        "contract_address": "0xE7FF84Df24A9a252B6E8A5BB093aC52B1d8bEEdf",
+        "chain_id": 31337,
+        "timestamp": "2026-09-30T14:50:24.969816+00:00",
+        "rpc_url": "http://127.0.0.1:8545"
+      }
+    },
+    "action:852f01155047dbf5b7a08d9c00d3c06a13eb762054c111501a44c1b107265089": {
+      "kind": "action",
+      "status": "anchored",
+      "source": {
+        "record_id": "action:124fba90-0b5f-4e2c-87dc-620c2865164c",
+        "actor": "Agent_C",
+        "action": "CHECK_VERIFY_ORDER",
+        "timestamp": "2026-09-30T14:50:22.708975+00:00",
+        "claimed_authority": "Agent_C",
+        "result": "BLOCKED",
+        "reason": "PERMISSION_NOT_GRANTED"
+      },
+      "proof": {
+        "record_id": "action:852f01155047dbf5b7a08d9c00d3c06a13eb762054c111501a44c1b107265089",
+        "onchain_record_id": "0x22983f978cddb70843f3de599de36e42f76077605d2cf1b57bdfeca6a118392f",
+        "source_record_id": "action:124fba90-0b5f-4e2c-87dc-620c2865164c",
+        "kind": "action",
+        "content_hash": "852f01155047dbf5b7a08d9c00d3c06a13eb762054c111501a44c1b107265089",
+        "tx_id": "0x26ecab4c9eaa089d073d237a1d56ec62a8399cf9fd04442d52602116131c2489",
+        "transaction_hash": "0x26ecab4c9eaa089d073d237a1d56ec62a8399cf9fd04442d52602116131c2489",
+        "block_number": 465,
+        "block_hash": "0xc9bc7a9200ff41bee687fdef1ca8e64d98752a84ec317826dc68f2d6ec1531d5",
+        "contract_address": "0xE7FF84Df24A9a252B6E8A5BB093aC52B1d8bEEdf",
+        "chain_id": 31337,
+        "timestamp": "2026-09-30T14:50:25.140355+00:00",
+        "rpc_url": "http://127.0.0.1:8545"
+      }
+    },
+    "action:fd03ffd5ebb5592cdcecb97794b46fc42e708d491505d3486e1d870cbc8e65a9": {
+      "kind": "action",
+      "status": "anchored",
+      "source": {
+        "record_id": "action:bdc81915-2f2a-4be2-82fa-8f66737ed4b0",
+        "actor": "Agent_D",
+        "action": "CHECK_CREATE_AGENT",
+        "timestamp": "2026-09-30T14:50:22.708990+00:00",
+        "claimed_authority": "Agent_D",
+        "result": "BLOCKED",
+        "reason": "PERMISSION_NOT_GRANTED"
+      },
+      "proof": {
+        "record_id": "action:fd03ffd5ebb5592cdcecb97794b46fc42e708d491505d3486e1d870cbc8e65a9",
+        "onchain_record_id": "0x00f51c26da0174e47037e0c5d27abb6ccf9be7c197c979864add3e73cec398b7",
+        "source_record_id": "action:bdc81915-2f2a-4be2-82fa-8f66737ed4b0",
+        "kind": "action",
+        "content_hash": "fd03ffd5ebb5592cdcecb97794b46fc42e708d491505d3486e1d870cbc8e65a9",
+        "tx_id": "0xf0b6fae2dbceb00c8aca5299579f186f74ba9080ec7e692803d615ac56ebeaf7",
+        "transaction_hash": "0xf0b6fae2dbceb00c8aca5299579f186f74ba9080ec7e692803d615ac56ebeaf7",
+        "block_number": 466,
+        "block_hash": "0x36a8a1bab5441a1d86b9eb4dd539a7edc32955e1e937f80a585dfcd343daae44",
+        "contract_address": "0xE7FF84Df24A9a252B6E8A5BB093aC52B1d8bEEdf",
+        "chain_id": 31337,
+        "timestamp": "2026-09-30T14:50:25.371334+00:00",
+        "rpc_url": "http://127.0.0.1:8545"
+      }
+    },
+    "action:21457e7885298045bc0ba4ac7af41f75665e3cefe7cdd8aab8854292a17db77c": {
+      "kind": "action",
+      "status": "anchored",
+      "source": {
+        "record_id": "action:a58e8487-bb1c-4d33-9ec6-e2b2c1c6618c",
+        "actor": "ROOT_AUTHORIZER",
+        "action": "ROOT_PERMISSION_GRANTED",
+        "timestamp": "2026-09-30T14:50:22.709012+00:00",
+        "claimed_authority": "ROOT_AUTHORIZER",
+        "result": "ALLOWED",
+        "target_agent": "Agent_A",
+        "permission": "CREATE_AGENT"
+      },
+      "proof": {
+        "record_id": "action:21457e7885298045bc0ba4ac7af41f75665e3cefe7cdd8aab8854292a17db77c",
+        "onchain_record_id": "0x8a353c33783f6c2651e59bdc67ed279aa2815e0d95506620ce0d1ae08a252654",
+        "source_record_id": "action:a58e8487-bb1c-4d33-9ec6-e2b2c1c6618c",
+        "kind": "action",
+        "content_hash": "21457e7885298045bc0ba4ac7af41f75665e3cefe7cdd8aab8854292a17db77c",
+        "tx_id": "0x84f658d47a2464f410b20a34bfea3fe95a6f77013889729fc5d321475cbe2405",
+        "transaction_hash": "0x84f658d47a2464f410b20a34bfea3fe95a6f77013889729fc5d321475cbe2405",
+        "block_number": 467,
+        "block_hash": "0xa55e0510330aec983e92d3d5d77ebc6143021a8723b04f3a1ec1d47b8bc5ff58",
+        "contract_address": "0xE7FF84Df24A9a252B6E8A5BB093aC52B1d8bEEdf",
+        "chain_id": 31337,
+        "timestamp": "2026-09-30T14:50:25.517953+00:00",
+        "rpc_url": "http://127.0.0.1:8545"
+      }
+    },
+    "action:db8a36f09d41f17e128185509995f32646b1ef86ef0fe7e5dc86fc94d248e6a5": {
+      "kind": "action",
+      "status": "anchored",
+      "source": {
+        "record_id": "action:4394564a-27bf-49b6-b579-94eafbf21187",
+        "actor": "Agent_A",
+        "action": "DELEGATE_CREATE_AGENT",
+        "timestamp": "2026-09-30T14:50:22.709032+00:00",
+        "claimed_authority": "ROOT_AUTHORIZER",
+        "result": "ALLOWED",
+        "delegatee": "Agent_B"
+      },
+      "proof": {
+        "record_id": "action:db8a36f09d41f17e128185509995f32646b1ef86ef0fe7e5dc86fc94d248e6a5",
+        "onchain_record_id": "0xa4a28b7fa8a0f14314f916c13ace0d0bb6b29c26b30da7b91f17fe549d7b7c0d",
+        "source_record_id": "action:4394564a-27bf-49b6-b579-94eafbf21187",
+        "kind": "action",
+        "content_hash": "db8a36f09d41f17e128185509995f32646b1ef86ef0fe7e5dc86fc94d248e6a5",
+        "tx_id": "0xc06f20320c1e24ef2e9eeb834565167cab70a04b5a7d1dddc6b441e430310232",
+        "transaction_hash": "0xc06f20320c1e24ef2e9eeb834565167cab70a04b5a7d1dddc6b441e430310232",
+        "block_number": 468,
+        "block_hash": "0x47292466ddc4fd2a1f8ac32b7dfa3b17f3f3a8892cebdc9e1cbe0ad01f365502",
+        "contract_address": "0xE7FF84Df24A9a252B6E8A5BB093aC52B1d8bEEdf",
+        "chain_id": 31337,
+        "timestamp": "2026-09-30T14:50:25.726472+00:00",
+        "rpc_url": "http://127.0.0.1:8545"
+      }
+    },
+    "action:b225108bd069e0c13a287a7e23561c7c2b59c2f495b65d9c11cc4939ea13992a": {
+      "kind": "action",
+      "status": "anchored",
+      "source": {
+        "record_id": "action:9328f3ed-c712-438c-802c-c7984dac42d5",
+        "actor": "Agent_B",
+        "action": "DELEGATE_CREATE_AGENT",
+        "timestamp": "2026-09-30T14:50:22.709053+00:00",
+        "claimed_authority": "ROOT_AUTHORIZER",
+        "result": "ALLOWED",
+        "delegatee": "Agent_C"
+      },
+      "proof": {
+        "record_id": "action:b225108bd069e0c13a287a7e23561c7c2b59c2f495b65d9c11cc4939ea13992a",
+        "onchain_record_id": "0xd7aa55b56d8b665ec9571e0b9dd58f1f63dd21cb6f22ee3d95818869a27991e2",
+        "source_record_id": "action:9328f3ed-c712-438c-802c-c7984dac42d5",
+        "kind": "action",
+        "content_hash": "b225108bd069e0c13a287a7e23561c7c2b59c2f495b65d9c11cc4939ea13992a",
+        "tx_id": "0xd526dbbffa307474bb9e1d9e1176de8c91e3207b6bcb4e7950784676d5617bbe",
+        "transaction_hash": "0xd526dbbffa307474bb9e1d9e1176de8c91e3207b6bcb4e7950784676d5617bbe",
+        "block_number": 469,
+        "block_hash": "0xefa6c2739293fe72e67e6d411fd159074f953c7b9dfd593243667ec31250de52",
+        "contract_address": "0xE7FF84Df24A9a252B6E8A5BB093aC52B1d8bEEdf",
+        "chain_id": 31337,
+        "timestamp": "2026-09-30T14:50:25.970017+00:00",
+        "rpc_url": "http://127.0.0.1:8545"
+      }
+    },
+    "action:c55ad9ef437eecd0674df8df08f6bb5b398589e7ff37377e9212d038b173a342": {
+      "kind": "action",
+      "status": "anchored",
+      "source": {
+        "record_id": "action:200e84cc-91bf-4dc9-b7f6-bae8ad0cf804",
+        "actor": "Agent_D",
+        "action": "SELF_ESCALATION_ATTEMPT",
+        "timestamp": "2026-09-30T14:50:22.709097+00:00",
+        "claimed_authority": "Agent_D",
+        "result": "BLOCKED",
+        "target_agent": "Agent_D",
+        "permission": "CREATE_AGENT",
+        "reason": "ROOT_AUTHORITY_REQUIRED"
+      },
+      "proof": {
+        "record_id": "action:c55ad9ef437eecd0674df8df08f6bb5b398589e7ff37377e9212d038b173a342",
+        "onchain_record_id": "0xdb81693ee833c1feee663b0e44bd7aa6459281d21da85fa0b6cd53ead2ff1d08",
+        "source_record_id": "action:200e84cc-91bf-4dc9-b7f6-bae8ad0cf804",
+        "kind": "action",
+        "content_hash": "c55ad9ef437eecd0674df8df08f6bb5b398589e7ff37377e9212d038b173a342",
+        "tx_id": "0xbcc29b673d31c3f75f25bad5e09f3bcd8537dd028c0c297c6256c507b107e2ed",
+        "transaction_hash": "0xbcc29b673d31c3f75f25bad5e09f3bcd8537dd028c0c297c6256c507b107e2ed",
+        "block_number": 470,
+        "block_hash": "0xa343c4ded9546e49f971e9ac8e4af0f049d9dc08bd79d2cff28a7f8f8caf90d6",
+        "contract_address": "0xE7FF84Df24A9a252B6E8A5BB093aC52B1d8bEEdf",
+        "chain_id": 31337,
+        "timestamp": "2026-09-30T14:50:26.121408+00:00",
+        "rpc_url": "http://127.0.0.1:8545"
+      }
+    },
+    "action:261b2a10cefebae2bda0cf2a0d2ad88a638c8bd72e1dcaeaf173e7cf7aec0317": {
+      "kind": "action",
+      "status": "anchored",
+      "source": {
+        "record_id": "action:0d09573c-44b0-47e8-82c8-c76305f264a3",
+        "actor": "Agent_D",
+        "action": "UNAUTHORIZED_DELEGATION_ATTEMPT",
+        "timestamp": "2026-09-30T14:50:22.709113+00:00",
+        "claimed_authority": "Agent_D",
+        "result": "BLOCKED",
+        "delegatee": "Agent_C",
+        "permission": "CREATE_AGENT",
+        "reason": "PERMISSION_NOT_GRANTED"
+      },
+      "proof": {
+        "record_id": "action:261b2a10cefebae2bda0cf2a0d2ad88a638c8bd72e1dcaeaf173e7cf7aec0317",
+        "onchain_record_id": "0x11049d2a926b36192751099d527d4622d45b134b9b478e1dec40c65b5e082712",
+        "source_record_id": "action:0d09573c-44b0-47e8-82c8-c76305f264a3",
+        "kind": "action",
+        "content_hash": "261b2a10cefebae2bda0cf2a0d2ad88a638c8bd72e1dcaeaf173e7cf7aec0317",
+        "tx_id": "0xd4cd3334262f4ce69a0beda6d5d6815a7f265951b05b714a520aa474b22a6ad8",
+        "transaction_hash": "0xd4cd3334262f4ce69a0beda6d5d6815a7f265951b05b714a520aa474b22a6ad8",
+        "block_number": 471,
+        "block_hash": "0xbc07d454e49993ae2babc676e8c0d7720887504b7ed808fec21694902797da73",
+        "contract_address": "0xE7FF84Df24A9a252B6E8A5BB093aC52B1d8bEEdf",
+        "chain_id": 31337,
+        "timestamp": "2026-09-30T14:50:26.267778+00:00",
+        "rpc_url": "http://127.0.0.1:8545"
+      }
+    },
+    "action:5315959235c8b6be67ffce7e150460cfbe28b73b0f717997e3e13e61d27b8b97": {
+      "kind": "action",
+      "status": "anchored",
+      "source": {
+        "record_id": "action:f0f04a4e-88f7-4d19-95eb-9b0a01eafd36",
+        "actor": "ROOT_AUTHORIZER",
+        "action": "AGENT_DECOMMISSIONED",
+        "timestamp": "2026-09-30T14:50:22.709137+00:00",
+        "claimed_authority": "ROOT_AUTHORIZER",
+        "result": "REVOKED",
+        "decommissioned_agent": "Agent_C",
+        "previous_permissions": [
+          "PROCESS_PAYMENT",
+          "CREATE_AGENT"
+        ],
+        "revoked_permissions": [
+          {
+            "permission": "PROCESS_PAYMENT",
+            "revoked_at": "2026-09-30T14:50:22.709127+00:00",
+            "revoked_by": "ROOT_AUTHORIZER"
+          },
+          {
+            "permission": "CREATE_AGENT",
+            "revoked_at": "2026-09-30T14:50:22.709127+00:00",
+            "revoked_by": "ROOT_AUTHORIZER"
+          }
+        ],
+        "decommissioned_at": "2026-09-30T14:50:22.709127+00:00",
+        "reason": "Attack simulation"
+      },
+      "proof": {
+        "record_id": "action:5315959235c8b6be67ffce7e150460cfbe28b73b0f717997e3e13e61d27b8b97",
+        "onchain_record_id": "0x462fa61122c0feb62975eb1264914ffc4173736c46c76e40d8e26e049f47d76c",
+        "source_record_id": "action:f0f04a4e-88f7-4d19-95eb-9b0a01eafd36",
+        "kind": "action",
+        "content_hash": "5315959235c8b6be67ffce7e150460cfbe28b73b0f717997e3e13e61d27b8b97",
+        "tx_id": "0x8e6ea569538c39797e7a4021e97e25a204e2c478d10d091defada09b07da3827",
+        "transaction_hash": "0x8e6ea569538c39797e7a4021e97e25a204e2c478d10d091defada09b07da3827",
+        "block_number": 472,
+        "block_hash": "0x1eb3b0c40afe20b8a154e881f590d6c6a99b54cbd63822af25877f1788bc3d83",
+        "contract_address": "0xE7FF84Df24A9a252B6E8A5BB093aC52B1d8bEEdf",
+        "chain_id": 31337,
+        "timestamp": "2026-09-30T14:50:26.468963+00:00",
+        "rpc_url": "http://127.0.0.1:8545"
+      }
+    },
+    "action:a2e934e1a8614dda09b4500a3c7e59a2034bc8b80cae15e1db37bf1fd0e5fce8": {
+      "kind": "action",
+      "status": "anchored",
+      "source": {
+        "record_id": "action:fbf40ba1-6960-4a16-8123-bf47e5cacfb3",
+        "actor": "Agent_C",
+        "action": "POST_DECOMMISSION_ACTIVITY",
+        "timestamp": "2026-09-30T14:50:22.709168+00:00",
+        "claimed_authority": "Agent_C",
+        "result": "BLOCKED",
+        "permission": "CREATE_AGENT",
+        "reason": "AGENT_DECOMMISSIONED"
+      },
+      "proof": {
+        "record_id": "action:a2e934e1a8614dda09b4500a3c7e59a2034bc8b80cae15e1db37bf1fd0e5fce8",
+        "onchain_record_id": "0x598bc26db748f3f3ec0050f10257ba7bbe6d39348495143facaf71168cac9d20",
+        "source_record_id": "action:fbf40ba1-6960-4a16-8123-bf47e5cacfb3",
+        "kind": "action",
+        "content_hash": "a2e934e1a8614dda09b4500a3c7e59a2034bc8b80cae15e1db37bf1fd0e5fce8",
+        "tx_id": "0x19ccf9096783269e0a19c23be1a29f32038e395b49420b68b5d14b5330317fd3",
+        "transaction_hash": "0x19ccf9096783269e0a19c23be1a29f32038e395b49420b68b5d14b5330317fd3",
+        "block_number": 473,
+        "block_hash": "0x3873a4686b8d53c83ba9c20c2578aefd4409c8dde2c9d9cddec6fdc5573bf097",
+        "contract_address": "0xE7FF84Df24A9a252B6E8A5BB093aC52B1d8bEEdf",
+        "chain_id": 31337,
+        "timestamp": "2026-09-30T14:50:26.607298+00:00",
+        "rpc_url": "http://127.0.0.1:8545"
+      }
+    }
+  },
+  "index": {
+    "delegation:a2c567dc-963d-4da8-8885-3446ca3112e4": {
+      "delegation": "delegation:c34de2d5eabddcc750df951cc3f24aa66fa019cc789c9c6a4380f7b269287621"
+    },
+    "delegation:74ef0e58-7084-4439-8a85-77ee304da18f": {
+      "delegation": "delegation:aaf13796af0d2825e5a695f7ab88d49f503c364045db6d68417cef83fe4ec056"
+    },
+    "action:f0f04a4e-88f7-4d19-95eb-9b0a01eafd36": {
+      "revocation": "revocation:5315959235c8b6be67ffce7e150460cfbe28b73b0f717997e3e13e61d27b8b97",
+      "action": "action:5315959235c8b6be67ffce7e150460cfbe28b73b0f717997e3e13e61d27b8b97"
+    },
+    "action:ddf8140c-bd33-40d9-944a-025b5362b494": {
+      "action": "action:5680c5272ed8072ca4a8b6f6e900e6d6a2d45aada18442a62cf44a4e42b0e3e9"
+    },
+    "action:2c405153-4a9a-4eca-88b0-3cb1d21e255d": {
+      "action": "action:f2eeb0acec87f5fa43b599daca77935bcc211172aaddb19a149f3939db27871e"
+    },
+    "action:124fba90-0b5f-4e2c-87dc-620c2865164c": {
+      "action": "action:852f01155047dbf5b7a08d9c00d3c06a13eb762054c111501a44c1b107265089"
+    },
+    "action:bdc81915-2f2a-4be2-82fa-8f66737ed4b0": {
+      "action": "action:fd03ffd5ebb5592cdcecb97794b46fc42e708d491505d3486e1d870cbc8e65a9"
+    },
+    "action:a58e8487-bb1c-4d33-9ec6-e2b2c1c6618c": {
+      "action": "action:21457e7885298045bc0ba4ac7af41f75665e3cefe7cdd8aab8854292a17db77c"
+    },
+    "action:4394564a-27bf-49b6-b579-94eafbf21187": {
+      "action": "action:db8a36f09d41f17e128185509995f32646b1ef86ef0fe7e5dc86fc94d248e6a5"
+    },
+    "action:9328f3ed-c712-438c-802c-c7984dac42d5": {
+      "action": "action:b225108bd069e0c13a287a7e23561c7c2b59c2f495b65d9c11cc4939ea13992a"
+    },
+    "action:200e84cc-91bf-4dc9-b7f6-bae8ad0cf804": {
+      "action": "action:c55ad9ef437eecd0674df8df08f6bb5b398589e7ff37377e9212d038b173a342"
+    },
+    "action:0d09573c-44b0-47e8-82c8-c76305f264a3": {
+      "action": "action:261b2a10cefebae2bda0cf2a0d2ad88a638c8bd72e1dcaeaf173e7cf7aec0317"
+    },
+    "action:fbf40ba1-6960-4a16-8123-bf47e5cacfb3": {
+      "action": "action:a2e934e1a8614dda09b4500a3c7e59a2034bc8b80cae15e1db37bf1fd0e5fce8"
+    }
+  },
+  "pending": {},
+  "failed": {},
+  "credentials": {
+    "credential:1ddce26f51855d370120654c691469613423376c89e0217eb06992cc072562c8": {
+      "agent_id": "Agent_B",
+      "agent_hash": "0x54433cf68c3259d3e18f600ac76874c9638711c0e7d4f358c0f982fc5b677c5a",
+      "agent_address": "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
+      "issuer": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+      "allowed_permission_scope": [
+        "READ_CATALOG"
+      ],
+      "delegation_scope": [],
+      "issued_at": "2026-09-30T14:50:23+00:00",
+      "expires_at": "2027-09-30T14:50:23+00:00",
+      "status_at_issuance": "ACTIVE",
+      "credential_id": "credential:1ddce26f51855d370120654c691469613423376c89e0217eb06992cc072562c8",
+      "onchain_id": "0x7dcddd2a755edc7ec4c947c7c2815bf71a380bdbdb507bb98f17d690aebb38c0",
+      "content_hash": "1ddce26f51855d370120654c691469613423376c89e0217eb06992cc072562c8",
+      "current_status": "ACTIVE",
+      "transaction_hash": "0xf19d7fc2be55e20416272d6186cbe937f6a4252aec5484ddb791d573052f3141"
+    },
+    "credential:67efe3042a5059287e48a782bca897b0a38cade2b83f37ada88d9c8df2ba4cb4": {
+      "agent_id": "Agent_B",
+      "agent_hash": "0x54433cf68c3259d3e18f600ac76874c9638711c0e7d4f358c0f982fc5b677c5a",
+      "agent_address": "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
+      "issuer": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+      "allowed_permission_scope": [
+        "CREATE_ORDER"
+      ],
+      "delegation_scope": [],
+      "issued_at": "2026-09-30T14:50:23+00:00",
+      "expires_at": "2027-09-30T14:50:23+00:00",
+      "status_at_issuance": "ACTIVE",
+      "credential_id": "credential:67efe3042a5059287e48a782bca897b0a38cade2b83f37ada88d9c8df2ba4cb4",
+      "onchain_id": "0x98a0fd23b6de2743479223c3e6fb8876c77f4d4f89ceb1e7776a72c64214ac2b",
+      "content_hash": "67efe3042a5059287e48a782bca897b0a38cade2b83f37ada88d9c8df2ba4cb4",
+      "current_status": "ACTIVE",
+      "transaction_hash": "0x76c512645a3f5dbee0dd1fab61d303dddc3cd0ca329466f872e717477168d6ba"
+    },
+    "credential:275ea7ac151d12fa7b951cb579103402cce71e2f7d90d233a9165d7fb4b4565e": {
+      "agent_id": "Agent_C",
+      "agent_hash": "0xab405cf423ac524e222e98a71df7071710ec1da502f36f24c3e856a9fe824220",
+      "agent_address": "0x90F79bf6EB2c4f870365E785982E1f101E93b906",
+      "issuer": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+      "allowed_permission_scope": [
+        "PROCESS_PAYMENT"
+      ],
+      "delegation_scope": [],
+      "issued_at": "2026-09-30T14:50:23+00:00",
+      "expires_at": "2027-09-30T14:50:23+00:00",
+      "status_at_issuance": "ACTIVE",
+      "credential_id": "credential:275ea7ac151d12fa7b951cb579103402cce71e2f7d90d233a9165d7fb4b4565e",
+      "onchain_id": "0x5530bc2626aa72ba706198650f90e22409f269297fe03d2cbe37828f5126578f",
+      "content_hash": "275ea7ac151d12fa7b951cb579103402cce71e2f7d90d233a9165d7fb4b4565e",
+      "current_status": "REVOKED",
+      "transaction_hash": "0xa7efdfddbea07b0ee9dd80e06ceb2e7d949a5d081ca318e7449445edc93ea547"
+    },
+    "credential:5c340a12e0a51a2a4d181aa76f726f6de12738770ca9299b3d70bb0aa1f2b871": {
+      "agent_id": "Agent_D",
+      "agent_hash": "0x2bd65b52b60adf2bec41bf479b70a15758b22a3c63fecb18e43952e362a7e7c3",
+      "agent_address": "0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65",
+      "issuer": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+      "allowed_permission_scope": [
+        "VERIFY_ORDER"
+      ],
+      "delegation_scope": [],
+      "issued_at": "2026-09-30T14:50:23+00:00",
+      "expires_at": "2027-09-30T14:50:23+00:00",
+      "status_at_issuance": "ACTIVE",
+      "credential_id": "credential:5c340a12e0a51a2a4d181aa76f726f6de12738770ca9299b3d70bb0aa1f2b871",
+      "onchain_id": "0xff76e7184308c199fac7c97be5342fa73421d7a0b5ec0df01ce6d647f77bb3c0",
+      "content_hash": "5c340a12e0a51a2a4d181aa76f726f6de12738770ca9299b3d70bb0aa1f2b871",
+      "current_status": "ACTIVE",
+      "transaction_hash": "0x298c68b2ceb5dce96353363ec50d8e05c9f4d87283be3a12e1cc4c59203936e8"
+    },
+    "credential:eb0350b9832107c5ce186d068add610618b4bc6b3e108aa02dad7de71be2a12a": {
+      "agent_id": "Agent_A",
+      "agent_hash": "0xde24659b6733a2f50760e4b40739283518c4dcfec5a9ea6504607890ece6a81f",
+      "agent_address": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+      "issuer": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+      "allowed_permission_scope": [
+        "CREATE_AGENT"
+      ],
+      "delegation_scope": [
+        "CREATE_AGENT"
+      ],
+      "issued_at": "2026-09-30T14:50:23+00:00",
+      "expires_at": "2027-09-30T14:50:23+00:00",
+      "status_at_issuance": "ACTIVE",
+      "credential_id": "credential:eb0350b9832107c5ce186d068add610618b4bc6b3e108aa02dad7de71be2a12a",
+      "onchain_id": "0x033150663291944189a500be5c9a7e4149c889571ff485643141eb9bcc66c944",
+      "content_hash": "eb0350b9832107c5ce186d068add610618b4bc6b3e108aa02dad7de71be2a12a",
+      "current_status": "ACTIVE",
+      "transaction_hash": "0x0f078d05b4b6e57bf0975df0777443c5d1c6512a8a6b02c3122c938fdf9759df"
+    },
+    "credential:a8d9daae4a9df04ceaccbc847874c50caca5bd018ad125ac99c262153378dc0c": {
+      "agent_id": "Agent_B",
+      "agent_hash": "0x54433cf68c3259d3e18f600ac76874c9638711c0e7d4f358c0f982fc5b677c5a",
+      "agent_address": "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
+      "issuer": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+      "allowed_permission_scope": [
+        "CREATE_AGENT"
+      ],
+      "delegation_scope": [
+        "CREATE_AGENT"
+      ],
+      "issued_at": "2026-09-30T14:50:24+00:00",
+      "expires_at": "2027-09-30T14:50:24+00:00",
+      "status_at_issuance": "ACTIVE",
+      "credential_id": "credential:a8d9daae4a9df04ceaccbc847874c50caca5bd018ad125ac99c262153378dc0c",
+      "onchain_id": "0xb2baa78c66ef10641f1a24ed40f3c8af9d84b5befdb488ed45462e2a17bf64da",
+      "content_hash": "a8d9daae4a9df04ceaccbc847874c50caca5bd018ad125ac99c262153378dc0c",
+      "current_status": "ACTIVE",
+      "transaction_hash": "0x9ff2da9533b06bd58877be114892aa3786e9ce2c3022c0b039f2eb0659dd1b5e"
+    },
+    "credential:18637044b226b542c63ef9616c6d12ea12e325e3f240725324ca41c45b755757": {
+      "agent_id": "Agent_C",
+      "agent_hash": "0xab405cf423ac524e222e98a71df7071710ec1da502f36f24c3e856a9fe824220",
+      "agent_address": "0x90F79bf6EB2c4f870365E785982E1f101E93b906",
+      "issuer": "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
+      "allowed_permission_scope": [
+        "CREATE_AGENT"
+      ],
+      "delegation_scope": [],
+      "issued_at": "2026-09-30T14:50:24+00:00",
+      "expires_at": "2027-09-30T14:50:24+00:00",
+      "status_at_issuance": "ACTIVE",
+      "credential_id": "credential:18637044b226b542c63ef9616c6d12ea12e325e3f240725324ca41c45b755757",
+      "onchain_id": "0x1f472c77af18618c5e7f5c3e62a84582410e4771f75d470624074ae67d7cf68f",
+      "content_hash": "18637044b226b542c63ef9616c6d12ea12e325e3f240725324ca41c45b755757",
+      "current_status": "REVOKED",
+      "transaction_hash": "0x09af5d7655da7d0a7d7b433d314b00da000d83b87f4ac3fe179d9a24d4769e56"
+    }
+  }
+}
