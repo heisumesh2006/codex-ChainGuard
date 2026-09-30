@@ -1,0 +1,89 @@
+{
+  "isolation_forest": {
+    "precision": 0.8518518518518519,
+    "recall": 0.9583333333333334,
+    "f1": 0.9019607843137255,
+    "confusion_matrix": [
+      [
+        280,
+        20
+      ],
+      [
+        5,
+        115
+      ]
+    ],
+    "false_positive_rate": 0.06666666666666667,
+    "per_category": {
+      "POST_DECOMMISSION_ACTIVITY": {
+        "count": 30,
+        "recall": 1.0
+      },
+      "SCOPE_CREEP": {
+        "count": 30,
+        "recall": 1.0
+      },
+      "SELF_ESCALATION": {
+        "count": 30,
+        "recall": 0.8333333333333334
+      },
+      "UNAUTHORIZED_DELEGATION": {
+        "count": 30,
+        "recall": 1.0
+      }
+    }
+  },
+  "rule_baseline": {
+    "precision": 1.0,
+    "recall": 0.75,
+    "f1": 0.8571428571428571,
+    "confusion_matrix": [
+      [
+        300,
+        0
+      ],
+      [
+        30,
+        90
+      ]
+    ],
+    "false_positive_rate": 0.0,
+    "per_category": {
+      "POST_DECOMMISSION_ACTIVITY": {
+        "count": 30,
+        "recall": 1.0
+      },
+      "SCOPE_CREEP": {
+        "count": 30,
+        "recall": 0.0
+      },
+      "SELF_ESCALATION": {
+        "count": 30,
+        "recall": 1.0
+      },
+      "UNAUTHORIZED_DELEGATION": {
+        "count": 30,
+        "recall": 1.0
+      }
+    }
+  },
+  "latency": {
+    "average_ms": 44.57129547646175,
+    "worst_case_ms": 111.5871999936644,
+    "feature_average_ms": 0.8234016671069965,
+    "scoring_average_ms": 43.74789380935475
+  },
+  "dataset": {
+    "normal_count": 2000,
+    "attack_counts": {
+      "SELF_ESCALATION": 30,
+      "UNAUTHORIZED_DELEGATION": 30,
+      "POST_DECOMMISSION_ACTIVITY": 30,
+      "SCOPE_CREEP": 30
+    },
+    "train_normal_count": 1400,
+    "validation_normal_count": 300,
+    "test_normal_count": 300
+  },
+  "threshold": 0.05470855580990606
+}
