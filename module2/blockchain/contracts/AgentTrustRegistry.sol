@@ -27,9 +27,21 @@ contract AgentTrustRegistry {
         bytes32 contentHash;
     }
 
+    // Full-agent revocation metadata is public so a cold verifier needs no
+    // off-chain event JSON. revokedAt keeps the exact Module 1 ISO-8601 value.
+    struct RevocationDetails {
+        string revokedAt;
+        string revokedBy;
+        string[] permissions;
+        bytes32 contentHash;
+        bytes32 recordId;
+        uint64 confirmedAt;
+    }
+
     mapping(bytes32 => address) public agentAddresses;
     mapping(address => bytes32) public addressAgents;
     mapping(bytes32 => bool) public agentRevoked;
+    mapping(bytes32 => RevocationDetails) private revocationDetails;
     mapping(bytes32 => Credential) public credentials;
     mapping(bytes32 => Commitment) public commitments;
     mapping(bytes32 => mapping(bytes32 => bytes32)) public scopeCredentials;
@@ -111,12 +123,17 @@ contract AgentTrustRegistry {
         emit DelegationAnchored(recordId, delegatorHash, delegateeHash, contentHash);
     }
 
-    function anchorRevocation(
+    function anchorRevocationDetailed(
         bytes32 recordId,
         bytes32 agentHash,
         bytes32[] calldata credentialIds,
-        bytes32 contentHash
+        bytes32 contentHash,
+        string calldata revokedAt,
+        string calldata revokedBy,
+        string[] calldata permissions
     ) external onlyRoot {
+        require(bytes(revokedAt).length != 0, "EMPTY_REVOCATION_TIME");
+        require(keccak256(bytes(revokedBy)) == keccak256(bytes("ROOT_AUTHORIZER")), "INVALID_REVOKER");
         _newCommitment(recordId, contentHash, 3);
         require(agentAddresses[agentHash] != address(0), "AGENT_NOT_REGISTERED");
         require(!agentRevoked[agentHash], "AGENT_REVOKED");
@@ -126,7 +143,30 @@ contract AgentTrustRegistry {
             require(credential.agentHash == agentHash && credential.active, "INVALID_CREDENTIAL");
             credential.active = false;
         }
+        RevocationDetails storage details = revocationDetails[agentHash];
+        details.revokedAt = revokedAt;
+        details.revokedBy = revokedBy;
+        details.contentHash = contentHash;
+        details.recordId = recordId;
+        details.confirmedAt = uint64(block.timestamp);
+        for (uint256 i = 0; i < permissions.length; i++) {
+            details.permissions.push(permissions[i]);
+        }
         emit RevocationAnchored(recordId, agentHash, contentHash);
+    }
+
+    function getRevocationDetails(bytes32 agentHash) external view returns (
+        string memory revokedAt,
+        string memory revokedBy,
+        string[] memory permissions,
+        bytes32 contentHash,
+        bytes32 recordId,
+        uint64 confirmedAt
+    ) {
+        require(agentRevoked[agentHash], "AGENT_NOT_REVOKED");
+        RevocationDetails storage details = revocationDetails[agentHash];
+        return (details.revokedAt, details.revokedBy, details.permissions,
+                details.contentHash, details.recordId, details.confirmedAt);
     }
 
     function anchorActionHash(bytes32 recordId, bytes32 contentHash) external onlyRoot {

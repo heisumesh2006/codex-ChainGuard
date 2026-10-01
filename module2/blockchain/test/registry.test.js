@@ -80,11 +80,24 @@ test("root administration, scope, delegation, revocation, and duplicate guards",
   )).wait();
 
   const revocation = digest("charlie-revoked");
-  await (await registry.anchorRevocation(recordId(3, revocation), charlieHash, [recordId(1, charlieCredential)], revocation)).wait();
+  const revokedAt = "2026-09-30T11:37:43.392868+00:00";
+  const permissions = ["CREATE_AGENT"];
+  await (await registry.anchorRevocationDetailed(
+    recordId(3, revocation), charlieHash, [recordId(1, charlieCredential)],
+    revocation, revokedAt, "ROOT_AUTHORIZER", permissions,
+  )).wait();
   assert.equal(await registry.agentRevoked(charlieHash), true);
   assert.equal((await registry.credentials(recordId(1, charlieCredential))).active, false);
+  const details = await registry.getRevocationDetails(charlieHash);
+  assert.equal(details.revokedAt, revokedAt);
+  assert.equal(details.revokedBy, "ROOT_AUTHORIZER");
+  assert.deepEqual([...details.permissions], permissions);
+  assert.equal(details.contentHash, revocation);
+  assert.equal(details.recordId, recordId(3, revocation));
+  assert.ok(details.confirmedAt > 0n);
   await assert.rejects(
-    registry.anchorRevocation(recordId(3, digest("again")), charlieHash, [recordId(1, charlieCredential)], digest("again")),
+    registry.anchorRevocationDetailed(recordId(3, digest("again")), charlieHash, [recordId(1, charlieCredential)],
+      digest("again"), revokedAt, "ROOT_AUTHORIZER", permissions),
     /AGENT_REVOKED/,
   );
 

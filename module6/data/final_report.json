@@ -43,14 +43,14 @@
         "Module3",
         "Module4"
       ],
-      "resolution_time_ms": 174.20280000078492,
+      "resolution_time_ms": 256.3769999978831,
       "step_latencies": {
-        "authorization_ms": 0.005399997462518513,
-        "trace_context_ms": 48.46900000120513,
-        "drift_scoring_ms": 17.65930000692606,
-        "revocation_check_ms": 49.7046000091359,
-        "chain_verification_ms": 58.201899999403395,
-        "verdict_assembly_ms": 0.007299997378140688
+        "authorization_ms": 0.010299991117790341,
+        "trace_context_ms": 69.22229999327101,
+        "drift_scoring_ms": 66.40680000418797,
+        "revocation_check_ms": 45.65080000611488,
+        "chain_verification_ms": 74.87579999724403,
+        "verdict_assembly_ms": 0.0046000059228390455
       },
       "reasons": [
         "Module 1 real-time authorization denied the action",
@@ -79,14 +79,14 @@
         "Module3",
         "Module4"
       ],
-      "resolution_time_ms": 300.22929998813197,
+      "resolution_time_ms": 236.66519999096636,
       "step_latencies": {
-        "authorization_ms": 0.006100002792663872,
-        "trace_context_ms": 82.93479999701958,
-        "drift_scoring_ms": 52.384200011147186,
-        "revocation_check_ms": 68.94040000042878,
-        "chain_verification_ms": 95.4731000092579,
-        "verdict_assembly_ms": 0.014399993233382702
+        "authorization_ms": 0.004099987563677132,
+        "trace_context_ms": 75.67810000909958,
+        "drift_scoring_ms": 30.47610000066925,
+        "revocation_check_ms": 65.6682999979239,
+        "chain_verification_ms": 64.69189999916125,
+        "verdict_assembly_ms": 0.004999994416721165
       },
       "reasons": [
         "Module 1 real-time authorization denied the action",
@@ -115,14 +115,14 @@
         "Module3",
         "Module4"
       ],
-      "resolution_time_ms": 842.5053000100888,
+      "resolution_time_ms": 726.065099996049,
       "step_latencies": {
-        "authorization_ms": 0.006300004315562546,
-        "trace_context_ms": 95.93989999848418,
-        "drift_scoring_ms": 50.812999994377606,
-        "revocation_check_ms": 462.6338000089163,
-        "chain_verification_ms": 232.62830000021495,
-        "verdict_assembly_ms": 0.005199995939619839
+        "authorization_ms": 0.0036999990697950125,
+        "trace_context_ms": 61.499100003857166,
+        "drift_scoring_ms": 35.23220001079608,
+        "revocation_check_ms": 464.8733999929391,
+        "chain_verification_ms": 164.27069999917876,
+        "verdict_assembly_ms": 0.005699999746866524
       },
       "reasons": [
         "Module 1 real-time authorization denied the action",
@@ -151,14 +151,14 @@
         "Module3",
         "Module4"
       ],
-      "resolution_time_ms": 264.5518999925116,
+      "resolution_time_ms": 221.17010000511073,
       "step_latencies": {
-        "authorization_ms": 0.004599991370923817,
-        "trace_context_ms": 70.67470000765752,
-        "drift_scoring_ms": 45.67740000493359,
-        "revocation_check_ms": 91.71190000779461,
-        "chain_verification_ms": 56.28400000568945,
-        "verdict_assembly_ms": 0.0037999998312443495
+        "authorization_ms": 0.0033999967854470015,
+        "trace_context_ms": 84.50640000228304,
+        "drift_scoring_ms": 34.5417000062298,
+        "revocation_check_ms": 50.77060000621714,
+        "chain_verification_ms": 51.16600000474136,
+        "verdict_assembly_ms": 0.0031999952625483274
       },
       "reasons": [
         "Module 1 real-time authorization denied the action",
@@ -183,14 +183,14 @@
       "chain_check_status": "VERIFIED_VALID_CHAIN",
       "final_decision": "ALLOW",
       "detected_by": [],
-      "resolution_time_ms": 405.90749999682885,
+      "resolution_time_ms": 293.9912000001641,
       "step_latencies": {
-        "authorization_ms": 0.002900007530115545,
-        "trace_context_ms": 330.99879999645054,
-        "drift_scoring_ms": 0.0016999983927235007,
-        "revocation_check_ms": 0.000300002284348011,
-        "chain_verification_ms": 74.70660000399221,
-        "verdict_assembly_ms": 0.005600013537332416
+        "authorization_ms": 0.002700006007216871,
+        "trace_context_ms": 235.3748000023188,
+        "drift_scoring_ms": 0.0015999976312741637,
+        "revocation_check_ms": 0.000400003045797348,
+        "chain_verification_ms": 58.48449999757577,
+        "verdict_assembly_ms": 0.0028999929782003164
       },
       "reasons": [
         "Authorized with verified chain evidence and no significant drift"
@@ -215,14 +215,14 @@
       "detected_by": [
         "Module4"
       ],
-      "resolution_time_ms": 722.1146999945631,
+      "resolution_time_ms": 548.0720000050496,
       "step_latencies": {
-        "authorization_ms": 0.0033999967854470015,
-        "trace_context_ms": 453.5548999992898,
-        "drift_scoring_ms": 50.19380000885576,
-        "revocation_check_ms": 81.80739999806974,
-        "chain_verification_ms": 136.3502000021981,
-        "verdict_assembly_ms": 0.002700006007216871
+        "authorization_ms": 0.0020000006770715117,
+        "trace_context_ms": 330.1266000053147,
+        "drift_scoring_ms": 40.793100008158945,
+        "revocation_check_ms": 56.629200000315905,
+        "chain_verification_ms": 120.40830000478309,
+        "verdict_assembly_ms": 0.0015999976312741637
       },
       "reasons": [
         "Behavior deviates from the trained normal baseline"
@@ -247,14 +247,14 @@
       "detected_by": [
         "Module4"
       ],
-      "resolution_time_ms": 701.7156000074465,
+      "resolution_time_ms": 614.4907999987481,
       "step_latencies": {
-        "authorization_ms": 0.0029999937396496534,
-        "trace_context_ms": 454.1910999978427,
-        "drift_scoring_ms": 61.702000006334856,
-        "revocation_check_ms": 56.46730000444222,
-        "chain_verification_ms": 129.15909998991992,
-        "verdict_assembly_ms": 0.0021999876480549574
+        "authorization_ms": 0.0020000006770715117,
+        "trace_context_ms": 390.54480000049807,
+        "drift_scoring_ms": 38.434500005678274,
+        "revocation_check_ms": 57.611399999586865,
+        "chain_verification_ms": 127.76879999728408,
+        "verdict_assembly_ms": 0.0022000021999701858
       },
       "reasons": [
         "Behavior deviates from the trained normal baseline"
@@ -281,14 +281,14 @@
         "Module3",
         "Module4"
       ],
-      "resolution_time_ms": 291.76880000159144,
+      "resolution_time_ms": 240.5068000080064,
       "step_latencies": {
-        "authorization_ms": 0.0035999983083456755,
-        "trace_context_ms": 81.05439999781083,
-        "drift_scoring_ms": 43.0527999997139,
-        "revocation_check_ms": 82.5798999867402,
-        "chain_verification_ms": 84.87799999420531,
-        "verdict_assembly_ms": 0.0044000043999403715
+        "authorization_ms": 0.002900007530115545,
+        "trace_context_ms": 57.04379999951925,
+        "drift_scoring_ms": 41.75499999837484,
+        "revocation_check_ms": 84.11100000375882,
+        "chain_verification_ms": 57.469099992886186,
+        "verdict_assembly_ms": 0.0020000006770715117
       },
       "reasons": [
         "Module 1 real-time authorization denied the action",
@@ -317,14 +317,14 @@
         "Module3",
         "Module4"
       ],
-      "resolution_time_ms": 298.4691999881761,
+      "resolution_time_ms": 211.8637000094168,
       "step_latencies": {
-        "authorization_ms": 0.0040000013541430235,
-        "trace_context_ms": 76.6213000024436,
-        "drift_scoring_ms": 41.337600006954744,
-        "revocation_check_ms": 82.11370000208262,
-        "chain_verification_ms": 98.19679999782238,
-        "verdict_assembly_ms": 0.0041000021155923605
+        "authorization_ms": 0.0013999961083754897,
+        "trace_context_ms": 52.4472999968566,
+        "drift_scoring_ms": 31.98810000321828,
+        "revocation_check_ms": 68.45650001196191,
+        "chain_verification_ms": 58.881100005237386,
+        "verdict_assembly_ms": 0.0020000006770715117
       },
       "reasons": [
         "Module 1 real-time authorization denied the action",
@@ -349,14 +349,14 @@
       "chain_check_status": "VERIFIED_CONTEXT",
       "final_decision": "ALLOW",
       "detected_by": [],
-      "resolution_time_ms": 774.4245000067167,
+      "resolution_time_ms": 559.1289000003599,
       "step_latencies": {
-        "authorization_ms": 0.0033999967854470015,
-        "trace_context_ms": 150.05520000704564,
-        "drift_scoring_ms": 0.0021000014385208488,
-        "revocation_check_ms": 0.00039998849388211966,
-        "chain_verification_ms": 624.1827000048943,
-        "verdict_assembly_ms": 0.00449999060947448
+        "authorization_ms": 0.0016999983927235007,
+        "trace_context_ms": 120.10130000999197,
+        "drift_scoring_ms": 0.0024999899324029684,
+        "revocation_check_ms": 0.000500003807246685,
+        "chain_verification_ms": 438.8963999954285,
+        "verdict_assembly_ms": 0.0023999891709536314
       },
       "reasons": [
         "Authorized with verified chain evidence and no significant drift"
@@ -384,14 +384,14 @@
         "Module4",
         "Module5"
       ],
-      "resolution_time_ms": 1529.5515999896452,
+      "resolution_time_ms": 1149.313899994013,
       "step_latencies": {
-        "authorization_ms": 0.003000008291564882,
-        "trace_context_ms": 739.2957999982173,
-        "drift_scoring_ms": 44.77129998849705,
-        "revocation_check_ms": 493.66120000195224,
-        "chain_verification_ms": 251.64180000138003,
-        "verdict_assembly_ms": 0.006700007361359894
+        "authorization_ms": 0.0015999976312741637,
+        "trace_context_ms": 494.75659999006893,
+        "drift_scoring_ms": 36.04989999439567,
+        "revocation_check_ms": 426.47730000317097,
+        "chain_verification_ms": 191.90299999900162,
+        "verdict_assembly_ms": 0.007099995855242014
       },
       "reasons": [
         "Module 1 real-time authorization denied the action",
@@ -417,14 +417,14 @@
       "chain_check_status": "VERIFIED_VALID_CHAIN",
       "final_decision": "ALLOW",
       "detected_by": [],
-      "resolution_time_ms": 297.61720000533387,
+      "resolution_time_ms": 262.413699994795,
       "step_latencies": {
-        "authorization_ms": 0.019800005247816443,
-        "trace_context_ms": 172.4924000009196,
-        "drift_scoring_ms": 45.50619999645278,
-        "revocation_check_ms": 79.41679999930784,
-        "chain_verification_ms": 0.011600001016631722,
-        "verdict_assembly_ms": 0.0026999914553016424
+        "authorization_ms": 0.017999991541728377,
+        "trace_context_ms": 152.97369999461807,
+        "drift_scoring_ms": 45.10040000604931,
+        "revocation_check_ms": 64.1654000064591,
+        "chain_verification_ms": 0.010200004908256233,
+        "verdict_assembly_ms": 0.0022000021999701858
       },
       "reasons": [
         "Authorized with verified chain evidence and no significant drift"
@@ -447,14 +447,14 @@
       "chain_check_status": "VERIFIED_VALID_CHAIN",
       "final_decision": "ALLOW",
       "detected_by": [],
-      "resolution_time_ms": 305.5271999910474,
+      "resolution_time_ms": 242.9755000048317,
       "step_latencies": {
-        "authorization_ms": 0.018999999156221747,
-        "trace_context_ms": 170.34959999728017,
-        "drift_scoring_ms": 41.52460000477731,
-        "revocation_check_ms": 93.4545999916736,
-        "chain_verification_ms": 0.011399999493733048,
-        "verdict_assembly_ms": 0.002900007530115545
+        "authorization_ms": 0.018399994587525725,
+        "trace_context_ms": 135.1789999898756,
+        "drift_scoring_ms": 43.73029999260325,
+        "revocation_check_ms": 63.89140000101179,
+        "chain_verification_ms": 0.009800001862458885,
+        "verdict_assembly_ms": 0.0041000021155923605
       },
       "reasons": [
         "Authorized with verified chain evidence and no significant drift"
@@ -477,14 +477,14 @@
       "chain_check_status": "VERIFIED_VALID_CHAIN",
       "final_decision": "ALLOW",
       "detected_by": [],
-      "resolution_time_ms": 350.70000000996515,
+      "resolution_time_ms": 263.0015999893658,
       "step_latencies": {
-        "authorization_ms": 0.013199998647905886,
-        "trace_context_ms": 190.33610000042245,
-        "drift_scoring_ms": 40.936599994893186,
-        "revocation_check_ms": 119.20539999846369,
-        "chain_verification_ms": 0.014199991710484028,
-        "verdict_assembly_ms": 0.0029999937396496534
+        "authorization_ms": 0.011799987987615168,
+        "trace_context_ms": 148.3771000057459,
+        "drift_scoring_ms": 41.52840000460856,
+        "revocation_check_ms": 72.90470000589266,
+        "chain_verification_ms": 0.015199999324977398,
+        "verdict_assembly_ms": 0.0039000005926936865
       },
       "reasons": [
         "Authorized with verified chain evidence and no significant drift"
@@ -507,14 +507,14 @@
       "chain_check_status": "VERIFIED_VALID_CHAIN",
       "final_decision": "ALLOW",
       "detected_by": [],
-      "resolution_time_ms": 335.18959999491926,
+      "resolution_time_ms": 275.1202999934321,
       "step_latencies": {
-        "authorization_ms": 0.019000013708136976,
-        "trace_context_ms": 200.42449999891687,
-        "drift_scoring_ms": 46.276499997475185,
-        "revocation_check_ms": 88.2772000040859,
-        "chain_verification_ms": 0.007800001185387373,
-        "verdict_assembly_ms": 0.0016999983927235007
+        "authorization_ms": 0.02469999890308827,
+        "trace_context_ms": 144.70589999109507,
+        "drift_scoring_ms": 45.436200001859106,
+        "revocation_check_ms": 84.70700000179932,
+        "chain_verification_ms": 0.01589999010320753,
+        "verdict_assembly_ms": 0.0037999998312443495
       },
       "reasons": [
         "Authorized with verified chain evidence and no significant drift"
@@ -537,14 +537,14 @@
       "chain_check_status": "VERIFIED_VALID_CHAIN",
       "final_decision": "ALLOW",
       "detected_by": [],
-      "resolution_time_ms": 277.95259999402333,
+      "resolution_time_ms": 247.91569999069907,
       "step_latencies": {
-        "authorization_ms": 0.009700001101009548,
-        "trace_context_ms": 163.19449999718927,
-        "drift_scoring_ms": 42.42100000556093,
-        "revocation_check_ms": 72.17349999700673,
-        "chain_verification_ms": 0.0109999964479357,
-        "verdict_assembly_ms": 0.0026000052457675338
+        "authorization_ms": 0.014899997040629387,
+        "trace_context_ms": 137.48250000935514,
+        "drift_scoring_ms": 48.21470000024419,
+        "revocation_check_ms": 62.07450000511017,
+        "chain_verification_ms": 0.006099988240748644,
+        "verdict_assembly_ms": 0.001400010660290718
       },
       "reasons": [
         "Authorized with verified chain evidence and no significant drift"
@@ -569,14 +569,14 @@
       "detected_by": [
         "Module4"
       ],
-      "resolution_time_ms": 418.235499993898,
+      "resolution_time_ms": 382.02479999745265,
       "step_latencies": {
-        "authorization_ms": 0.0185999961104244,
-        "trace_context_ms": 274.34720000019297,
-        "drift_scoring_ms": 48.10129999532364,
-        "revocation_check_ms": 95.5660000036005,
-        "chain_verification_ms": 0.013900003978051245,
-        "verdict_assembly_ms": 0.0023000029614195228
+        "authorization_ms": 0.010299991117790341,
+        "trace_context_ms": 274.0473000012571,
+        "drift_scoring_ms": 43.88250000192784,
+        "revocation_check_ms": 63.92120000964496,
+        "chain_verification_ms": 0.018799997633323073,
+        "verdict_assembly_ms": 0.003100009053014219
       },
       "reasons": [
         "Behavior deviates from the trained normal baseline"
@@ -601,14 +601,14 @@
       "detected_by": [
         "Module4"
       ],
-      "resolution_time_ms": 445.1240000053076,
+      "resolution_time_ms": 361.7476999934297,
       "step_latencies": {
-        "authorization_ms": 0.019500002963468432,
-        "trace_context_ms": 333.27339999959804,
-        "drift_scoring_ms": 44.31820000172593,
-        "revocation_check_ms": 67.31470000522677,
-        "chain_verification_ms": 0.011199997970834374,
-        "verdict_assembly_ms": 0.0024999899324029684
+        "authorization_ms": 0.020499996026046574,
+        "trace_context_ms": 282.61449999990873,
+        "drift_scoring_ms": 33.617000008234754,
+        "revocation_check_ms": 45.31240000505932,
+        "chain_verification_ms": 0.006999995093792677,
+        "verdict_assembly_ms": 0.0018999999156221747
       },
       "reasons": [
         "Behavior deviates from the trained normal baseline"
@@ -633,14 +633,14 @@
       "detected_by": [
         "Module4"
       ],
-      "resolution_time_ms": 440.8504000020912,
+      "resolution_time_ms": 357.433500001207,
       "step_latencies": {
-        "authorization_ms": 0.016599995433352888,
-        "trace_context_ms": 318.8032000034582,
-        "drift_scoring_ms": 41.998999993666075,
-        "revocation_check_ms": 79.84640001086518,
-        "chain_verification_ms": 0.012100004823878407,
-        "verdict_assembly_ms": 0.0022000021999701858
+        "authorization_ms": 0.009499999578110874,
+        "trace_context_ms": 262.7483999967808,
+        "drift_scoring_ms": 36.04180000547785,
+        "revocation_check_ms": 58.523899991996586,
+        "chain_verification_ms": 0.008799994247965515,
+        "verdict_assembly_ms": 0.0015999976312741637
       },
       "reasons": [
         "Behavior deviates from the trained normal baseline"
@@ -665,14 +665,14 @@
       "detected_by": [
         "Module4"
       ],
-      "resolution_time_ms": 442.45109999610577,
+      "resolution_time_ms": 342.68049999081995,
       "step_latencies": {
-        "authorization_ms": 0.015399986295960844,
-        "trace_context_ms": 318.1029999977909,
-        "drift_scoring_ms": 41.80819999601226,
-        "revocation_check_ms": 82.38180000626016,
-        "chain_verification_ms": 0.005399997462518513,
-        "verdict_assembly_ms": 0.0009999930625781417
+        "authorization_ms": 0.011000010999850929,
+        "trace_context_ms": 245.55539998982567,
+        "drift_scoring_ms": 30.192199992598034,
+        "revocation_check_ms": 66.80810000398196,
+        "chain_verification_ms": 0.007599999662488699,
+        "verdict_assembly_ms": 0.0014999968698248267
       },
       "reasons": [
         "Behavior deviates from the trained normal baseline"
@@ -697,13 +697,13 @@
       "detected_by": [
         "Module4"
       ],
-      "resolution_time_ms": 422.1599000011338,
+      "resolution_time_ms": 319.99220000579953,
       "step_latencies": {
-        "authorization_ms": 0.008100003469735384,
-        "trace_context_ms": 333.9757999929134,
-        "drift_scoring_ms": 40.31099998974241,
-        "revocation_check_ms": 47.78239999723155,
-        "chain_verification_ms": 0.006000002031214535,
+        "authorization_ms": 0.010799994925037026,
+        "trace_context_ms": 244.6983999980148,
+        "drift_scoring_ms": 32.179099987843074,
+        "revocation_check_ms": 43.00330000114627,
+        "chain_verification_ms": 0.006799993570894003,
         "verdict_assembly_ms": 0.001200009137392044
       },
       "reasons": [
@@ -812,8 +812,8 @@
       "test_count": 5,
       "correctly_classified": 5,
       "delegation_trace_accuracy": 1.0,
-      "average_trace_latency_ms": 354.10773999465164,
-      "worst_case_trace_latency_ms": 737.9002999950899
+      "average_trace_latency_ms": 236.3771199976327,
+      "worst_case_trace_latency_ms": 486.689799989108
     },
     "module4_anomaly": {
       "isolation_forest": {
@@ -922,27 +922,27 @@
   },
   "end_to_end_latency": {
     "average_ms": {
-      "authorization_ms": 0.009742857184305433,
-      "trace_context_ms": 240.9090285710547,
-      "drift_scoring_ms": 40.03799047634294,
-      "revocation_check_ms": 109.28760476305061,
-      "chain_verification_ms": 87.7051000002428,
-      "verdict_assembly_ms": 0.003952380558032365
+      "authorization_ms": 0.008842854488951465,
+      "trace_context_ms": 190.4611095233122,
+      "drift_scoring_ms": 35.98114762003423,
+      "revocation_check_ms": 92.64577619337831,
+      "chain_verification_ms": 67.09151428367477,
+      "verdict_assembly_ms": 0.0030190477402703393
     },
     "worst_case_ms": {
-      "authorization_ms": 0.019800005247816443,
-      "trace_context_ms": 739.2957999982173,
-      "drift_scoring_ms": 61.702000006334856,
-      "revocation_check_ms": 493.66120000195224,
-      "chain_verification_ms": 624.1827000048943,
-      "verdict_assembly_ms": 0.014399993233382702
+      "authorization_ms": 0.02469999890308827,
+      "trace_context_ms": 494.75659999006893,
+      "drift_scoring_ms": 66.40680000418797,
+      "revocation_check_ms": 464.8733999929391,
+      "chain_verification_ms": 438.8963999954285,
+      "verdict_assembly_ms": 0.007099995855242014
     },
-    "total_average_ms": 478.15469999858624,
-    "total_worst_case_ms": 1529.5515999896452,
+    "total_average_ms": 386.330961903219,
+    "total_worst_case_ms": 1149.313899994013,
     "pipeline_bottleneck_step": "trace_context_ms"
   },
   "overall_test_results": {
-    "source_fingerprint": "112f11f23a3d3dbac8182f8ad1425d3ad54e16d7c41cc596ac1d709a0afef52a",
+    "source_fingerprint": "9d0b413f3b654cab60eb5bf1d24a1f1f2191892b81e74ddd52d4c4113f2d262a",
     "contract_compile": {
       "passed": true,
       "result": "Hardhat: no contracts to compile"
@@ -953,7 +953,7 @@
     },
     "python_tests": {
       "passed": true,
-      "test_count": 43
+      "test_count": 48
     },
     "module1_demo": {
       "passed": true,

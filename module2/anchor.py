@@ -29,7 +29,7 @@ def anchor_revocation(revocation_record: dict) -> dict:
     return chain.commit(
         "revocation",
         record,
-        lambda contract, onchain_id, digest, state: contract.functions.anchorRevocation(
+        lambda contract, onchain_id, digest, state: contract.functions.anchorRevocationDetailed(
             onchain_id,
             integration.agent_hash(record["decommissioned_agent"]),
             [
@@ -39,6 +39,9 @@ def anchor_revocation(revocation_record: dict) -> dict:
                 and credential["current_status"] == "ACTIVE"
             ],
             digest,
+            record["decommissioned_at"],
+            record["actor"],
+            [item["permission"] for item in record["revoked_permissions"]],
         ),
     )
 

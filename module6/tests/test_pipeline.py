@@ -131,10 +131,19 @@ class PipelineTests(unittest.TestCase):
         self.assertGreater(report["modules"]["module4_anomaly"]["isolation_forest"]["f1"], 0)
         self.assertEqual(report["modules"]["module5_revocation"]["revocation_completeness"], 1.0)
         self.assertGreater(report["end_to_end_latency"]["total_average_ms"], 0)
-        json_path, markdown_path = write_reports(report)
-        self.assertTrue(json_path.exists() and markdown_path.exists())
-        self.assertNotIn("TBD", markdown_path.read_text(encoding="utf-8"))
-        self.assertEqual(json.loads(json_path.read_text(encoding="utf-8"))["scenario_counts"]["total"], 2)
+        # Inspect both rendered formats without replacing the 21-scenario artifact.
+        written = {}
+
+        def capture(path, content, **_kwargs):
+            written[path.name] = content
+            return len(content)
+
+        with patch("module6.report.Path.write_text", autospec=True, side_effect=capture):
+            json_path, markdown_path = write_reports(report)
+        self.assertIn(json_path.name, written)
+        self.assertIn(markdown_path.name, written)
+        self.assertNotIn("TBD", written[markdown_path.name])
+        self.assertEqual(json.loads(written[json_path.name])["scenario_counts"]["total"], 2)
 
 
 if __name__ == "__main__":

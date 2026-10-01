@@ -1,5 +1,5 @@
 {
-  "source_fingerprint": "112f11f23a3d3dbac8182f8ad1425d3ad54e16d7c41cc596ac1d709a0afef52a",
+  "source_fingerprint": "9d0b413f3b654cab60eb5bf1d24a1f1f2191892b81e74ddd52d4c4113f2d262a",
   "contract_compile": {
     "passed": true,
     "result": "Hardhat: no contracts to compile"
@@ -10,7 +10,7 @@
   },
   "python_tests": {
     "passed": true,
-    "test_count": 43
+    "test_count": 48
   },
   "module1_demo": {
     "passed": true,

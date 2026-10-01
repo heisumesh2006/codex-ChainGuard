@@ -7,39 +7,39 @@ Scenarios: 21; attack/anomaly coverage: 100.00%.
 
 | Scenario | Actor | Expected | Authorized | Drift | Trace | Revoked | Chain | Decision | Detected by | Resolution ms |
 |---|---|---|---:|---:|---|---:|---:|---|---|---:|
-| CHECK_READ_CATALOG | Agent_A | BLOCKED_CHECK | False | True | UNAUTHORIZED_ROOT | False | True | BLOCK | Module1, Module3, Module4 | 174.20 |
-| CHECK_PROCESS_PAYMENT | Agent_B | BLOCKED_CHECK | False | True | UNAUTHORIZED_ROOT | False | True | BLOCK | Module1, Module3, Module4 | 300.23 |
-| CHECK_VERIFY_ORDER | Agent_C | BLOCKED_CHECK | False | True | UNAUTHORIZED_ROOT | True | True | BLOCK | Module1, Module3, Module4 | 842.51 |
-| CHECK_CREATE_AGENT | Agent_D | BLOCKED_CHECK | False | True | UNAUTHORIZED_ROOT | False | True | BLOCK | Module1, Module3, Module4 | 264.55 |
-| ROOT_PERMISSION_GRANTED | ROOT_AUTHORIZER | ROOT_ADMIN | True | False | VALID_CHAIN | False | True | ALLOW | None | 405.91 |
-| DELEGATE_CREATE_AGENT | Agent_A | LEGITIMATE | True | True | VALID_CHAIN | False | True | REVIEW | Module4 | 722.11 |
-| DELEGATE_CREATE_AGENT | Agent_B | LEGITIMATE | True | True | VALID_CHAIN | False | True | REVIEW | Module4 | 701.72 |
-| SELF_ESCALATION | Agent_D | ATTACK | False | True | UNAUTHORIZED_ROOT | False | True | BLOCK | Module1, Module3, Module4 | 291.77 |
-| UNAUTHORIZED_DELEGATION | Agent_D | ATTACK | False | True | BROKEN_CHAIN | False | True | BLOCK | Module1, Module3, Module4 | 298.47 |
-| AGENT_DECOMMISSIONED | ROOT_AUTHORIZER | ROOT_ADMIN | True | False | VALID_CHAIN | False | True | ALLOW | None | 774.42 |
-| POST_DECOMMISSION_ACTIVITY | Agent_C | ATTACK | False | True | AUTHORITY_REVOKED_AT_TIME_OF_ACTION | True | True | BLOCK | Module1, Module3, Module4, Module5 | 1529.55 |
-| NORMAL | Agent_B | NORMAL | True | False | VALID_CHAIN | False | True | ALLOW | None | 297.62 |
-| NORMAL | Agent_B | NORMAL | True | False | VALID_CHAIN | False | True | ALLOW | None | 305.53 |
-| NORMAL | Agent_D | NORMAL | True | False | VALID_CHAIN | False | True | ALLOW | None | 350.70 |
-| NORMAL | Agent_B | NORMAL | True | False | VALID_CHAIN | False | True | ALLOW | None | 335.19 |
-| NORMAL | Agent_D | NORMAL | True | False | VALID_CHAIN | False | True | ALLOW | None | 277.95 |
-| SCOPE_CREEP | Agent_B | ANOMALY | True | True | VALID_CHAIN | False | True | REVIEW | Module4 | 418.24 |
-| SCOPE_CREEP | Agent_B | ANOMALY | True | True | VALID_CHAIN | False | True | REVIEW | Module4 | 445.12 |
-| SCOPE_CREEP | Agent_B | ANOMALY | True | True | VALID_CHAIN | False | True | REVIEW | Module4 | 440.85 |
-| SCOPE_CREEP | Agent_B | ANOMALY | True | True | VALID_CHAIN | False | True | REVIEW | Module4 | 442.45 |
-| SCOPE_CREEP | Agent_B | ANOMALY | True | True | VALID_CHAIN | False | True | REVIEW | Module4 | 422.16 |
+| CHECK_READ_CATALOG | Agent_A | BLOCKED_CHECK | False | True | UNAUTHORIZED_ROOT | False | True | BLOCK | Module1, Module3, Module4 | 256.38 |
+| CHECK_PROCESS_PAYMENT | Agent_B | BLOCKED_CHECK | False | True | UNAUTHORIZED_ROOT | False | True | BLOCK | Module1, Module3, Module4 | 236.67 |
+| CHECK_VERIFY_ORDER | Agent_C | BLOCKED_CHECK | False | True | UNAUTHORIZED_ROOT | True | True | BLOCK | Module1, Module3, Module4 | 726.07 |
+| CHECK_CREATE_AGENT | Agent_D | BLOCKED_CHECK | False | True | UNAUTHORIZED_ROOT | False | True | BLOCK | Module1, Module3, Module4 | 221.17 |
+| ROOT_PERMISSION_GRANTED | ROOT_AUTHORIZER | ROOT_ADMIN | True | False | VALID_CHAIN | False | True | ALLOW | None | 293.99 |
+| DELEGATE_CREATE_AGENT | Agent_A | LEGITIMATE | True | True | VALID_CHAIN | False | True | REVIEW | Module4 | 548.07 |
+| DELEGATE_CREATE_AGENT | Agent_B | LEGITIMATE | True | True | VALID_CHAIN | False | True | REVIEW | Module4 | 614.49 |
+| SELF_ESCALATION | Agent_D | ATTACK | False | True | UNAUTHORIZED_ROOT | False | True | BLOCK | Module1, Module3, Module4 | 240.51 |
+| UNAUTHORIZED_DELEGATION | Agent_D | ATTACK | False | True | BROKEN_CHAIN | False | True | BLOCK | Module1, Module3, Module4 | 211.86 |
+| AGENT_DECOMMISSIONED | ROOT_AUTHORIZER | ROOT_ADMIN | True | False | VALID_CHAIN | False | True | ALLOW | None | 559.13 |
+| POST_DECOMMISSION_ACTIVITY | Agent_C | ATTACK | False | True | AUTHORITY_REVOKED_AT_TIME_OF_ACTION | True | True | BLOCK | Module1, Module3, Module4, Module5 | 1149.31 |
+| NORMAL | Agent_B | NORMAL | True | False | VALID_CHAIN | False | True | ALLOW | None | 262.41 |
+| NORMAL | Agent_B | NORMAL | True | False | VALID_CHAIN | False | True | ALLOW | None | 242.98 |
+| NORMAL | Agent_D | NORMAL | True | False | VALID_CHAIN | False | True | ALLOW | None | 263.00 |
+| NORMAL | Agent_B | NORMAL | True | False | VALID_CHAIN | False | True | ALLOW | None | 275.12 |
+| NORMAL | Agent_D | NORMAL | True | False | VALID_CHAIN | False | True | ALLOW | None | 247.92 |
+| SCOPE_CREEP | Agent_B | ANOMALY | True | True | VALID_CHAIN | False | True | REVIEW | Module4 | 382.02 |
+| SCOPE_CREEP | Agent_B | ANOMALY | True | True | VALID_CHAIN | False | True | REVIEW | Module4 | 361.75 |
+| SCOPE_CREEP | Agent_B | ANOMALY | True | True | VALID_CHAIN | False | True | REVIEW | Module4 | 357.43 |
+| SCOPE_CREEP | Agent_B | ANOMALY | True | True | VALID_CHAIN | False | True | REVIEW | Module4 | 342.68 |
+| SCOPE_CREEP | Agent_B | ANOMALY | True | True | VALID_CHAIN | False | True | REVIEW | Module4 | 319.99 |
 
 ## Pipeline latency
 
 | Step | Average ms | Worst ms |
 |---|---:|---:|
 | authorization_ms | 0.01 | 0.02 |
-| trace_context_ms | 240.91 | 739.30 |
-| drift_scoring_ms | 40.04 | 61.70 |
-| revocation_check_ms | 109.29 | 493.66 |
-| chain_verification_ms | 87.71 | 624.18 |
+| trace_context_ms | 190.46 | 494.76 |
+| drift_scoring_ms | 35.98 | 66.41 |
+| revocation_check_ms | 92.65 | 464.87 |
+| chain_verification_ms | 67.09 | 438.90 |
 | verdict_assembly_ms | 0.00 | 0.01 |
-| TOTAL | 478.15 | 1529.55 |
+| TOTAL | 386.33 | 1149.31 |
 
 Measured average bottleneck: **trace_context_ms**.
 
@@ -71,8 +71,8 @@ Measured average bottleneck: **trace_context_ms**.
   "test_count": 5,
   "correctly_classified": 5,
   "delegation_trace_accuracy": 1.0,
-  "average_trace_latency_ms": 354.10773999465164,
-  "worst_case_trace_latency_ms": 737.9002999950899
+  "average_trace_latency_ms": 236.3771199976327,
+  "worst_case_trace_latency_ms": 486.689799989108
 }
 ```
 
@@ -194,7 +194,7 @@ Measured average bottleneck: **trace_context_ms**.
 
 ```json
 {
-  "source_fingerprint": "112f11f23a3d3dbac8182f8ad1425d3ad54e16d7c41cc596ac1d709a0afef52a",
+  "source_fingerprint": "9d0b413f3b654cab60eb5bf1d24a1f1f2191892b81e74ddd52d4c4113f2d262a",
   "contract_compile": {
     "passed": true,
     "result": "Hardhat: no contracts to compile"
@@ -205,7 +205,7 @@ Measured average bottleneck: **trace_context_ms**.
   },
   "python_tests": {
     "passed": true,
-    "test_count": 43
+    "test_count": 48
   },
   "module1_demo": {
     "passed": true,
