@@ -1,0 +1,21 @@
+{
+  "source_fingerprint": "1d024436a227047d94c412f308ff0e98fc55e79651658288bc3989ef3c393f94",
+  "contract_compile": {
+    "passed": true,
+    "result": "Hardhat: no contracts to compile"
+  },
+  "contract_tests": {
+    "passed": true,
+    "test_count": 1
+  },
+  "python_tests": {
+    "passed": true,
+    "test_count": 50
+  },
+  "module1_demo": {
+    "passed": true,
+    "attack_attempts": 3,
+    "blocked_attacks": 3,
+    "detection_rate_percent": 100.0
+  }
+}

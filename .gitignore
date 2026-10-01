@@ -18,7 +18,6 @@ htmlcov/
 venv/
 env/
 ENV/
-module2/.venv/
 
 # -------------------------
 # Environment / Secrets
@@ -111,16 +110,22 @@ temp*/
 # =========================================================
 
 # Keep these because they are project evidence/results:
-!module4/data/
-!module4/data/**
-!module5/data/
-!module5/data/**
-!module6/data/
-!module6/data/**
+!backend/core/drift_detection/data/
+!backend/core/drift_detection/data/**
+!backend/core/revocation/data/
+!backend/core/revocation/data/**
+!backend/core/governance/data/
+!backend/core/governance/data/**
 
 # Keep trained ML model if present
-!module4/models/
-!module4/models/**
+!backend/core/drift_detection/models/
+!backend/core/drift_detection/models/**
 
 # Keep source code, Solidity contracts, tests, README files,
 # metrics.json, final_report.json and final_report.md
+
+# Isolated local regression deployment files.
+.runtime/
+
+# Disposable API registry state (including legacy location).
+.demo_runtime/

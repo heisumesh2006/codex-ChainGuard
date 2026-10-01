@@ -1,0 +1,1 @@
+"""Blockchain adapter tests."""

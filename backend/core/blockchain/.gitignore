@@ -1,0 +1,5 @@
+.venv/
+__pycache__/
+data/deployment.json
+data/ethereum_state.json
+data/credentials.json
