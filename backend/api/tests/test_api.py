@@ -1,20 +1,35 @@
 """Contract tests for the adapter; security decisions stay in Modules 1–6."""
 
+import tempfile
 import unittest
+from pathlib import Path
+from unittest.mock import patch
 
 from fastapi.testclient import TestClient
 
 from backend.api.main import app
+from backend.core.blockchain.audit_log import AuditLogStore
+from backend.core.governance import pipeline
 
 
 class PresentationApiTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
+        temp_root = Path(__file__).resolve().parents[3] / ".runtime"
+        temp_root.mkdir(exist_ok=True)
+        cls.audit_directory = tempfile.TemporaryDirectory(dir=temp_root)
+        cls.audit_store_patch = patch.object(
+            pipeline, "AUDIT_LOG_STORE",
+            AuditLogStore(Path(cls.audit_directory.name) / "audit.jsonl"),
+        )
+        cls.audit_store_patch.start()
         cls.client = TestClient(app)
 
     @classmethod
     def tearDownClass(cls):
         cls.client.close()
+        cls.audit_store_patch.stop()
+        cls.audit_directory.cleanup()
 
     def test_health_and_real_overview(self):
         health = self.client.get("/api/health")
