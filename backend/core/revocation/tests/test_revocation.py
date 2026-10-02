@@ -4,16 +4,48 @@ from copy import deepcopy
 from datetime import datetime, timedelta
 import json
 from pathlib import Path
+from types import SimpleNamespace
 import unittest
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 from backend.core.blockchain import chain
 from backend.core.revocation.audit import calculate_revocation_completeness, check_post_revocation_activity
 from backend.core.revocation.main import _cold_status_check, _real_action, isolated_registry
 from backend.core.revocation.revocation import (
-    RevocationAnchoringError, _bundle_context, _record_from_status, get_revocation_status,
+    RevocationAnchoringError, _bundle_context, _record_from_status, _revocation_events, get_revocation_status,
     revoke, verify_revocation_proof,
 )
+
+
+class NarrowProviderEventTests(unittest.TestCase):
+    def test_revocation_event_lookup_queries_only_confirmed_block(self):
+        web3 = Mock()
+        web3.eth.block_number = 115
+        web3.eth.get_block.side_effect = lambda number: SimpleNamespace(timestamp=1000 + number - 100)
+        web3.eth.get_logs.return_value = ["revocation-log"]
+        contract = Mock()
+        contract.address = "0x" + "1" * 40
+        contract.functions.getRevocationDetails.return_value.call.return_value = (
+            "2026-10-02T00:00:00+00:00", "ROOT_AUTHORIZER", [], bytes(32), bytes(32), 1010,
+        )
+        contract.events.RevocationAnchored.return_value.process_log.return_value = {"verified": True}
+
+        self.assertEqual(_revocation_events(web3, contract, "Agent_C", from_block=100), [{"verified": True}])
+        query = web3.eth.get_logs.call_args.args[0]
+        self.assertEqual((query["fromBlock"], query["toBlock"]), (110, 110))
+        self.assertEqual(query["address"], contract.address)
+
+    def test_revocation_event_lookup_rejects_missing_confirmation_block(self):
+        web3 = Mock()
+        web3.eth.block_number = 102
+        web3.eth.get_block.side_effect = lambda number: SimpleNamespace(timestamp=1000 + number - 100)
+        contract = Mock()
+        contract.functions.getRevocationDetails.return_value.call.return_value = (
+            "2026-10-02T00:00:00+00:00", "ROOT_AUTHORIZER", [], bytes(32), bytes(32), 2000,
+        )
+
+        self.assertEqual(_revocation_events(web3, contract, "Agent_C", from_block=100), [])
+        web3.eth.get_logs.assert_not_called()
 
 
 class PublicStatusTests(unittest.TestCase):

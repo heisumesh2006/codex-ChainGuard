@@ -77,12 +77,25 @@ def _registry():
     return web3, contract, deployment
 
 
-def _revocation_events(web3, contract, agent_id):
+def _revocation_events(web3, contract, agent_id, *, from_block=0):
+    # The contract exposes the confirmation timestamp. Locate its block with
+    # read-only block queries so public RPCs with narrow eth_getLogs limits can
+    # verify the event without scanning from genesis.
+    agent_key = integration.agent_hash(agent_id)
+    confirmed_at = contract.functions.getRevocationDetails(agent_key).call()[5]
+    low, high = from_block, web3.eth.block_number
+    while low < high:
+        middle = (low + high) // 2
+        if web3.eth.get_block(middle).timestamp < confirmed_at:
+            low = middle + 1
+        else:
+            high = middle
+    if web3.eth.get_block(low).timestamp != confirmed_at:
+        return []
     topic = Web3.keccak(text=chain.EVENT_SIGNATURES["revocation"])
-    agent_topic = integration.agent_hash(agent_id)
     logs = web3.eth.get_logs({
-        "fromBlock": 0, "toBlock": "latest", "address": contract.address,
-        "topics": [topic, None, agent_topic],
+        "fromBlock": low, "toBlock": low, "address": contract.address,
+        "topics": [topic, None, agent_key],
     })
     event = contract.events.RevocationAnchored()
     return [event.process_log(log) for log in logs]
@@ -112,7 +125,7 @@ def get_revocation_status(agent_id) -> dict:
                                 "contract_address": contract.address, "chain_id": web3.eth.chain_id},
                 "lookup_latency_ms": (time.perf_counter() - started) * 1000}
 
-    events = _revocation_events(web3, contract, agent_id)
+    events = _revocation_events(web3, contract, agent_id, from_block=deployment.get("block_number", 0))
     if len(events) != 1:
         raise RuntimeError(f"Revoked agent {agent_id} has {len(events)} RevocationAnchored events; expected one")
     event = events[0]
@@ -195,7 +208,7 @@ def verify_revocation_proof(agent_id, proof) -> bool:
             return False
         if Web3.to_hex(receipt.transactionHash) != proof["transaction_hash"]:
             return False
-        events = _revocation_events(web3, contract, agent_id)
+        events = _revocation_events(web3, contract, agent_id, from_block=deployment.get("block_number", 0))
         if len(events) != 1:
             return False
         event = events[0]
