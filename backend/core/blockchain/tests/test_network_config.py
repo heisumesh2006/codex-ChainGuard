@@ -1,13 +1,17 @@
 """Sepolia profile safety checks; tests never connect to a public RPC."""
 
+import json
 import os
 from pathlib import Path
 import subprocess
 import sys
+import tempfile
 import unittest
 from unittest.mock import Mock, patch
 
 from eth_account import Account
+from fastapi.testclient import TestClient
+from backend.api.main import app
 from backend.core.blockchain import chain
 from backend.api import services
 
@@ -16,6 +20,73 @@ ROOT = Path(__file__).resolve().parents[4]
 
 
 class NetworkConfigurationTests(unittest.TestCase):
+    def _audit_status_for_profile(self, profile: str) -> tuple[dict, dict, dict]:
+        test_root = ROOT / ".runtime"
+        test_root.mkdir(exist_ok=True)
+        with tempfile.TemporaryDirectory(dir=test_root) as temporary:
+            root = Path(temporary)
+            governance_dir = root / "governance"
+            governance_dir.mkdir()
+            blockchain_path = root / "blockchain" / ("sepolia" if profile == "sepolia" else "") / "deployment.json"
+            blockchain_path.parent.mkdir(parents=True, exist_ok=True)
+            local_address = "0x" + "1" * 40
+            sepolia_address = "0x" + "2" * 40
+            (governance_dir / "deployment.json").write_text(
+                json.dumps({"chain_id": 31337, "contract_address": local_address}), encoding="utf-8"
+            )
+            blockchain_path.write_text(
+                json.dumps({
+                    "chain_id": 11155111 if profile == "sepolia" else 31337,
+                    "contract_address": sepolia_address if profile == "sepolia" else "0x" + "3" * 40,
+                }), encoding="utf-8"
+            )
+            expected_address = sepolia_address if profile == "sepolia" else local_address
+            web3 = Mock()
+            web3.eth.chain_id = 11155111 if profile == "sepolia" else 31337
+            web3.eth.block_number = 12345
+            web3.eth.get_code.side_effect = lambda address: b"\x01" if address == expected_address else b""
+            manager = Mock()
+            manager.pending_summary.return_value = {"pending_log_count": 0}
+            manager.list_batches.return_value = []
+            manager.batch_size = 5
+            manager.max_age_seconds = 30
+            with (
+                patch.object(services, "DATA_DIR", governance_dir),
+                patch.object(chain, "NETWORK_PROFILE", profile),
+                patch.object(chain, "DEPLOYMENT_PATH", blockchain_path),
+                patch.object(chain, "connect", return_value=web3),
+                patch.object(services.pipeline, "AUDIT_BATCH_MANAGER", manager),
+                TestClient(app) as client,
+            ):
+                status = client.get("/api/audit/status")
+                health = client.get("/api/health")
+                batches = client.get("/api/audit/batches")
+            self.assertEqual((status.status_code, health.status_code, batches.status_code), (200, 200, 200))
+            return status.json(), health.json(), batches.json()
+
+    def test_hardhat_audit_status_keeps_canonical_governance_deployment(self):
+        status, health, batches = self._audit_status_for_profile("hardhat")
+        expected_address = "0x" + "1" * 40
+        self.assertEqual(status["contract_address"], expected_address)
+        self.assertEqual(status["deployment_contract_address"], expected_address)
+        self.assertTrue(status["contract_available"])
+        self.assertEqual(status["connection_status"], "CONNECTED")
+        self.assertEqual(health["contract_address"], expected_address)
+        self.assertFalse(status["explorer_available"])
+        self.assertEqual(batches["total"], 0)
+
+    def test_sepolia_audit_status_uses_blockchain_deployment(self):
+        status, health, batches = self._audit_status_for_profile("sepolia")
+        expected_address = "0x" + "2" * 40
+        self.assertEqual(status["contract_address"], expected_address)
+        self.assertEqual(status["deployment_contract_address"], expected_address)
+        self.assertTrue(status["contract_available"])
+        self.assertEqual(status["connection_status"], "CONNECTED")
+        self.assertEqual(status["chain_id"], 11155111)
+        self.assertEqual(health["contract_address"], expected_address)
+        self.assertEqual(status["explorer"]["contract_url"], f"https://sepolia.etherscan.io/address/{expected_address}")
+        self.assertEqual(batches["total"], 0)
+
     def test_sepolia_profile_parses_without_leaking_configuration(self):
         env = os.environ.copy()
         env.update({

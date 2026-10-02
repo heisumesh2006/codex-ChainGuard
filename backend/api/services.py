@@ -33,12 +33,18 @@ SCENARIOS = {
 }
 
 
+def _deployment_path() -> Path:
+    # The local API uses the canonical governance registry. The Sepolia
+    # deployment is recorded in blockchain's network-specific state directory.
+    return chain.DEPLOYMENT_PATH if chain.NETWORK_PROFILE == "sepolia" else DATA_DIR / "deployment.json"
+
+
 def final_report() -> dict:
     return json.loads(REPORT_PATH.read_text(encoding="utf-8"))
 
 
 def health() -> dict:
-    deployment_path = DATA_DIR / "deployment.json"
+    deployment_path = _deployment_path()
     deployment = json.loads(deployment_path.read_text(encoding="utf-8")) if deployment_path.is_file() else {}
     rpc_connected = contract_available = False
     live_chain_id = None
@@ -339,7 +345,7 @@ def audit_status() -> dict:
     manager = pipeline.AUDIT_BATCH_MANAGER
     pending = manager.pending_summary()
     batches = manager.list_batches()
-    deployment_path = DATA_DIR / "deployment.json"
+    deployment_path = _deployment_path()
     deployment = json.loads(deployment_path.read_text(encoding="utf-8")) if deployment_path.is_file() else {}
     chain_id = deployment.get("chain_id") or chain.EXPECTED_CHAIN_IDS.get(chain.NETWORK_PROFILE)
     rpc_connected = contract_available = False
@@ -404,7 +410,7 @@ def audit_logs(limit: int = 100, offset: int = 0) -> dict:
 
 
 def audit_batches(limit: int = 100, offset: int = 0) -> dict:
-    deployment_path = DATA_DIR / "deployment.json"
+    deployment_path = _deployment_path()
     deployment = json.loads(deployment_path.read_text(encoding="utf-8")) if deployment_path.is_file() else {}
     chain_id = deployment.get("chain_id") or chain.EXPECTED_CHAIN_IDS.get(chain.NETWORK_PROFILE)
     with LOCK, canonical_context():
