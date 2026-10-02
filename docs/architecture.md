@@ -2,14 +2,14 @@
 
 The package names describe responsibilities while the academic module numbers remain useful in reports:
 
-| Academic module | Package |
-| --- | --- |
-| Module 1 — Authorization | `backend.core.authorization` |
-| Module 2 — Blockchain | `backend.core.blockchain` and root `blockchain/` |
-| Module 3 — Delegation tracing | `backend.core.tracing` |
-| Module 4 — Policy drift detection | `backend.core.drift_detection` |
-| Module 5 — Revocation | `backend.core.revocation` |
-| Module 6 — Governance | `backend.core.governance` |
+| Academic module                   | Package                                          |
+| --------------------------------- | ------------------------------------------------ |
+| Module 1 — Authorization          | `backend.core.authorization`                     |
+| Module 2 — Blockchain             | `backend.core.blockchain` and root `blockchain/` |
+| Module 3 — Delegation tracing     | `backend.core.tracing`                           |
+| Module 4 — Policy drift detection | `backend.core.drift_detection`                   |
+| Module 5 — Revocation             | `backend.core.revocation`                        |
+| Module 6 — Governance             | `backend.core.governance`                        |
 
 An action flows through authorization, rooted trace context, the persisted drift model, revocation audit, blockchain proof checks, and a final ALLOW, REVIEW, or BLOCK verdict. `backend.api` exposes that same pipeline to the dashboard.
 
