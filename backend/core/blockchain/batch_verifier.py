@@ -101,7 +101,7 @@ def verify_anchored_batch(batch: dict[str, Any]) -> bool:
             "anchored_by": batch["blockchain_anchored_by"],
             "anchored_at": batch["blockchain_anchored_at"],
         }
-        web3 = chain.connect(blockchain["rpc_url"])
+        web3 = chain.connect(blockchain.get("rpc_url") or chain.RPC_URL)
         if web3.eth.chain_id != blockchain["chain_id"]:
             return False
         address = Web3.to_checksum_address(blockchain["contract_address"])

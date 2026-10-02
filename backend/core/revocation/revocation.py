@@ -67,7 +67,7 @@ class RevocationAnchoringError(RuntimeError):
 def _registry():
     """Connect from RPC/deployment/ABI only; no unlocked account is required."""
     deployment = json.loads(BUNDLE_DEPLOYMENT_PATH.read_text(encoding="utf-8"))
-    web3 = chain.connect(deployment["rpc_url"])
+    web3 = chain.connect(deployment.get("rpc_url") or chain.RPC_URL)
     if web3.eth.chain_id != deployment["chain_id"]:
         raise RuntimeError("Configured chain ID differs from Ethereum")
     address = Web3.to_checksum_address(deployment["contract_address"])
@@ -131,7 +131,7 @@ def get_revocation_status(agent_id) -> dict:
         "content_hash": digest, "transaction_hash": Web3.to_hex(receipt.transactionHash),
         "block_number": receipt.blockNumber, "block_hash": Web3.to_hex(block.hash),
         "contract_address": contract.address, "chain_id": web3.eth.chain_id,
-        "rpc_url": deployment["rpc_url"], "issuer_address": transaction["from"],
+        "rpc_url": deployment.get("rpc_url", ""), "issuer_address": transaction["from"],
         "anchored_at": datetime.fromtimestamp(block.timestamp, timezone.utc).isoformat(),
         "revoked_at": revoked_at, "revoked_by": revoked_by,
         "revoked_permissions": list(permissions), "confirmed_at": int(confirmed_at),
@@ -153,7 +153,7 @@ def verify_revocation_proof(agent_id, proof) -> bool:
         web3, contract, deployment = _registry()
         if proof["contract_address"] != contract.address or proof["chain_id"] != web3.eth.chain_id:
             return False
-        if proof["rpc_url"] != deployment["rpc_url"]:
+        if proof.get("rpc_url", "") != deployment.get("rpc_url", ""):
             return False
         agent_key = integration.agent_hash(agent_id)
         if contract.functions.agentAddresses(agent_key).call() == ZERO_ADDRESS:

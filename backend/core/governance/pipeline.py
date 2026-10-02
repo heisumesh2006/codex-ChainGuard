@@ -22,10 +22,12 @@ from backend.core.revocation.audit import check_post_revocation_activity
 from backend.core.revocation.revocation import get_revocation_status, verify_revocation_proof
 
 DATA_DIR = Path(__file__).resolve().parent / "data"
+if chain.NETWORK_PROFILE == "sepolia":
+    DATA_DIR = DATA_DIR / "sepolia"
 MODEL_PATH = Path(__file__).resolve().parents[1] / "drift_detection" / "models" / "isolation_forest.joblib"
 _runtime = {"model": None, "module1_ready": False}
-AUDIT_LOG_STORE = AuditLogStore()
-AUDIT_BATCH_MANAGER = BatchManager(AUDIT_LOG_STORE)
+AUDIT_LOG_STORE = AuditLogStore(DATA_DIR / "audit_logs.jsonl")
+AUDIT_BATCH_MANAGER = BatchManager(AUDIT_LOG_STORE, DATA_DIR / "batches.json")
 
 
 @contextmanager

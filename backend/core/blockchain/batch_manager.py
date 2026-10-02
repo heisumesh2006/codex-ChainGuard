@@ -277,9 +277,13 @@ class BatchManager:
                         raise RuntimeError("Existing on-chain batch ID has conflicting metadata")
                     receipt = _matching_batch_event(web3, contract, key, merkle_root)
                 else:
-                    tx_hash = contract.functions.anchorAuditBatch(
-                        key, merkle_root, batch["log_count"], start_timestamp, end_timestamp,
-                    ).transact({"from": root_authorizer})
+                    tx_hash = chain.submit_transaction(
+                        web3,
+                        contract.functions.anchorAuditBatch(
+                            key, merkle_root, batch["log_count"], start_timestamp, end_timestamp,
+                        ),
+                        root_authorizer,
+                    )
                     receipt = web3.eth.wait_for_transaction_receipt(tx_hash, timeout=120)
                     if receipt.status != 1:
                         raise RuntimeError("Ethereum audit-batch transaction reverted")
@@ -297,7 +301,7 @@ class BatchManager:
                     "blockchain_block_number": receipt.blockNumber,
                     "blockchain_contract_address": contract.address,
                     "blockchain_chain_id": web3.eth.chain_id,
-                    "blockchain_rpc_url": deployment["rpc_url"],
+                    "blockchain_rpc_url": deployment.get("rpc_url", ""),
                     "blockchain_anchored_by": Web3.to_checksum_address(confirmed[4]),
                     "blockchain_anchored_at": confirmed[5],
                     "anchor_retry": False,

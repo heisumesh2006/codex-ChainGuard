@@ -1,7 +1,6 @@
 """Read existing module evidence and delegate decisions to Module 6."""
 
 import json
-import os
 from pathlib import Path
 from threading import RLock
 
@@ -39,30 +38,47 @@ def final_report() -> dict:
 
 
 def health() -> dict:
-    deployment = json.loads((DATA_DIR / "deployment.json").read_text(encoding="utf-8"))
+    deployment_path = DATA_DIR / "deployment.json"
+    deployment = json.loads(deployment_path.read_text(encoding="utf-8")) if deployment_path.is_file() else {}
     rpc_connected = contract_available = False
     live_chain_id = None
+    latest_block = None
     error = None
     try:
         with LOCK, canonical_context():
-            web3 = chain.connect(deployment["rpc_url"])
+            web3 = chain.connect(deployment.get("rpc_url") or None)
             rpc_connected = True
             live_chain_id = web3.eth.chain_id
-            contract_available = (
-                live_chain_id == deployment["chain_id"]
-                and bool(web3.eth.get_code(deployment["contract_address"]))
+            latest_block = web3.eth.block_number
+            contract_address = deployment.get("contract_address")
+            contract_available = bool(
+                contract_address
+                and live_chain_id == deployment.get("chain_id")
+                and web3.eth.get_code(contract_address)
             )
     except Exception as exc:
-        error = str(exc)
+        # Provider exceptions may include credential-bearing RPC URLs; expose
+        # only a short diagnostic category to the browser.
+        error = "RPC_OFFLINE" if not rpc_connected else "CONTRACT_NOT_DEPLOYED_ON_CURRENT_NETWORK"
+    chain_id = live_chain_id or deployment.get("chain_id") or chain.EXPECTED_CHAIN_IDS.get(chain.NETWORK_PROFILE)
+    explorer_base = _audit_explorer_base(chain_id or 0)
+    contract_address = deployment.get("contract_address")
     return {
         "api_online": True,
         "rpc_connected": rpc_connected,
-        "chain_id": live_chain_id or deployment["chain_id"],
+        "chain_id": chain_id,
+        "network_name": _network_name(chain_id),
         "contract_available": contract_available,
-        "contract_address": deployment["contract_address"],
+        "contract_address": contract_address,
+        "latest_block": latest_block,
+        "explorer_available": explorer_base is not None,
+        "explorer": {
+            "base_url": explorer_base,
+            "contract_url": f"{explorer_base}/address/{contract_address}" if explorer_base and contract_address else None,
+        } if explorer_base else None,
         "ml_model_available": MODEL_PATH.is_file(),
         "status": "ONLINE" if rpc_connected and contract_available and MODEL_PATH.is_file() else "DEGRADED",
-        "error": error,
+        "error": error or (None if contract_available else "CONTRACT_NOT_DEPLOYED_ON_CURRENT_NETWORK"),
     }
 
 
@@ -305,29 +321,69 @@ def stage_events(verdict: dict) -> list[dict]:
     return events
 
 
+def _network_name(chain_id: int | None) -> str:
+    if chain_id == 31337:
+        return "Hardhat Local"
+    if chain_id == 11155111:
+        return "Ethereum Sepolia"
+    if chain_id is None:
+        return "Sepolia" if chain.NETWORK_PROFILE == "sepolia" else "Hardhat Local"
+    return f"EVM Chain {chain_id}"
+
+
 def _audit_explorer_base(chain_id: int) -> str | None:
-    configured = os.environ.get("CHAINGUARD_EXPLORER_URL", "").strip().rstrip("/")
-    return configured if configured and chain_id != 31337 else None
+    return "https://sepolia.etherscan.io" if chain_id == 11155111 else None
 
 
 def audit_status() -> dict:
     manager = pipeline.AUDIT_BATCH_MANAGER
-    with LOCK, canonical_context():
-        web3, contract, _, deployment = chain.contract_context()
-        pending = manager.pending_summary()
-        batches = manager.list_batches()
-        return {
-            **pending,
-            "batch_size": manager.batch_size,
-            "batch_max_age_seconds": manager.max_age_seconds,
-            "anchored_batch_count": sum(batch["status"] == "ANCHORED" for batch in batches),
-            "network": "Hardhat Local" if web3.eth.chain_id == 31337 else f"Chain {web3.eth.chain_id}",
-            "chain_id": web3.eth.chain_id,
-            "contract_address": contract.address,
-            "current_block": web3.eth.block_number,
-            "explorer_url": _audit_explorer_base(web3.eth.chain_id),
-            "deployment_contract_address": deployment["contract_address"],
-        }
+    pending = manager.pending_summary()
+    batches = manager.list_batches()
+    deployment_path = DATA_DIR / "deployment.json"
+    deployment = json.loads(deployment_path.read_text(encoding="utf-8")) if deployment_path.is_file() else {}
+    chain_id = deployment.get("chain_id") or chain.EXPECTED_CHAIN_IDS.get(chain.NETWORK_PROFILE)
+    rpc_connected = contract_available = False
+    current_block = latest_block = contract_address = None
+    try:
+        with LOCK, canonical_context():
+            web3 = chain.connect(deployment.get("rpc_url") or None)
+            rpc_connected = True
+            current_block = latest_block = web3.eth.block_number
+            chain_id = web3.eth.chain_id
+            contract_address = deployment.get("contract_address")
+            contract_available = bool(
+                contract_address
+                and chain_id == deployment.get("chain_id")
+                and web3.eth.get_code(contract_address)
+            )
+    except Exception:
+        pass
+    explorer_base = _audit_explorer_base(chain_id or 0)
+    return {
+        **pending,
+        "batch_size": manager.batch_size,
+        "batch_max_age_seconds": manager.max_age_seconds,
+        "anchored_batch_count": sum(batch["status"] == "ANCHORED" for batch in batches),
+        "network": _network_name(chain_id),
+        "network_name": _network_name(chain_id),
+        "chain_id": chain_id,
+        "rpc_connected": rpc_connected,
+        "contract_available": contract_available,
+        "contract_address": contract_address or deployment.get("contract_address"),
+        "current_block": current_block,
+        "latest_block": latest_block,
+        "explorer_available": explorer_base is not None,
+        "explorer_url": explorer_base,
+        "explorer": {
+            "base_url": explorer_base,
+            "contract_url": f"{explorer_base}/address/{contract_address}" if explorer_base and contract_address else None,
+        } if explorer_base else None,
+        "deployment_contract_address": deployment.get("contract_address"),
+        "connection_status": (
+            "RPC_OFFLINE" if not rpc_connected else
+            "CONTRACT_NOT_DEPLOYED_ON_CURRENT_NETWORK" if not contract_available else "CONNECTED"
+        ),
+    }
 
 
 def audit_logs(limit: int = 100, offset: int = 0) -> dict:
@@ -348,24 +404,35 @@ def audit_logs(limit: int = 100, offset: int = 0) -> dict:
 
 
 def audit_batches(limit: int = 100, offset: int = 0) -> dict:
+    deployment_path = DATA_DIR / "deployment.json"
+    deployment = json.loads(deployment_path.read_text(encoding="utf-8")) if deployment_path.is_file() else {}
+    chain_id = deployment.get("chain_id") or chain.EXPECTED_CHAIN_IDS.get(chain.NETWORK_PROFILE)
     with LOCK, canonical_context():
-        web3, _, _, _ = chain.contract_context()
-        all_batches = pipeline.AUDIT_BATCH_MANAGER.list_batches()
-        selected = all_batches[offset:offset + limit]
-        explorer = _audit_explorer_base(web3.eth.chain_id)
-        return {
-            "total": len(all_batches),
-            "limit": limit,
-            "offset": offset,
-            "batches": [
-                {
-                    **batch,
-                    "explorer_transaction_url": f"{explorer}/tx/{batch['blockchain_tx_hash']}"
-                    if explorer and batch.get("blockchain_tx_hash") else None,
-                }
-                for batch in selected
-            ],
-        }
+        try:
+            web3 = chain.connect(deployment.get("rpc_url") or None)
+            chain_id = web3.eth.chain_id
+        except Exception:
+            pass
+    all_batches = pipeline.AUDIT_BATCH_MANAGER.list_batches()
+    selected = all_batches[offset:offset + limit]
+    explorer = _audit_explorer_base(chain_id or 0)
+    return {
+        "total": len(all_batches),
+        "limit": limit,
+        "offset": offset,
+        "batches": [
+            {
+                **batch,
+                "explorer_transaction_url": f"{explorer}/tx/{batch['blockchain_tx_hash']}"
+                if explorer and batch.get("blockchain_tx_hash") else None,
+                "explorer_block_url": f"{explorer}/block/{batch['blockchain_block_number']}"
+                if explorer and batch.get("blockchain_block_number") is not None else None,
+                "explorer_contract_url": f"{explorer}/address/{batch['blockchain_contract_address']}"
+                if explorer and batch.get("blockchain_contract_address") else None,
+            }
+            for batch in selected
+        ],
+    }
 
 
 def audit_batch(batch_id: str) -> dict:
@@ -380,7 +447,17 @@ def audit_batch(batch_id: str) -> dict:
         proof_status = "ANCHOR FAILED"
     else:
         proof_status = "PENDING"
-    return {**batch, "proof_status": proof_status}
+    explorer = _audit_explorer_base(batch.get("blockchain_chain_id") or 0)
+    return {
+        **batch,
+        "proof_status": proof_status,
+        "explorer_transaction_url": f"{explorer}/tx/{batch['blockchain_tx_hash']}"
+        if explorer and batch.get("blockchain_tx_hash") else None,
+        "explorer_block_url": f"{explorer}/block/{batch['blockchain_block_number']}"
+        if explorer and batch.get("blockchain_block_number") is not None else None,
+        "explorer_contract_url": f"{explorer}/address/{batch['blockchain_contract_address']}"
+        if explorer and batch.get("blockchain_contract_address") else None,
+    }
 
 
 def audit_action(action_id: str) -> dict:

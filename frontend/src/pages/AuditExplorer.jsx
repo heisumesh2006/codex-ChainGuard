@@ -120,6 +120,7 @@ export default function AuditExplorer() {
   }
 
   const explorer = status?.explorer_url
+  const isSepolia = status?.chain_id === 11155111
   const pendingPercent = useMemo(() => status?.batch_size
     ? Math.min(100, (status.pending_log_count / status.batch_size) * 100) : 0, [status])
   const latestLogs = logs
@@ -136,13 +137,15 @@ export default function AuditExplorer() {
     {error && <div className="error-banner audit-error"><AlertTriangle size={17} /><span>{error}</span><button onClick={() => load(true)}>Retry</button></div>}
 
     <section className="audit-network panel">
-      <div className="audit-network__identity"><span className="audit-network__icon"><Blocks size={21} /></span><div><span className="section-heading__overline">CONNECTED NETWORK</span><h2>{status?.network || 'Loading network'}</h2></div><StatusPill label={status ? 'RPC CONNECTED' : 'CHECKING'} tone={status ? 'emerald' : 'cyan'} pulse={Boolean(status)} /></div>
+      <div className="audit-network__identity"><span className="audit-network__icon"><Blocks size={21} /></span><div><span className="section-heading__overline">{isSepolia ? 'PUBLIC TEST NETWORK' : 'LOCAL DEVELOPMENT NETWORK'}</span><h2>{status?.network_name || status?.network || 'Loading network'}</h2></div><StatusPill label={!status ? 'CHECKING' : status.rpc_connected ? 'RPC CONNECTED' : (isSepolia ? 'SEPOLIA RPC OFFLINE' : 'RPC OFFLINE')} tone={!status ? 'cyan' : status.rpc_connected ? 'emerald' : 'red'} pulse={Boolean(status?.rpc_connected)} /></div>
       <div className="audit-network__fields">
         <div><span>Chain ID</span><strong>{status?.chain_id ?? '—'}</strong></div>
-        <div><span>Current block</span><strong>{status?.current_block ?? '—'}</strong></div>
+        <div><span>Latest block</span><strong>{status?.latest_block ?? status?.current_block ?? '—'}</strong></div>
         <div className="audit-network__contract"><span>Registry contract</span><CopyValue value={status?.contract_address} /></div>
       </div>
-      <div className="audit-network__note">{status?.chain_id === 31337 ? 'Local development chain · Merkle roots are committed by ROOT_AUTHORIZER. No Mainnet explorer is configured.' : 'Connected registry network · Merkle roots are committed by ROOT_AUTHORIZER.'}</div>
+      {!status?.contract_available && <div className={`audit-network__alert ${status?.rpc_connected ? 'audit-network__alert--contract' : ''}`} role="status">{status?.rpc_connected ? 'CONTRACT NOT DEPLOYED ON CURRENT NETWORK' : (isSepolia ? 'SEPOLIA RPC OFFLINE' : 'BLOCKCHAIN RPC OFFLINE')}</div>}
+      <div className="audit-network__note">{isSepolia ? 'Sepolia is a public Ethereum test network using test ETH, not Ethereum Mainnet. Audit roots are committed by ROOT_AUTHORIZER.' : 'Hardhat Local · Chain 31337 · Merkle roots are committed by ROOT_AUTHORIZER. No public explorer is configured.'}</div>
+      {status?.explorer?.contract_url && <a className="audit-explorer-link audit-contract-link" href={status.explorer.contract_url} target="_blank" rel="noopener noreferrer">View Contract on Etherscan <ExternalLink size={14} /></a>}
     </section>
 
     <section className="audit-kpis" aria-label="Audit queue metrics">
@@ -157,7 +160,7 @@ export default function AuditExplorer() {
         <div className="panel__head"><div><span className="section-heading__overline">MERKLE ROOT REGISTRY</span><h3>Anchored batches</h3></div><span className="audit-count">{batches.length} total</span></div>
         {loading && batches.length === 0 ? <div className="audit-skeletons">{Array.from({ length: 4 }, (_, index) => <Skeleton key={index} style={{ height: 52 }} />)}</div> : batches.length === 0 ? <div className="audit-empty"><Layers3 size={25} /><strong>No sealed batches yet</strong><span>Governed actions are written to the append-only log. A root is anchored when the configured threshold is reached.</span></div> : <div className="audit-table-wrap"><table className="audit-table"><thead><tr><th>Batch ID / root</th><th>Logs</th><th>Block</th><th>Transaction</th><th>Status</th><th /></tr></thead><tbody>
           {batches.slice().reverse().map((batch) => <tr key={batch.batch_id} onClick={() => chooseBatch(batch.batch_id)} className={selectedBatch?.batch_id === batch.batch_id ? 'audit-row--selected' : ''}>
-            <td><strong>{short(batch.batch_id, 18, 8)}</strong><small><CopyValue value={batch.merkle_root} /></small></td><td>{batch.log_count}</td><td>{batch.blockchain_block_number ?? '—'}</td><td><CopyValue value={batch.blockchain_tx_hash} /></td><td><StatusPill label={batch.status === 'ANCHORED' ? 'ANCHORED' : batch.anchor_error ? 'ANCHOR FAILED' : 'PENDING'} tone={batch.status === 'ANCHORED' ? 'emerald' : batch.anchor_error ? 'red' : 'amber'} /></td><td><ChevronRight size={16} /></td>
+            <td><strong>{short(batch.batch_id, 18, 8)}</strong><small><CopyValue value={batch.merkle_root} /></small></td><td>{batch.log_count}</td><td>{batch.blockchain_block_number ?? '—'}{batch.explorer_block_url && <a className="audit-cell-link" href={batch.explorer_block_url} target="_blank" rel="noopener noreferrer" onClick={(event) => event.stopPropagation()} aria-label="View block on Etherscan"><ExternalLink size={12} /></a>}</td><td><span className="audit-transaction-cell"><CopyValue value={batch.blockchain_tx_hash} />{batch.explorer_transaction_url && <a className="audit-cell-link" href={batch.explorer_transaction_url} target="_blank" rel="noopener noreferrer" onClick={(event) => event.stopPropagation()} aria-label="View transaction on Etherscan"><ExternalLink size={12} /></a>}</span></td><td><StatusPill label={batch.status === 'ANCHORED' ? 'ANCHORED' : batch.anchor_error ? 'ANCHOR FAILED' : 'PENDING'} tone={batch.status === 'ANCHORED' ? 'emerald' : batch.anchor_error ? 'red' : 'amber'} /></td><td><ChevronRight size={16} /></td>
           </tr>)}
         </tbody></table></div>}
       </section>
@@ -214,7 +217,9 @@ export default function AuditExplorer() {
           <div><span>Transaction hash</span><CopyValue value={selectedBatch.blockchain_tx_hash} /></div>
           <div><span>Block</span><strong>{selectedBatch.blockchain_block_number ?? 'Pending'}</strong></div>
           <div><span>Contract</span><CopyValue value={selectedBatch.blockchain_contract_address} /></div>
-          {explorer && selectedBatch.blockchain_tx_hash && <a href={`${explorer}/tx/${selectedBatch.blockchain_tx_hash}`} target="_blank" rel="noreferrer">View on explorer <ExternalLink size={14} /></a>}
+          {selectedBatch.explorer_transaction_url && <a className="audit-explorer-link" href={selectedBatch.explorer_transaction_url} target="_blank" rel="noopener noreferrer">View Transaction on Etherscan <ExternalLink size={14} /></a>}
+          {selectedBatch.explorer_block_url && <a className="audit-explorer-link" href={selectedBatch.explorer_block_url} target="_blank" rel="noopener noreferrer">View Block on Etherscan <ExternalLink size={14} /></a>}
+          {selectedBatch.explorer_contract_url && <a className="audit-explorer-link" href={selectedBatch.explorer_contract_url} target="_blank" rel="noopener noreferrer">View Contract on Etherscan <ExternalLink size={14} /></a>}
           {selectedBatch.anchor_error && <div className="audit-drawer__error"><AlertTriangle size={15} /> {selectedBatch.anchor_error}</div>}
         </div>
       </motion.section>

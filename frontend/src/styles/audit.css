@@ -63,3 +63,11 @@
 @media (max-width: 1180px) { .audit-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }.audit-main-grid { grid-template-columns: 1fr; }.audit-open-panel { min-height: 0; } }
 @media (max-width: 760px) { .audit-network__fields { grid-template-columns: 1fr 1fr; }.audit-network__contract { grid-column: 1 / -1; }.audit-proof-layout { grid-template-columns: 1fr; }.audit-verify-controls { grid-template-columns: 1fr 1fr; }.audit-verify-controls label { grid-column: 1 / -1; }.audit-verify-controls select { grid-column: 1 / -1; }.audit-proof-tx { grid-template-columns: 1fr 1fr; }.audit-proof-tx > a { grid-column: 1 / -1; }.audit-verifier__seal { display: none; } }
 @media (max-width: 520px) { .audit-heading { align-items: start; gap: 12px; }.audit-refresh { min-width: auto; padding: 0 10px; }.audit-kpis { grid-template-columns: 1fr 1fr; gap: 9px; }.audit-kpi { min-height: 139px; padding: 13px; }.audit-kpi > strong { font-size: 22px; }.audit-network { padding: 16px; }.audit-network__identity .status-pill { font-size: 8px; }.audit-verify-controls { grid-template-columns: 1fr; }.audit-verify-controls label, .audit-verify-controls select { grid-column: 1; }.audit-verify-controls button { width: 100%; }.audit-root-grid { grid-template-columns: 1fr; }.audit-drawer { padding: 20px; } }
+.audit-network__alert{margin-top:12px;padding:9px 12px;border:1px solid rgba(248,113,113,.26);border-radius:9px;background:rgba(127,29,29,.14);color:#fda4af;font-size:.7rem;font-weight:750;letter-spacing:.09em}
+.audit-network__alert--contract{border-color:rgba(251,191,36,.28);background:rgba(120,53,15,.13);color:#fcd34d}
+.audit-explorer-link{display:inline-flex;align-items:center;gap:7px;color:#67e8f9;font-size:.76rem;font-weight:650;text-decoration:none;transition:color .18s ease}
+.audit-explorer-link:hover{color:#a5f3fc}
+.audit-contract-link{margin-top:13px}
+.audit-transaction-cell{display:inline-flex;align-items:center;gap:2px;max-width:100%}
+.audit-cell-link{display:inline-flex;align-items:center;justify-content:center;margin-left:4px;padding:3px;color:#67e8f9;border-radius:4px}
+.audit-cell-link:hover{background:rgba(34,211,238,.12);color:#a5f3fc}
