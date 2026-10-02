@@ -160,6 +160,18 @@ class PipelineTests(unittest.TestCase):
                 result = pipeline.run_governance_pipeline(action)
                 self.assertEqual(result.governance_decision, expected)
 
+    def test_governance_audit_batch_anchors_on_canonical_registry(self):
+        action = self._action("NORMAL")
+        for _ in range(5):
+            pipeline.run_governance_pipeline(action)
+        anchored = [batch for batch in pipeline.AUDIT_BATCH_MANAGER.list_batches()
+                    if batch["status"] == "ANCHORED"]
+        self.assertTrue(anchored)
+        sample = anchored[-1]
+        deployment = chain._read_json(pipeline.DATA_DIR / "deployment.json", {})
+        self.assertEqual(sample["blockchain_contract_address"], deployment["contract_address"])
+        self.assertTrue(pipeline.AUDIT_BATCH_MANAGER.verify_anchored_record_proof(sample["first_action_id"]))
+
     def test_replaying_same_source_action_gets_distinct_audit_instance_ids(self):
         action = self._action("SELF_ESCALATION")
         first = pipeline.run_governance_pipeline(action)

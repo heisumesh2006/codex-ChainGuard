@@ -1,14 +1,19 @@
 """Deterministic Merkle proofs and off-chain audit batching tests."""
 
 from datetime import datetime, timedelta, timezone
+from contextlib import ExitStack
 import json
 from pathlib import Path
 import tempfile
 from unittest import TestCase
+from unittest.mock import patch
+from uuid import uuid4
 
 from backend.core.blockchain.audit_log import AuditLogStore
 from backend.core.blockchain.batch_manager import BatchManager
 from backend.core.blockchain.batch_verifier import verify_proof
+from backend.core.blockchain.batch_verifier import verify_anchored_proof
+from backend.core.blockchain import chain
 from backend.core.blockchain.merkle import build_merkle_tree, generate_merkle_proof
 
 
@@ -185,6 +190,51 @@ class BatchManagerTests(TestCase):
             self.assertEqual(manager.seal_due_batches(), [])
             self.assertEqual(manager.record_status("audit:test-0")["batch_id"], first["batch_id"])
             self.assertIsNone(manager.record_status("audit:missing"))
+
+    def test_chain_anchor_idempotence_and_independent_record_proof(self):
+        suffix = uuid4().hex
+        with tempfile.TemporaryDirectory(dir=TEMP_ROOT) as folder:
+            root = Path(folder)
+            store, manager = self._manager(folder, batch_size=2)
+            paths = {
+                "DEPLOYMENT_PATH": root / f"deployment-{suffix}.json",
+                "STATE_PATH": root / f"state-{suffix}.json",
+                "CREDENTIALS_PATH": root / f"credentials-{suffix}.json",
+            }
+            with ExitStack() as stack:
+                for name, path in paths.items():
+                    stack.enter_context(patch.object(chain, name, path))
+                chain.deploy_registry()
+                store.append(record(100))
+                store.append(record(101))
+                sealed = manager.seal_due_batches()
+                self.assertEqual(len(sealed), 1)
+
+                anchored = manager.anchor_batch(sealed[0]["batch_id"])
+                repeated = manager.anchor_batch(sealed[0]["batch_id"])
+                self.assertEqual(anchored["status"], "ANCHORED")
+                self.assertEqual(anchored["blockchain_tx_hash"], repeated["blockchain_tx_hash"])
+                self.assertEqual(anchored["blockchain_block_number"], repeated["blockchain_block_number"])
+
+                proof = manager.generate_proof("audit:test-100")
+                self.assertTrue(verify_anchored_proof(store.get("audit:test-100"), proof))
+                changed = dict(store.get("audit:test-100"), target="tampered")
+                self.assertFalse(verify_anchored_proof(changed, proof))
+                changed_root = dict(proof, merkle_root="0x" + "ff" * 32)
+                self.assertFalse(verify_anchored_proof(store.get("audit:test-100"), changed_root))
+
+    def test_failed_chain_transaction_remains_unanchored_and_retryable(self):
+        with tempfile.TemporaryDirectory(dir=TEMP_ROOT) as folder:
+            store, manager = self._manager(folder, batch_size=1)
+            store.append(record(200))
+            batch = manager.seal_due_batches()[0]
+            with patch.object(chain, "contract_context", side_effect=ConnectionError("simulated RPC outage")):
+                with self.assertRaises(ConnectionError):
+                    manager.anchor_batch(batch["batch_id"])
+            current = manager.get_batch(batch["batch_id"])
+            self.assertEqual(current["status"], "SEALED_UNANCHORED")
+            self.assertTrue(current["anchor_retry"])
+            self.assertIn("simulated RPC outage", current["anchor_error"])
 
 
 if __name__ == "__main__":

@@ -106,3 +106,46 @@ test("root administration, scope, delegation, revocation, and duplicate guards",
   assert.equal((await registry.commitments(recordId(4, action))).kind, 4n);
   await assert.rejects(registry.anchorActionHash(recordId(4, action), action), /RECORD_EXISTS/);
 });
+
+test("audit batch roots are root-only, immutable, and retrievable", async () => {
+  const root = await provider.getSigner(0);
+  const other = await provider.getSigner(1);
+  const factory = new ethers.ContractFactory(artifact.abi, artifact.bytecode, root);
+  const registry = await factory.deploy();
+  await registry.waitForDeployment();
+
+  const batchId = ethers.keccak256(ethers.toUtf8Bytes("batch:demo"));
+  const merkleRoot = ethers.keccak256(ethers.toUtf8Bytes("merkle-root"));
+  const startTimestamp = 1_791_000_000;
+  const endTimestamp = startTimestamp + 90;
+  await assert.rejects(
+    registry.connect(other).anchorAuditBatch(batchId, merkleRoot, 5, startTimestamp, endTimestamp),
+    /ROOT_ONLY/,
+  );
+
+  const tx = await registry.anchorAuditBatch(batchId, merkleRoot, 5, startTimestamp, endTimestamp);
+  const receipt = await tx.wait();
+  const event = receipt.logs
+    .map((log) => { try { return registry.interface.parseLog(log); } catch { return null; } })
+    .find((entry) => entry?.name === "AuditBatchAnchored");
+  assert.ok(event);
+  assert.equal(event.args.batchId, batchId);
+  assert.equal(event.args.merkleRoot, merkleRoot);
+  assert.equal(event.args.logCount, 5n);
+  assert.equal(event.args.startTimestamp, BigInt(startTimestamp));
+  assert.equal(event.args.endTimestamp, BigInt(endTimestamp));
+  assert.equal(event.args.anchoredBy, await root.getAddress());
+
+  const stored = await registry.auditBatches(batchId);
+  assert.equal(stored.exists, true);
+  assert.equal(stored.merkleRoot, merkleRoot);
+  assert.equal(stored.logCount, 5n);
+  assert.equal(stored.startTimestamp, BigInt(startTimestamp));
+  assert.equal(stored.endTimestamp, BigInt(endTimestamp));
+  assert.equal(stored.anchoredBy, await root.getAddress());
+  assert.ok(stored.anchoredAt > 0n);
+  await assert.rejects(
+    registry.anchorAuditBatch(batchId, merkleRoot, 5, startTimestamp, endTimestamp),
+    /BATCH_EXISTS/,
+  );
+});

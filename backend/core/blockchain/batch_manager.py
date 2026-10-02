@@ -8,6 +8,8 @@ from pathlib import Path
 import threading
 from typing import Any
 
+from web3 import Web3
+
 from .audit_log import AuditLogStore, hash_record
 from .batch_verifier import generate_proof
 from .merkle import build_merkle_tree
@@ -29,12 +31,21 @@ class AuditBatch:
     log_count: int
     first_action_id: str
     last_action_id: str
+    start_timestamp: str
+    end_timestamp: str
     merkle_root: str
     action_ids: list[str]
     leaf_hashes: list[str]
     status: str
     blockchain_tx_hash: str | None = None
     blockchain_block_number: int | None = None
+    blockchain_contract_address: str | None = None
+    blockchain_chain_id: int | None = None
+    blockchain_rpc_url: str | None = None
+    blockchain_anchored_by: str | None = None
+    blockchain_anchored_at: int | None = None
+    anchor_retry: bool = True
+    anchor_error: str | None = None
 
 
 def _utc_now(value: datetime | None = None) -> datetime:
@@ -53,6 +64,24 @@ def _parse_timestamp(value: str) -> datetime:
     if parsed.tzinfo is None or parsed.utcoffset() is None:
         raise ValueError("Audit record timestamps must include a timezone")
     return parsed.astimezone(timezone.utc)
+
+
+def batch_key(batch_id: str) -> bytes:
+    """Return the stable bytes32 registry key for a deterministic batch ID."""
+    return Web3.keccak(text=batch_id)
+
+
+def _matching_batch_event(web3, contract, key: bytes, root: bytes):
+    signature = "AuditBatchAnchored(bytes32,bytes32,uint64,uint64,uint64,address,uint64)"
+    logs = web3.eth.get_logs({
+        "fromBlock": 0,
+        "toBlock": "latest",
+        "address": contract.address,
+        "topics": [Web3.keccak(text=signature), key, root],
+    })
+    if len(logs) != 1:
+        raise RuntimeError(f"Expected one AuditBatchAnchored event; found {len(logs)}")
+    return web3.eth.get_transaction_receipt(logs[0].transactionHash)
 
 
 class BatchManager:
@@ -157,6 +186,7 @@ class BatchManager:
                 action_ids = [record["action_id"] for record in selected]
                 leaf_hashes = [hash_record(record) for record in selected]
                 merkle_root = build_merkle_tree(leaf_hashes)["root"]
+                record_times = [_parse_timestamp(record["timestamp"]) for record in selected]
                 batch_id = f"batch:{merkle_root}"
                 if any(item["batch_id"] == batch_id for item in state["batches"]):
                     raise ValueError("Deterministic batch ID already exists without matching assignments")
@@ -169,6 +199,8 @@ class BatchManager:
                     log_count=len(selected),
                     first_action_id=action_ids[0],
                     last_action_id=action_ids[-1],
+                    start_timestamp=_iso(min(record_times)),
+                    end_timestamp=_iso(max(record_times)),
                     merkle_root=merkle_root,
                     action_ids=action_ids,
                     leaf_hashes=leaf_hashes,
@@ -185,6 +217,90 @@ class BatchManager:
                 sealed.append(value)
                 pending = pending[len(selected):]
         return sealed
+
+    def anchor_batch(self, batch_id: str) -> dict[str, Any]:
+        """Anchor one sealed root through ROOT_AUTHORIZER and persist its receipt.
+
+        A retry first checks contract storage. If the earlier transaction was
+        mined but the process failed before saving JSON metadata, its original
+        event receipt is reused instead of submitting a second transaction.
+        """
+        with self._lock:
+            state = self._read_state()
+            batch = next((item for item in state["batches"] if item["batch_id"] == batch_id), None)
+            if batch is None:
+                raise KeyError(f"Unknown audit batch: {batch_id}")
+            if batch["status"] == "ANCHORED":
+                from .batch_verifier import verify_anchored_batch
+
+                if not verify_anchored_batch(batch):
+                    raise RuntimeError("Previously anchored batch no longer verifies on-chain")
+                return batch
+
+            try:
+                from . import chain
+
+                web3, contract, root_authorizer, deployment = chain.contract_context()
+                key = batch_key(batch_id)
+                merkle_root = bytes.fromhex(batch["merkle_root"][2:])
+                start_timestamp = int(_parse_timestamp(batch["start_timestamp"]).timestamp())
+                end_timestamp = int(_parse_timestamp(batch["end_timestamp"]).timestamp())
+                stored = contract.functions.auditBatches(key).call()
+                if stored[6]:
+                    if (stored[0] != merkle_root or stored[1] != batch["log_count"]
+                            or stored[2] != start_timestamp or stored[3] != end_timestamp
+                            or Web3.to_checksum_address(stored[4]) != root_authorizer):
+                        raise RuntimeError("Existing on-chain batch ID has conflicting metadata")
+                    receipt = _matching_batch_event(web3, contract, key, merkle_root)
+                else:
+                    tx_hash = contract.functions.anchorAuditBatch(
+                        key, merkle_root, batch["log_count"], start_timestamp, end_timestamp,
+                    ).transact({"from": root_authorizer})
+                    receipt = web3.eth.wait_for_transaction_receipt(tx_hash, timeout=120)
+                    if receipt.status != 1:
+                        raise RuntimeError("Ethereum audit-batch transaction reverted")
+                confirmed = contract.functions.auditBatches(key).call()
+                if (not confirmed[6] or confirmed[0] != merkle_root
+                        or confirmed[1] != batch["log_count"]
+                        or confirmed[2] != start_timestamp or confirmed[3] != end_timestamp
+                        or Web3.to_checksum_address(confirmed[4]) != root_authorizer):
+                    raise RuntimeError("On-chain batch metadata did not match the submitted commitment")
+                if receipt.status != 1:
+                    raise RuntimeError("Audit-batch transaction receipt was unsuccessful")
+                batch.update({
+                    "status": "ANCHORED",
+                    "blockchain_tx_hash": Web3.to_hex(receipt.transactionHash),
+                    "blockchain_block_number": receipt.blockNumber,
+                    "blockchain_contract_address": contract.address,
+                    "blockchain_chain_id": web3.eth.chain_id,
+                    "blockchain_rpc_url": deployment["rpc_url"],
+                    "blockchain_anchored_by": Web3.to_checksum_address(confirmed[4]),
+                    "blockchain_anchored_at": confirmed[5],
+                    "anchor_retry": False,
+                    "anchor_error": None,
+                })
+                self._write_state(state)
+                return batch
+            except Exception as exc:
+                batch["status"] = "SEALED_UNANCHORED"
+                batch["anchor_retry"] = True
+                batch["anchor_error"] = str(exc)
+                self._write_state(state)
+                raise
+
+    def anchor_unanchored_batches(self) -> list[dict[str, Any]]:
+        """Attempt every sealed batch and retain failures as retryable metadata."""
+        results = []
+        for batch in self.list_batches():
+            if batch["status"] == "ANCHORED":
+                continue
+            try:
+                results.append(self.anchor_batch(batch["batch_id"]))
+            except Exception:
+                current = self.get_batch(batch["batch_id"])
+                if current is not None:
+                    results.append(current)
+        return results
 
     def list_batches(self) -> list[dict[str, Any]]:
         with self._lock:
@@ -205,6 +321,8 @@ class BatchManager:
                 if resolved_batch_id is None:
                     raise KeyError(f"Audit action is not assigned to a sealed batch: {action_id}")
                 batch = self.get_batch(resolved_batch_id)
+                if batch is None:
+                    raise ValueError("Action index points to a missing batch")
                 leaf_index = batch["action_ids"].index(action_id)
             elif isinstance(action_id_or_leaf_index, int) and batch_id is not None:
                 batch = self.get_batch(batch_id)
@@ -218,7 +336,20 @@ class BatchManager:
                 raise TypeError("Supply an action_id or a leaf index and batch_id")
             if batch is None:
                 raise ValueError("Action index points to a missing batch")
-            return generate_proof(batch, leaf_index)
+            proof = generate_proof(batch, leaf_index)
+            proof["start_timestamp"] = batch["start_timestamp"]
+            proof["end_timestamp"] = batch["end_timestamp"]
+            if batch["status"] == "ANCHORED":
+                proof["blockchain"] = {
+                    "transaction_hash": batch["blockchain_tx_hash"],
+                    "block_number": batch["blockchain_block_number"],
+                    "contract_address": batch["blockchain_contract_address"],
+                    "chain_id": batch["blockchain_chain_id"],
+                    "rpc_url": batch["blockchain_rpc_url"],
+                    "anchored_by": batch["blockchain_anchored_by"],
+                    "anchored_at": batch["blockchain_anchored_at"],
+                }
+            return proof
 
     def verify_record_proof(self, action_id: str) -> bool:
         """Convenience local check; portable verification is batch_verifier.verify_proof."""
@@ -227,3 +358,11 @@ class BatchManager:
         proof = self.generate_proof(action_id)
         record = self.audit_store.get(action_id)
         return record is not None and verify_proof(record, proof, proof["merkle_root"])
+
+    def verify_anchored_record_proof(self, action_id: str) -> bool:
+        """Verify a record's Merkle path against the registry's stored root."""
+        from .batch_verifier import verify_anchored_proof
+
+        proof = self.generate_proof(action_id)
+        record = self.audit_store.get(action_id)
+        return record is not None and verify_anchored_proof(record, proof)

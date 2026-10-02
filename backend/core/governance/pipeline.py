@@ -253,5 +253,10 @@ def run_governance_pipeline(action_log_entry) -> GovernanceVerdict:
     # Persist once at the completed evaluation boundary. Reads/serialization of
     # this verdict do not write a second audit entry.
     AUDIT_LOG_STORE.append(audit_record_from_verdict(verdict))
-    AUDIT_BATCH_MANAGER.seal_due_batches()
+    # The batch manager must see the same canonical deployment used for this
+    # evaluation (including the disposable demo registry). A chain failure
+    # stays retryable and does not rewrite the already-computed verdict.
+    with canonical_context():
+        AUDIT_BATCH_MANAGER.seal_due_batches()
+        AUDIT_BATCH_MANAGER.anchor_unanchored_batches()
     return verdict
