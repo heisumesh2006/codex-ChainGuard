@@ -1,6 +1,6 @@
 import {
   Activity, BarChart3, Blocks, FlaskConical, LayoutDashboard,
-  LockKeyhole, Network, Radio,
+  LockKeyhole, Network, Radio, ScanSearch,
 } from 'lucide-react'
 
 export const navigation = [
@@ -12,4 +12,5 @@ export const navigation = [
   { to: '/analytics', label: 'ML Analytics', icon: BarChart3, title: 'Policy drift' },
   { to: '/revocation', label: 'Revocation', icon: LockKeyhole, title: 'Public proof' },
   { to: '/evaluation', label: 'Evaluation', icon: Activity, title: 'Final evidence' },
+  { to: '/blockchain-audit', label: 'Blockchain Audit', icon: ScanSearch, title: 'Merkle audit proofs' },
 ]

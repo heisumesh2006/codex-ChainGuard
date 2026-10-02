@@ -25,5 +25,14 @@ export const api = {
   finalReport: () => request('/api/final-report'),
   evaluate: (action) => request('/api/governance/evaluate', { method: 'POST', body: JSON.stringify(action) }),
   scenario: (name) => request(`/api/scenarios/${encodeURIComponent(name)}`, { method: 'POST' }),
+  auditStatus: () => request('/api/audit/status'),
+  auditLogs: (params = {}) => request(`/api/audit/logs?${new URLSearchParams(params)}`),
+  auditBatches: (params = {}) => request(`/api/audit/batches?${new URLSearchParams(params)}`),
+  auditBatch: (batchId) => request(`/api/audit/batches/${encodeURIComponent(batchId)}`),
+  auditAction: (actionId) => request(`/api/audit/actions/${encodeURIComponent(actionId)}`),
+  auditActionProof: (actionId) => request(`/api/audit/actions/${encodeURIComponent(actionId)}/proof`),
+  verifyAuditAction: (actionId, recordOverride) => request(`/api/audit/actions/${encodeURIComponent(actionId)}/verify`, {
+    method: 'POST', body: JSON.stringify(recordOverride ? { record_override: recordOverride } : {}),
+  }),
   governanceSocket: () => new WebSocket(`${API_BASE.replace(/^http/, 'ws')}/ws/governance`),
 }

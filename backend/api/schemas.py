@@ -31,3 +31,9 @@ class ActionInput(BaseModel):
 class GovernanceStreamRequest(BaseModel):
     scenario: str | None = None
     action: ActionInput | None = None
+
+
+class AuditVerifyInput(BaseModel):
+    """Optional off-chain record copy for forensic/tamper verification."""
+
+    record_override: dict[str, Any] | None = None

@@ -1,8 +1,8 @@
 """Canonical off-chain audit records for governed agent actions.
 
 Audit records are serialized as canonical UTF-8 JSON and hashed with Ethereum
-Keccak-256. JSONL is append-only for normal writes; Merkle batching is not yet
-implemented.
+Keccak-256. JSONL is append-only for normal writes; BatchManager assigns records
+to Merkle batches separately without modifying this log.
 """
 
 from dataclasses import asdict, dataclass, is_dataclass

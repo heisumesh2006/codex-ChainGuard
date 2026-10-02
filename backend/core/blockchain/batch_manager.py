@@ -136,6 +136,30 @@ class BatchManager:
             return [record for record in self.audit_store.list_records()
                     if record["action_id"] not in assigned]
 
+    def pending_summary(self, now: datetime | None = None) -> dict[str, Any]:
+        """Describe the open pending group and its local queue age."""
+        current_time = _utc_now(now)
+        with self._lock:
+            state = self._read_state()
+            pending = [record for record in self.audit_store.list_records()
+                       if record["action_id"] not in state["action_index"]]
+            oldest = pending[0] if pending else None
+            pending_since = state["pending_since"].get(oldest["action_id"]) if oldest else None
+            age_seconds = (max(0.0, (current_time - _parse_timestamp(pending_since)).total_seconds())
+                           if pending_since else None)
+            return {
+                "pending_log_count": len(pending),
+                "oldest_pending_action_id": oldest["action_id"] if oldest else None,
+                "oldest_pending_since": pending_since,
+                "oldest_pending_age_seconds": age_seconds,
+                "current_batch": {
+                    "first_action_id": pending[0]["action_id"],
+                    "last_action_id": pending[-1]["action_id"],
+                    "log_count": len(pending),
+                    "threshold": self.batch_size,
+                } if pending else None,
+            }
+
     def record_status(self, action_id: str) -> dict[str, Any] | None:
         with self._lock:
             state = self._read_state()

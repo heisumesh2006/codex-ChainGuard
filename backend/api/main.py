@@ -1,11 +1,11 @@
 """ChainGuard-AI presentation API. Run from the project root with Uvicorn."""
 
 import asyncio
-from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, HTTPException, Query, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 
 from backend.api import services
-from backend.api.schemas import ActionInput, GovernanceStreamRequest
+from backend.api.schemas import ActionInput, AuditVerifyInput, GovernanceStreamRequest
 
 app = FastAPI(title="ChainGuard-AI API", version="1.0.0")
 app.add_middleware(
@@ -70,6 +70,55 @@ def revocation(agent_id: str):
 @app.get("/api/final-report")
 def final_report():
     return services.final_report()
+
+
+@app.get("/api/audit/status")
+def audit_status():
+    return services.audit_status()
+
+
+@app.get("/api/audit/logs")
+def audit_logs(limit: int = Query(default=100, ge=1, le=500), offset: int = Query(default=0, ge=0)):
+    return services.audit_logs(limit=limit, offset=offset)
+
+
+@app.get("/api/audit/batches")
+def audit_batches(limit: int = Query(default=100, ge=1, le=500), offset: int = Query(default=0, ge=0)):
+    return services.audit_batches(limit=limit, offset=offset)
+
+
+@app.get("/api/audit/batches/{batch_id}")
+def audit_batch(batch_id: str):
+    try:
+        return services.audit_batch(batch_id)
+    except LookupError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@app.get("/api/audit/actions/{action_id}")
+def audit_action(action_id: str):
+    try:
+        return services.audit_action(action_id)
+    except LookupError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@app.get("/api/audit/actions/{action_id}/proof")
+def audit_action_proof(action_id: str):
+    try:
+        return services.audit_action_proof(action_id)
+    except LookupError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@app.post("/api/audit/actions/{action_id}/verify")
+def verify_audit_action(action_id: str, request: AuditVerifyInput | None = None):
+    try:
+        return services.verify_audit_action(
+            action_id, request.record_override if request is not None else None,
+        )
+    except LookupError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
 
 
 @app.post("/api/governance/evaluate")

@@ -1,15 +1,20 @@
 """Read existing module evidence and delegate decisions to Module 6."""
 
 import json
+import os
 from pathlib import Path
 from threading import RLock
 
 import joblib
+from web3 import Web3
 
 from backend.core.governance import pipeline
 from backend.core.authorization import agents as module1_agents
 from backend.core.blockchain import chain, integration
 from backend.core.blockchain.anchor import get_proof, verify_proof
+from backend.core.blockchain.audit_log import hash_record
+from backend.core.blockchain.batch_manager import batch_key
+from backend.core.blockchain.batch_verifier import verify_anchored_proof, verify_proof as verify_merkle_proof
 from backend.core.tracing.tracer import trace_action, trace_agent_authority
 from backend.core.revocation.revocation import get_revocation_status
 from backend.core.governance.main import load_scenarios
@@ -298,3 +303,162 @@ def stage_events(verdict: dict) -> list[dict]:
         events.append({"event": f"{name}_COMPLETE", "status": "COMPLETE", "latency_ms": timings[latency_key], "replay": True, **detail})
     events.append({"event": "VERDICT_COMPLETE", "status": verdict["governance_decision"], "decision": verdict["governance_decision"], "total_latency_ms": verdict["total_latency_ms"], "replay": True, "verdict": verdict})
     return events
+
+
+def _audit_explorer_base(chain_id: int) -> str | None:
+    configured = os.environ.get("CHAINGUARD_EXPLORER_URL", "").strip().rstrip("/")
+    return configured if configured and chain_id != 31337 else None
+
+
+def audit_status() -> dict:
+    manager = pipeline.AUDIT_BATCH_MANAGER
+    with LOCK, canonical_context():
+        web3, contract, _, deployment = chain.contract_context()
+        pending = manager.pending_summary()
+        batches = manager.list_batches()
+        return {
+            **pending,
+            "batch_size": manager.batch_size,
+            "batch_max_age_seconds": manager.max_age_seconds,
+            "anchored_batch_count": sum(batch["status"] == "ANCHORED" for batch in batches),
+            "network": "Hardhat Local" if web3.eth.chain_id == 31337 else f"Chain {web3.eth.chain_id}",
+            "chain_id": web3.eth.chain_id,
+            "contract_address": contract.address,
+            "current_block": web3.eth.block_number,
+            "explorer_url": _audit_explorer_base(web3.eth.chain_id),
+            "deployment_contract_address": deployment["contract_address"],
+        }
+
+
+def audit_logs(limit: int = 100, offset: int = 0) -> dict:
+    manager = pipeline.AUDIT_BATCH_MANAGER
+    # Put the newest action first so the default page always surfaces recent
+    # governed activity even when the append-only log grows beyond its limit.
+    records = list(reversed(manager.audit_store.list_records()))
+    selected = records[offset:offset + limit]
+    return {
+        "total": len(records),
+        "limit": limit,
+        "offset": offset,
+        "records": [
+            {**record, "batch_status": manager.record_status(record["action_id"])}
+            for record in selected
+        ],
+    }
+
+
+def audit_batches(limit: int = 100, offset: int = 0) -> dict:
+    with LOCK, canonical_context():
+        web3, _, _, _ = chain.contract_context()
+        all_batches = pipeline.AUDIT_BATCH_MANAGER.list_batches()
+        selected = all_batches[offset:offset + limit]
+        explorer = _audit_explorer_base(web3.eth.chain_id)
+        return {
+            "total": len(all_batches),
+            "limit": limit,
+            "offset": offset,
+            "batches": [
+                {
+                    **batch,
+                    "explorer_transaction_url": f"{explorer}/tx/{batch['blockchain_tx_hash']}"
+                    if explorer and batch.get("blockchain_tx_hash") else None,
+                }
+                for batch in selected
+            ],
+        }
+
+
+def audit_batch(batch_id: str) -> dict:
+    batch = pipeline.AUDIT_BATCH_MANAGER.get_batch(batch_id)
+    if batch is None:
+        raise LookupError(f"Unknown audit batch: {batch_id}")
+    if batch["status"] == "ANCHORED":
+        proof_status = "VERIFIED" if pipeline.AUDIT_BATCH_MANAGER.verify_anchored_record_proof(
+            batch["first_action_id"]
+        ) else "VERIFY FAILED"
+    elif batch.get("anchor_error"):
+        proof_status = "ANCHOR FAILED"
+    else:
+        proof_status = "PENDING"
+    return {**batch, "proof_status": proof_status}
+
+
+def audit_action(action_id: str) -> dict:
+    manager = pipeline.AUDIT_BATCH_MANAGER
+    record = manager.audit_store.get(action_id)
+    if record is None:
+        raise LookupError(f"Unknown audit action: {action_id}")
+    return {"record": record, "record_hash": hash_record(record),
+            "batch_status": manager.record_status(action_id)}
+
+
+def _audit_action_proof(action_id: str, record_to_verify: dict | None = None) -> dict:
+    manager = pipeline.AUDIT_BATCH_MANAGER
+    record = manager.audit_store.get(action_id)
+    if record is None:
+        raise LookupError(f"Unknown audit action: {action_id}")
+    candidate = record if record_to_verify is None else record_to_verify
+    status = manager.record_status(action_id)
+    result = {
+        "action_id": action_id,
+        "record": record,
+        "record_hash": hash_record(candidate),
+        "proof_siblings": [],
+        "calculated_root": None,
+        "blockchain_root": None,
+        "batch_id": None,
+        "result": "PENDING",
+        "blockchain": None,
+    }
+    if status is None:
+        raise LookupError(f"Unknown audit action: {action_id}")
+    if status["status"] == "PENDING":
+        return result
+
+    batch = status["batch"]
+    proof = manager.generate_proof(action_id)
+    local_proof_valid = (
+        candidate.get("action_id") == action_id
+        and verify_merkle_proof(candidate, proof, proof["merkle_root"])
+    )
+    result.update({
+        "proof_siblings": proof["siblings"],
+        "calculated_root": proof["merkle_root"] if local_proof_valid else None,
+        "batch_id": batch["batch_id"],
+    })
+    if batch["status"] != "ANCHORED":
+        result["result"] = "TAMPERED" if not local_proof_valid else (
+            "ANCHOR FAILED" if batch.get("anchor_error") else "PENDING"
+        )
+        return result
+
+    blockchain_root = None
+    try:
+        with LOCK, canonical_context():
+            web3, contract, _, _ = chain.contract_context()
+            onchain_batch = contract.functions.auditBatches(batch_key(batch["batch_id"])).call()
+            if onchain_batch[6]:
+                blockchain_root = Web3.to_hex(onchain_batch[0])
+    except Exception:
+        pass
+    result["blockchain_root"] = blockchain_root
+    result["blockchain"] = proof.get("blockchain")
+    if not local_proof_valid:
+        result["result"] = "TAMPERED"
+    elif blockchain_root is None:
+        result["result"] = "VERIFY FAILED"
+    elif blockchain_root.lower() != proof["merkle_root"].lower():
+        result["result"] = "TAMPERED"
+    elif verify_anchored_proof(candidate, proof):
+        result["result"] = "VERIFIED"
+    else:
+        result["result"] = "VERIFY FAILED"
+    return result
+
+
+def audit_action_proof(action_id: str) -> dict:
+    return _audit_action_proof(action_id)
+
+
+def verify_audit_action(action_id: str, record_override: dict | None = None) -> dict:
+    return _audit_action_proof(action_id, record_override)

@@ -73,6 +73,43 @@ class PresentationApiTests(unittest.TestCase):
         self.assertEqual(status["status"], "REVOKED")
         self.assertTrue(status["proof_verified"])
 
+    def test_audit_api_seals_anchors_and_verifies_records(self):
+        for _ in range(5):
+            result = self.client.post("/api/scenarios/normal")
+            self.assertEqual(result.status_code, 200)
+        status = self.client.get("/api/audit/status").json()
+        self.assertEqual(status["network"], "Hardhat Local")
+        self.assertEqual(status["chain_id"], 31337)
+        self.assertEqual(status["batch_size"], 5)
+        self.assertGreaterEqual(status["anchored_batch_count"], 1)
+        self.assertIsInstance(status["current_block"], int)
+        self.assertIsNone(status["explorer_url"])
+
+        logs = self.client.get("/api/audit/logs", params={"limit": 10}).json()
+        self.assertGreaterEqual(logs["total"], 5)
+        batch_list = self.client.get("/api/audit/batches").json()
+        anchored_batch = next(batch for batch in batch_list["batches"] if batch["status"] == "ANCHORED")
+        action_id = anchored_batch["first_action_id"]
+        action = self.client.get(f"/api/audit/actions/{action_id}").json()
+        self.assertTrue(action["record_hash"].startswith("0x"))
+        proof = self.client.get(f"/api/audit/actions/{action_id}/proof").json()
+        self.assertEqual(proof["result"], "VERIFIED")
+        self.assertEqual(proof["calculated_root"], proof["blockchain_root"])
+        self.assertTrue(proof["blockchain"]["transaction_hash"].startswith("0x"))
+
+        batch_id = proof["batch_id"]
+        batch = self.client.get(f"/api/audit/batches/{batch_id}").json()
+        self.assertEqual(batch["status"], "ANCHORED")
+        self.assertEqual(batch["merkle_root"], proof["blockchain_root"])
+        self.assertTrue(batch["blockchain_tx_hash"].startswith("0x"))
+        self.assertGreaterEqual(batch_list["total"], 1)
+
+        tampered = dict(action["record"], target="tampered-demo-copy")
+        rejected = self.client.post(f"/api/audit/actions/{action_id}/verify", json={"record_override": tampered})
+        self.assertEqual(rejected.status_code, 200)
+        self.assertEqual(rejected.json()["result"], "TAMPERED")
+        self.assertEqual(self.client.post(f"/api/audit/actions/{action_id}/verify").json()["result"], "VERIFIED")
+
     def test_credentials_and_historical_trace(self):
         credentials = self.client.get("/api/agents/Agent_C/credentials").json()["credentials"]
         self.assertEqual({item["permission"] for item in credentials}, {"PROCESS_PAYMENT", "CREATE_AGENT"})
