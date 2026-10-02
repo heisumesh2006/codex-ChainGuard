@@ -4,3 +4,4 @@ data/deployment.json
 data/ethereum_state.json
 data/credentials.json
 data/audit_logs.jsonl
+data/batches.json

@@ -9,6 +9,7 @@ from fastapi.testclient import TestClient
 
 from backend.api.main import app
 from backend.core.blockchain.audit_log import AuditLogStore
+from backend.core.blockchain.batch_manager import BatchManager
 from backend.core.governance import pipeline
 
 
@@ -18,16 +19,22 @@ class PresentationApiTests(unittest.TestCase):
         temp_root = Path(__file__).resolve().parents[3] / ".runtime"
         temp_root.mkdir(exist_ok=True)
         cls.audit_directory = tempfile.TemporaryDirectory(dir=temp_root)
+        cls.test_audit_store = AuditLogStore(Path(cls.audit_directory.name) / "audit.jsonl")
         cls.audit_store_patch = patch.object(
-            pipeline, "AUDIT_LOG_STORE",
-            AuditLogStore(Path(cls.audit_directory.name) / "audit.jsonl"),
+            pipeline, "AUDIT_LOG_STORE", cls.test_audit_store,
         )
         cls.audit_store_patch.start()
+        cls.batch_manager_patch = patch.object(
+            pipeline, "AUDIT_BATCH_MANAGER",
+            BatchManager(cls.test_audit_store, Path(cls.audit_directory.name) / "batches.json"),
+        )
+        cls.batch_manager_patch.start()
         cls.client = TestClient(app)
 
     @classmethod
     def tearDownClass(cls):
         cls.client.close()
+        cls.batch_manager_patch.stop()
         cls.audit_store_patch.stop()
         cls.audit_directory.cleanup()
 
