@@ -8,6 +8,8 @@ from backend.core.blockchain import chain
 from backend.core.blockchain.main import run_blockchain_demo
 
 DATA_DIR = Path(__file__).resolve().parent / "data"
+if chain.NETWORK_PROFILE == "sepolia":
+    DATA_DIR = DATA_DIR / "sepolia"
 PATHS = {
     "STATE_PATH": DATA_DIR / "ethereum_state.json",
     "DEPLOYMENT_PATH": DATA_DIR / "deployment.json",

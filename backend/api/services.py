@@ -5,14 +5,20 @@ from pathlib import Path
 from threading import RLock
 
 import joblib
+from web3 import Web3
 
 from backend.core.governance import pipeline
 from backend.core.authorization import agents as module1_agents
 from backend.core.blockchain import chain, integration
 from backend.core.blockchain.anchor import get_proof, verify_proof
+from backend.core.blockchain.audit_log import hash_record
+from backend.core.blockchain.batch_manager import batch_key
+from backend.core.blockchain.batch_verifier import verify_anchored_proof, verify_proof as verify_merkle_proof
 from backend.core.tracing.tracer import trace_action, trace_agent_authority
 from backend.core.revocation.revocation import get_revocation_status
 from backend.core.governance.main import load_scenarios
+from backend.core.governance.runtime_evidence import build_persisted_report, scenario_category, source_action, saved_verdict
+from backend.core.tracing.tracer import trace_audit_record
 from backend.core.governance.pipeline import DATA_DIR, MODEL_PATH, canonical_context, prepare_runtime, run_governance_pipeline
 
 from .schemas import ActionInput
@@ -29,35 +35,61 @@ SCENARIOS = {
 }
 
 
+def _deployment_path() -> Path:
+    # The local API uses the canonical governance registry. The Sepolia
+    # deployment is recorded in blockchain's network-specific state directory.
+    return chain.DEPLOYMENT_PATH if chain.NETWORK_PROFILE == "sepolia" else DATA_DIR / "deployment.json"
+
+
 def final_report() -> dict:
+    if chain.NETWORK_PROFILE == "sepolia":
+        with LOCK:
+            return build_persisted_report(DATA_DIR, pipeline.AUDIT_BATCH_MANAGER)
     return json.loads(REPORT_PATH.read_text(encoding="utf-8"))
 
 
 def health() -> dict:
-    deployment = json.loads((DATA_DIR / "deployment.json").read_text(encoding="utf-8"))
+    deployment_path = _deployment_path()
+    deployment = json.loads(deployment_path.read_text(encoding="utf-8")) if deployment_path.is_file() else {}
     rpc_connected = contract_available = False
     live_chain_id = None
+    latest_block = None
     error = None
     try:
         with LOCK, canonical_context():
-            web3 = chain.connect(deployment["rpc_url"])
+            web3 = chain.connect(deployment.get("rpc_url") or None)
             rpc_connected = True
             live_chain_id = web3.eth.chain_id
-            contract_available = (
-                live_chain_id == deployment["chain_id"]
-                and bool(web3.eth.get_code(deployment["contract_address"]))
+            latest_block = web3.eth.block_number
+            contract_address = deployment.get("contract_address")
+            contract_available = bool(
+                contract_address
+                and live_chain_id == deployment.get("chain_id")
+                and web3.eth.get_code(contract_address)
             )
     except Exception as exc:
-        error = str(exc)
+        # Provider exceptions may include credential-bearing RPC URLs; expose
+        # only a short diagnostic category to the browser.
+        error = "RPC_OFFLINE" if not rpc_connected else "CONTRACT_NOT_DEPLOYED_ON_CURRENT_NETWORK"
+    chain_id = live_chain_id or deployment.get("chain_id") or chain.EXPECTED_CHAIN_IDS.get(chain.NETWORK_PROFILE)
+    explorer_base = _audit_explorer_base(chain_id or 0)
+    contract_address = deployment.get("contract_address")
     return {
         "api_online": True,
         "rpc_connected": rpc_connected,
-        "chain_id": live_chain_id or deployment["chain_id"],
+        "chain_id": chain_id,
+        "network_name": _network_name(chain_id),
         "contract_available": contract_available,
-        "contract_address": deployment["contract_address"],
+        "contract_address": contract_address,
+        "latest_block": latest_block,
+        "explorer_available": explorer_base is not None,
+        "explorer": {
+            "base_url": explorer_base,
+            "contract_url": f"{explorer_base}/address/{contract_address}" if explorer_base and contract_address else None,
+        } if explorer_base else None,
         "ml_model_available": MODEL_PATH.is_file(),
         "status": "ONLINE" if rpc_connected and contract_available and MODEL_PATH.is_file() else "DEGRADED",
-        "error": error,
+        "error": error or (None if contract_available else "CONTRACT_NOT_DEPLOYED_ON_CURRENT_NETWORK"),
     }
 
 
@@ -71,7 +103,7 @@ def overview() -> dict:
         "credentials": blockchain["credentials_issued"],
         "delegations": blockchain["delegations_anchored"],
         "revocations": blockchain["revocations_anchored"],
-        "anchored_actions": blockchain["action_hashes_anchored"],
+        "anchored_actions": blockchain["action_hashes_anchored"] + blockchain.get("anchored_audit_records", 0),
         "attack_coverage": report["end_to_end_attack_coverage"],
         "average_pipeline_latency_ms": latency["total_average_ms"],
         "worst_pipeline_latency_ms": latency["total_worst_case_ms"],
@@ -148,6 +180,14 @@ def trace_authority(agent_id: str, permission: str) -> dict:
 
 
 def trace_scenario_action(name: str) -> dict:
+    if chain.NETWORK_PROFILE == "sepolia":
+        with LOCK, canonical_context():
+            record = _saved_audit_scenario(name)
+            proof = pipeline.AUDIT_BATCH_MANAGER.generate_proof(record["action_id"])
+            result = trace_audit_record(record, proof)
+            result["governance_decision"] = record["governance_verdict"]
+            result["saved_trace_verdict"] = record["trace_verdict"]
+            return result
     action = scenario_action(name)
     with LOCK, canonical_context():
         return trace_action(action)
@@ -245,6 +285,8 @@ def evaluate(action: ActionInput | dict) -> dict:
 
 
 def scenario_action(name: str) -> dict:
+    if chain.NETWORK_PROFILE == "sepolia":
+        return source_action(_saved_audit_scenario(name))
     code = SCENARIOS[name]
     matches = [action for category, _, action in load_scenarios() if category == code]
     if not matches:
@@ -252,7 +294,25 @@ def scenario_action(name: str) -> dict:
     return matches[0]
 
 
+def _saved_audit_scenario(name: str) -> dict:
+    for record in pipeline.AUDIT_BATCH_MANAGER.audit_store.list_records():
+        if scenario_category(record)[0] == SCENARIOS[name]:
+            return record
+    raise LookupError(f"No saved {name} audit scenario")
+
+
 def run_scenario(name: str) -> dict:
+    if chain.NETWORK_PROFILE == "sepolia":
+        with LOCK, canonical_context():
+            record = _saved_audit_scenario(name)
+            proof = pipeline.AUDIT_BATCH_MANAGER.generate_proof(record["action_id"])
+            trace = trace_audit_record(record, proof)
+            if not trace["action_proof_verified"]:
+                raise ValueError("Saved scenario audit proof failed verification")
+            verdict = saved_verdict(record)
+            verdict["trace_result"] = trace
+            verdict["audit_batch_status"] = pipeline.AUDIT_BATCH_MANAGER.record_status(record["action_id"])
+            return {"scenario": name, "source": "persisted_audit_record", "verdict": verdict}
     action = scenario_action(name)
     with LOCK:
         prepare_runtime()
@@ -298,3 +358,223 @@ def stage_events(verdict: dict) -> list[dict]:
         events.append({"event": f"{name}_COMPLETE", "status": "COMPLETE", "latency_ms": timings[latency_key], "replay": True, **detail})
     events.append({"event": "VERDICT_COMPLETE", "status": verdict["governance_decision"], "decision": verdict["governance_decision"], "total_latency_ms": verdict["total_latency_ms"], "replay": True, "verdict": verdict})
     return events
+
+
+def _network_name(chain_id: int | None) -> str:
+    if chain_id == 31337:
+        return "Hardhat Local"
+    if chain_id == 11155111:
+        return "Ethereum Sepolia"
+    if chain_id is None:
+        return "Sepolia" if chain.NETWORK_PROFILE == "sepolia" else "Hardhat Local"
+    return f"EVM Chain {chain_id}"
+
+
+def _audit_explorer_base(chain_id: int) -> str | None:
+    return "https://sepolia.etherscan.io" if chain_id == 11155111 else None
+
+
+def audit_status() -> dict:
+    manager = pipeline.AUDIT_BATCH_MANAGER
+    pending = manager.pending_summary()
+    batches = manager.list_batches()
+    deployment_path = _deployment_path()
+    deployment = json.loads(deployment_path.read_text(encoding="utf-8")) if deployment_path.is_file() else {}
+    chain_id = deployment.get("chain_id") or chain.EXPECTED_CHAIN_IDS.get(chain.NETWORK_PROFILE)
+    rpc_connected = contract_available = False
+    current_block = latest_block = contract_address = None
+    try:
+        with LOCK, canonical_context():
+            web3 = chain.connect(deployment.get("rpc_url") or None)
+            rpc_connected = True
+            current_block = latest_block = web3.eth.block_number
+            chain_id = web3.eth.chain_id
+            contract_address = deployment.get("contract_address")
+            contract_available = bool(
+                contract_address
+                and chain_id == deployment.get("chain_id")
+                and web3.eth.get_code(contract_address)
+            )
+    except Exception:
+        pass
+    explorer_base = _audit_explorer_base(chain_id or 0)
+    return {
+        **pending,
+        "batch_size": manager.batch_size,
+        "batch_max_age_seconds": manager.max_age_seconds,
+        "anchored_batch_count": sum(batch["status"] == "ANCHORED" for batch in batches),
+        "network": _network_name(chain_id),
+        "network_name": _network_name(chain_id),
+        "chain_id": chain_id,
+        "rpc_connected": rpc_connected,
+        "contract_available": contract_available,
+        "contract_address": contract_address or deployment.get("contract_address"),
+        "current_block": current_block,
+        "latest_block": latest_block,
+        "explorer_available": explorer_base is not None,
+        "explorer_url": explorer_base,
+        "explorer": {
+            "base_url": explorer_base,
+            "contract_url": f"{explorer_base}/address/{contract_address}" if explorer_base and contract_address else None,
+        } if explorer_base else None,
+        "deployment_contract_address": deployment.get("contract_address"),
+        "connection_status": (
+            "RPC_OFFLINE" if not rpc_connected else
+            "CONTRACT_NOT_DEPLOYED_ON_CURRENT_NETWORK" if not contract_available else "CONNECTED"
+        ),
+    }
+
+
+def audit_logs(limit: int = 100, offset: int = 0) -> dict:
+    manager = pipeline.AUDIT_BATCH_MANAGER
+    # Put the newest action first so the default page always surfaces recent
+    # governed activity even when the append-only log grows beyond its limit.
+    records = list(reversed(manager.audit_store.list_records()))
+    selected = records[offset:offset + limit]
+    return {
+        "total": len(records),
+        "limit": limit,
+        "offset": offset,
+        "records": [
+            {**record, "batch_status": manager.record_status(record["action_id"])}
+            for record in selected
+        ],
+    }
+
+
+def audit_batches(limit: int = 100, offset: int = 0) -> dict:
+    deployment_path = _deployment_path()
+    deployment = json.loads(deployment_path.read_text(encoding="utf-8")) if deployment_path.is_file() else {}
+    chain_id = deployment.get("chain_id") or chain.EXPECTED_CHAIN_IDS.get(chain.NETWORK_PROFILE)
+    with LOCK, canonical_context():
+        try:
+            web3 = chain.connect(deployment.get("rpc_url") or None)
+            chain_id = web3.eth.chain_id
+        except Exception:
+            pass
+    all_batches = pipeline.AUDIT_BATCH_MANAGER.list_batches()
+    selected = all_batches[offset:offset + limit]
+    explorer = _audit_explorer_base(chain_id or 0)
+    return {
+        "total": len(all_batches),
+        "limit": limit,
+        "offset": offset,
+        "batches": [
+            {
+                **batch,
+                "explorer_transaction_url": f"{explorer}/tx/{batch['blockchain_tx_hash']}"
+                if explorer and batch.get("blockchain_tx_hash") else None,
+                "explorer_block_url": f"{explorer}/block/{batch['blockchain_block_number']}"
+                if explorer and batch.get("blockchain_block_number") is not None else None,
+                "explorer_contract_url": f"{explorer}/address/{batch['blockchain_contract_address']}"
+                if explorer and batch.get("blockchain_contract_address") else None,
+            }
+            for batch in selected
+        ],
+    }
+
+
+def audit_batch(batch_id: str) -> dict:
+    batch = pipeline.AUDIT_BATCH_MANAGER.get_batch(batch_id)
+    if batch is None:
+        raise LookupError(f"Unknown audit batch: {batch_id}")
+    if batch["status"] == "ANCHORED":
+        proof_status = "VERIFIED" if pipeline.AUDIT_BATCH_MANAGER.verify_anchored_record_proof(
+            batch["first_action_id"]
+        ) else "VERIFY FAILED"
+    elif batch.get("anchor_error"):
+        proof_status = "ANCHOR FAILED"
+    else:
+        proof_status = "PENDING"
+    explorer = _audit_explorer_base(batch.get("blockchain_chain_id") or 0)
+    return {
+        **batch,
+        "proof_status": proof_status,
+        "explorer_transaction_url": f"{explorer}/tx/{batch['blockchain_tx_hash']}"
+        if explorer and batch.get("blockchain_tx_hash") else None,
+        "explorer_block_url": f"{explorer}/block/{batch['blockchain_block_number']}"
+        if explorer and batch.get("blockchain_block_number") is not None else None,
+        "explorer_contract_url": f"{explorer}/address/{batch['blockchain_contract_address']}"
+        if explorer and batch.get("blockchain_contract_address") else None,
+    }
+
+
+def audit_action(action_id: str) -> dict:
+    manager = pipeline.AUDIT_BATCH_MANAGER
+    record = manager.audit_store.get(action_id)
+    if record is None:
+        raise LookupError(f"Unknown audit action: {action_id}")
+    return {"record": record, "record_hash": hash_record(record),
+            "batch_status": manager.record_status(action_id)}
+
+
+def _audit_action_proof(action_id: str, record_to_verify: dict | None = None) -> dict:
+    manager = pipeline.AUDIT_BATCH_MANAGER
+    record = manager.audit_store.get(action_id)
+    if record is None:
+        raise LookupError(f"Unknown audit action: {action_id}")
+    candidate = record if record_to_verify is None else record_to_verify
+    status = manager.record_status(action_id)
+    result = {
+        "action_id": action_id,
+        "record": record,
+        "record_hash": hash_record(candidate),
+        "proof_siblings": [],
+        "calculated_root": None,
+        "blockchain_root": None,
+        "batch_id": None,
+        "result": "PENDING",
+        "blockchain": None,
+    }
+    if status is None:
+        raise LookupError(f"Unknown audit action: {action_id}")
+    if status["status"] == "PENDING":
+        return result
+
+    batch = status["batch"]
+    proof = manager.generate_proof(action_id)
+    local_proof_valid = (
+        candidate.get("action_id") == action_id
+        and verify_merkle_proof(candidate, proof, proof["merkle_root"])
+    )
+    result.update({
+        "proof_siblings": proof["siblings"],
+        "calculated_root": proof["merkle_root"] if local_proof_valid else None,
+        "batch_id": batch["batch_id"],
+    })
+    if batch["status"] != "ANCHORED":
+        result["result"] = "TAMPERED" if not local_proof_valid else (
+            "ANCHOR FAILED" if batch.get("anchor_error") else "PENDING"
+        )
+        return result
+
+    blockchain_root = None
+    try:
+        with LOCK, canonical_context():
+            web3, contract, _, _ = chain.contract_context()
+            onchain_batch = contract.functions.auditBatches(batch_key(batch["batch_id"])).call()
+            if onchain_batch[6]:
+                blockchain_root = Web3.to_hex(onchain_batch[0])
+    except Exception:
+        pass
+    result["blockchain_root"] = blockchain_root
+    result["blockchain"] = proof.get("blockchain")
+    if not local_proof_valid:
+        result["result"] = "TAMPERED"
+    elif blockchain_root is None:
+        result["result"] = "VERIFY FAILED"
+    elif blockchain_root.lower() != proof["merkle_root"].lower():
+        result["result"] = "TAMPERED"
+    elif verify_anchored_proof(candidate, proof):
+        result["result"] = "VERIFIED"
+    else:
+        result["result"] = "VERIFY FAILED"
+    return result
+
+
+def audit_action_proof(action_id: str) -> dict:
+    return _audit_action_proof(action_id)
+
+
+def verify_audit_action(action_id: str, record_override: dict | None = None) -> dict:
+    return _audit_action_proof(action_id, record_override)

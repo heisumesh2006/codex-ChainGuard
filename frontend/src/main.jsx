@@ -7,6 +7,7 @@ import './styles/identity.css'
 import './styles/governance.css'
 import './styles/analysis.css'
 import './styles/final.css'
+import './styles/audit.css'
 
 createRoot(document.getElementById('root')).render(
   <React.StrictMode><App /></React.StrictMode>,

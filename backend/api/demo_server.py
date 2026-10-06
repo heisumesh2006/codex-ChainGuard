@@ -12,6 +12,8 @@ import uvicorn
 
 from backend.core.governance import bootstrap
 from backend.core.governance import main as module6_main
+from backend.core.blockchain.audit_log import AuditLogStore
+from backend.core.blockchain.batch_manager import BatchManager
 from backend.core.governance import pipeline
 from backend.api import services
 from backend.api.main import app
@@ -33,6 +35,12 @@ def main() -> None:
         bootstrap.bootstrap()
         # Bootstrap already replayed Module 1 in this process.
         pipeline._runtime["module1_ready"] = True
+        # Keep the live presentation registry's audit stream isolated with its
+        # disposable deployment; do not mix demo roots into saved audit state.
+        pipeline.AUDIT_LOG_STORE = AuditLogStore(data_dir / "audit_logs.jsonl")
+        pipeline.AUDIT_BATCH_MANAGER = BatchManager(
+            pipeline.AUDIT_LOG_STORE, data_dir / "batches.json",
+        )
         shutil.copyfile(Path(__file__).resolve().parents[2] / "backend" / "core" / "governance" / "data" / "final_report.json", data_dir / "final_report.json")
 
         pipeline.DATA_DIR = data_dir

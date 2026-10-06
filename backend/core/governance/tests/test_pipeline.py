@@ -3,10 +3,15 @@
 from collections import Counter
 import json
 from pathlib import Path
+import tempfile
 import unittest
 from unittest.mock import patch
 
+import joblib
+
 from backend.core.blockchain import chain
+from backend.core.blockchain.audit_log import AuditLogStore
+from backend.core.blockchain.batch_manager import BatchManager
 from backend.core.revocation import revocation as module5_revocation
 from backend.core.governance import pipeline
 from backend.core.governance.main import load_scenarios
@@ -18,10 +23,29 @@ class PipelineTests(unittest.TestCase):
     def setUpClass(cls):
         cls.scenarios = load_scenarios()
         pipeline.prepare_runtime()
+        temp_root = Path(__file__).resolve().parents[4] / ".runtime"
+        temp_root.mkdir(exist_ok=True)
+        cls.audit_directory = tempfile.TemporaryDirectory(dir=temp_root)
+        cls.test_audit_store = AuditLogStore(Path(cls.audit_directory.name) / "audit.jsonl")
+        cls.audit_store_patch = patch.object(
+            pipeline, "AUDIT_LOG_STORE", cls.test_audit_store,
+        )
+        cls.audit_store_patch.start()
+        cls.batch_manager_patch = patch.object(
+            pipeline, "AUDIT_BATCH_MANAGER",
+            BatchManager(cls.test_audit_store, Path(cls.audit_directory.name) / "batches.json"),
+        )
+        cls.batch_manager_patch.start()
 
     @classmethod
     def _action(cls, category):
         return next(action for name, _, action in cls.scenarios if name == category)
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.batch_manager_patch.stop()
+        cls.audit_store_patch.stop()
+        cls.audit_directory.cleanup()
 
     def test_canonical_latest_registry_is_shared(self):
         with pipeline.canonical_context():
@@ -99,6 +123,65 @@ class PipelineTests(unittest.TestCase):
         self.assertFalse(result.drift_flagged)
         self.assertIsNone(result.drift_score)
         self.assertTrue(result.chain_verified)
+
+    def test_allow_review_and_block_decisions_are_audited_once_per_evaluation(self):
+        store = pipeline.AUDIT_LOG_STORE
+        before = store.count()
+        examples = (
+            (self._action("ROOT_PERMISSION_GRANTED"), "ALLOW"),
+            (next(action for name, _, action in self.scenarios
+                  if name == "SCOPE_CREEP"), "REVIEW"),
+            (self._action("SELF_ESCALATION"), "BLOCK"),
+        )
+        appended = []
+        for action, expected in examples:
+            result = pipeline.run_governance_pipeline(action)
+            self.assertEqual(result.governance_decision, expected)
+            self.assertEqual(store.count(), before + len(appended) + 1)
+            appended.append(store.list_records()[-1])
+            self.assertEqual(appended[-1]["governance_verdict"], expected)
+        self.assertEqual([item["governance_verdict"] for item in appended],
+                         ["ALLOW", "REVIEW", "BLOCK"])
+
+    def test_original_five_scenario_decisions_are_unchanged(self):
+        cases = (
+            ("NORMAL", "ALLOW"),
+            ("SELF_ESCALATION", "BLOCK"),
+            ("UNAUTHORIZED_DELEGATION", "BLOCK"),
+            ("SCOPE_CREEP", "REVIEW"),
+            ("POST_DECOMMISSION_ACTIVITY", "BLOCK"),
+        )
+        for category, expected in cases:
+            with self.subTest(category=category):
+                # Saved scenario replay reloads the persisted baseline per run;
+                # reset model history so test order cannot change the outcome.
+                pipeline._runtime["model"] = joblib.load(pipeline.MODEL_PATH)
+                action = next(action for name, _, action in self.scenarios if name == category)
+                result = pipeline.run_governance_pipeline(action)
+                self.assertEqual(result.governance_decision, expected)
+
+    def test_governance_audit_batch_anchors_on_canonical_registry(self):
+        action = self._action("NORMAL")
+        for _ in range(5):
+            pipeline.run_governance_pipeline(action)
+        anchored = [batch for batch in pipeline.AUDIT_BATCH_MANAGER.list_batches()
+                    if batch["status"] == "ANCHORED"]
+        self.assertTrue(anchored)
+        sample = anchored[-1]
+        deployment = chain._read_json(pipeline.DATA_DIR / "deployment.json", {})
+        self.assertEqual(sample["blockchain_contract_address"], deployment["contract_address"])
+        self.assertTrue(pipeline.AUDIT_BATCH_MANAGER.verify_anchored_record_proof(sample["first_action_id"]))
+
+    def test_replaying_same_source_action_gets_distinct_audit_instance_ids(self):
+        action = self._action("SELF_ESCALATION")
+        first = pipeline.run_governance_pipeline(action)
+        first_audit = pipeline.AUDIT_LOG_STORE.list_records()[-1]
+        second = pipeline.run_governance_pipeline(action)
+        second_audit = pipeline.AUDIT_LOG_STORE.list_records()[-1]
+        self.assertEqual(first.governance_decision, second.governance_decision)
+        self.assertEqual(first_audit["metadata"]["source_action_id"], action["record_id"])
+        self.assertEqual(second_audit["metadata"]["source_action_id"], action["record_id"])
+        self.assertNotEqual(first_audit["action_id"], second_audit["action_id"])
 
     def test_latency_fields_and_consistency(self):
         result = pipeline.run_governance_pipeline(self._action("SELF_ESCALATION"))

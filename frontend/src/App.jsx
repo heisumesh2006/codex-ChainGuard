@@ -10,6 +10,7 @@ const ThreatLab = lazy(() => import('./pages/ThreatLab'))
 const Analytics = lazy(() => import('./pages/Analytics'))
 const Revocation = lazy(() => import('./pages/Revocation'))
 const Evaluation = lazy(() => import('./pages/Evaluation'))
+const AuditExplorer = lazy(() => import('./pages/AuditExplorer'))
 
 export default function App() {
   return (
@@ -24,6 +25,7 @@ export default function App() {
           <Route path="analytics" element={<Analytics />} />
           <Route path="revocation" element={<Revocation />} />
           <Route path="evaluation" element={<Evaluation />} />
+          <Route path="blockchain-audit" element={<AuditExplorer />} />
         </Route>
       </Routes>
     </BrowserRouter>

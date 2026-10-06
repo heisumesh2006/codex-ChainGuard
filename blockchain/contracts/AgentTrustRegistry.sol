@@ -38,6 +38,18 @@ contract AgentTrustRegistry {
         uint64 confirmedAt;
     }
 
+    // Compact commitment for one off-chain batch of canonical audit records.
+    // Individual logs and Merkle proofs remain off-chain.
+    struct AuditBatch {
+        bytes32 merkleRoot;
+        uint64 logCount;
+        uint64 startTimestamp;
+        uint64 endTimestamp;
+        address anchoredBy;
+        uint64 anchoredAt;
+        bool exists;
+    }
+
     mapping(bytes32 => address) public agentAddresses;
     mapping(address => bytes32) public addressAgents;
     mapping(bytes32 => bool) public agentRevoked;
@@ -46,12 +58,22 @@ contract AgentTrustRegistry {
     mapping(bytes32 => Commitment) public commitments;
     mapping(bytes32 => mapping(bytes32 => bytes32)) public scopeCredentials;
     mapping(bytes32 => bool) public delegationGrants;
+    mapping(bytes32 => AuditBatch) public auditBatches;
 
     event AgentRegistered(bytes32 indexed agentHash, address indexed account);
     event CredentialIssued(bytes32 indexed recordId, bytes32 indexed agentHash, bytes32 contentHash);
     event DelegationAnchored(bytes32 indexed recordId, bytes32 indexed delegatorHash, bytes32 indexed delegateeHash, bytes32 contentHash);
     event RevocationAnchored(bytes32 indexed recordId, bytes32 indexed agentHash, bytes32 contentHash);
     event ActionHashAnchored(bytes32 indexed recordId, bytes32 contentHash);
+    event AuditBatchAnchored(
+        bytes32 indexed batchId,
+        bytes32 indexed merkleRoot,
+        uint64 logCount,
+        uint64 startTimestamp,
+        uint64 endTimestamp,
+        address anchoredBy,
+        uint64 anchoredAt
+    );
 
     modifier onlyRoot() {
         require(msg.sender == rootAuthorizer, "ROOT_ONLY");
@@ -172,6 +194,36 @@ contract AgentTrustRegistry {
     function anchorActionHash(bytes32 recordId, bytes32 contentHash) external onlyRoot {
         _newCommitment(recordId, contentHash, 4);
         emit ActionHashAnchored(recordId, contentHash);
+    }
+
+    /// @notice Anchor one deterministic Merkle root for a batch of off-chain audit logs.
+    /// @dev Batch IDs are deterministic commitments chosen by the caller. They cannot be overwritten.
+    function anchorAuditBatch(
+        bytes32 batchId,
+        bytes32 merkleRoot,
+        uint64 logCount,
+        uint64 startTimestamp,
+        uint64 endTimestamp
+    ) external onlyRoot {
+        require(batchId != bytes32(0), "INVALID_BATCH_ID");
+        require(merkleRoot != bytes32(0), "INVALID_MERKLE_ROOT");
+        require(logCount > 0, "EMPTY_BATCH");
+        require(endTimestamp >= startTimestamp, "INVALID_TIME_RANGE");
+        require(!auditBatches[batchId].exists, "BATCH_EXISTS");
+
+        auditBatches[batchId] = AuditBatch({
+            merkleRoot: merkleRoot,
+            logCount: logCount,
+            startTimestamp: startTimestamp,
+            endTimestamp: endTimestamp,
+            anchoredBy: msg.sender,
+            anchoredAt: uint64(block.timestamp),
+            exists: true
+        });
+        emit AuditBatchAnchored(
+            batchId, merkleRoot, logCount, startTimestamp, endTimestamp,
+            msg.sender, uint64(block.timestamp)
+        );
     }
 
     function _newCommitment(bytes32 recordId, bytes32 contentHash, uint8 kind) internal {

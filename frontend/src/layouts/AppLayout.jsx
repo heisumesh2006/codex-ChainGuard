@@ -42,6 +42,7 @@ export default function AppLayout() {
   const { health, overview, metrics, error, loading, retry } = useSystemData()
   const current = navigation.find((item) => item.to === location.pathname) || navigation[0]
   const connected = Boolean(health?.rpc_connected && health?.contract_available)
+  const networkName = health?.network_name || 'Checking network'
   const shortAddress = health?.contract_address
     ? `${health.contract_address.slice(0, 6)}…${health.contract_address.slice(-4)}`
     : '—'
@@ -80,7 +81,7 @@ export default function AppLayout() {
           <div className="network-card">
             <div className="network-card__label"><CircleDot size={14} /> NETWORK STATUS</div>
             <div className="network-card__status"><span className={`network-light ${connected ? 'network-light--on' : ''}`} />{connected ? 'Blockchain connected' : 'Blockchain offline'}</div>
-            <div className="network-card__row"><span>Network</span><strong>Hardhat Local</strong></div>
+            <div className="network-card__row"><span>Network</span><strong>{networkName}</strong></div>
             <div className="network-card__row"><span>Chain ID</span><strong>{health?.chain_id ?? '—'}</strong></div>
             <div className="network-card__row"><span>API</span><strong>{health?.api_online ? 'Online' : 'Offline'}</strong></div>
           </div>
@@ -93,7 +94,7 @@ export default function AppLayout() {
           <div className="topbar__right">
             <button className="presentation-toggle" onClick={togglePresentation}><Presentation size={16} /> {presentation ? 'Exit presentation' : 'Presentation Mode'}</button>
             <StatusPill label={health?.status === 'ONLINE' ? 'System Online' : loading ? 'Checking system' : 'System Offline'} tone={health?.status === 'ONLINE' ? 'emerald' : 'red'} pulse={health?.status === 'ONLINE'} />
-            <span className="topbar__network"><Blocks size={15} /> Hardhat Local</span>
+            <span className="topbar__network"><Blocks size={15} /> {networkName}</span>
             <span className="topbar__contract">{shortAddress}</span>
           </div>
         </header>
@@ -104,7 +105,7 @@ export default function AppLayout() {
             <Suspense fallback={<div className="panel route-loading">Loading security workspace…</div>}><Outlet context={{ health, overview, metrics, error, loading, connected, retry, presentation, setPresentationScenario }} /></Suspense>
           </motion.div>
         </main>
-        <footer className="workspace-footer"><span><ShieldCheck size={14} /> ChainGuard-AI · Verifiable agent governance</span><span>Local evaluation environment</span></footer>
+        <footer className="workspace-footer"><span><ShieldCheck size={14} /> ChainGuard-AI · Verifiable agent governance</span><span>{health?.chain_id === 11155111 ? 'Public Sepolia test environment' : 'Local evaluation environment'}</span></footer>
       </div>
     </div>
   )

@@ -1,0 +1,9 @@
+{
+  "network": "Ethereum Sepolia",
+  "chain_id": 11155111,
+  "contract_address": "0x61c74D0525f4f5A1a7b20f2eA561e485E71dd243",
+  "deployment_tx_hash": "0xf5660aab74ae2ca7da6aea1f6c5895c3816517f64450ef37aa986df8b703e460",
+  "deployment_block": 11830349,
+  "deployed_at": "2026-10-02T17:04:00.000Z",
+  "root_authorizer": "0x1C09218e27264B3791b64bdc2D57a0327FFAa338"
+}

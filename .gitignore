@@ -129,3 +129,7 @@ temp*/
 
 # Disposable API registry state (including legacy location).
 .demo_runtime/
+
+# Sepolia runtime state; public deployment metadata is stored separately.
+/backend/core/governance/data/sepolia/
+/backend/core/blockchain/data/sepolia/

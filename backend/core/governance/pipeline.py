@@ -13,6 +13,8 @@ from backend.core.authorization import agents as module1_agents
 from backend.core.authorization.main import run_demo as run_module1_demo
 from backend.core.blockchain import chain, integration
 from backend.core.blockchain.anchor import get_proof, verify_proof
+from backend.core.blockchain.audit_log import AuditLogStore, audit_record_from_verdict
+from backend.core.blockchain.batch_manager import BatchManager
 from backend.core.tracing.tracer import trace_action, trace_agent_authority
 from backend.core.drift_detection.detector import score_action
 from backend.core.revocation import revocation as module5_revocation
@@ -20,8 +22,12 @@ from backend.core.revocation.audit import check_post_revocation_activity
 from backend.core.revocation.revocation import get_revocation_status, verify_revocation_proof
 
 DATA_DIR = Path(__file__).resolve().parent / "data"
+if chain.NETWORK_PROFILE == "sepolia":
+    DATA_DIR = DATA_DIR / "sepolia"
 MODEL_PATH = Path(__file__).resolve().parents[1] / "drift_detection" / "models" / "isolation_forest.joblib"
 _runtime = {"model": None, "module1_ready": False}
+AUDIT_LOG_STORE = AuditLogStore(DATA_DIR / "audit_logs.jsonl")
+AUDIT_BATCH_MANAGER = BatchManager(AUDIT_LOG_STORE, DATA_DIR / "batches.json")
 
 
 @contextmanager
@@ -237,7 +243,7 @@ def run_governance_pipeline(action_log_entry) -> GovernanceVerdict:
                               or (status and status["is_revoked"])) else None
     timings["verdict_assembly_ms"] = (time.perf_counter() - started) * 1000
     total = (time.perf_counter() - pipeline_started) * 1000
-    return GovernanceVerdict(
+    verdict = GovernanceVerdict(
         action=action, authorized=authorized, drift_applicable=applicable,
         drift_flagged=drift_flagged, drift_score=drift_score,
         trace_result=display_trace, trace_context_verdict=trace["verdict"],
@@ -246,3 +252,13 @@ def run_governance_pipeline(action_log_entry) -> GovernanceVerdict:
         reasons=reasons, total_latency_ms=total, step_latencies=timings,
         audit_result=audit, detected_by=layers, chain_evidence=evidence,
     )
+    # Persist once at the completed evaluation boundary. Reads/serialization of
+    # this verdict do not write a second audit entry.
+    AUDIT_LOG_STORE.append(audit_record_from_verdict(verdict))
+    # The batch manager must see the same canonical deployment used for this
+    # evaluation (including the disposable demo registry). A chain failure
+    # stays retryable and does not rewrite the already-computed verdict.
+    with canonical_context():
+        AUDIT_BATCH_MANAGER.seal_due_batches()
+        AUDIT_BATCH_MANAGER.anchor_unanchored_batches()
+    return verdict

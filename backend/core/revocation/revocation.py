@@ -67,7 +67,7 @@ class RevocationAnchoringError(RuntimeError):
 def _registry():
     """Connect from RPC/deployment/ABI only; no unlocked account is required."""
     deployment = json.loads(BUNDLE_DEPLOYMENT_PATH.read_text(encoding="utf-8"))
-    web3 = chain.connect(deployment["rpc_url"])
+    web3 = chain.connect(deployment.get("rpc_url") or chain.RPC_URL)
     if web3.eth.chain_id != deployment["chain_id"]:
         raise RuntimeError("Configured chain ID differs from Ethereum")
     address = Web3.to_checksum_address(deployment["contract_address"])
@@ -77,12 +77,25 @@ def _registry():
     return web3, contract, deployment
 
 
-def _revocation_events(web3, contract, agent_id):
+def _revocation_events(web3, contract, agent_id, *, from_block=0):
+    # The contract exposes the confirmation timestamp. Locate its block with
+    # read-only block queries so public RPCs with narrow eth_getLogs limits can
+    # verify the event without scanning from genesis.
+    agent_key = integration.agent_hash(agent_id)
+    confirmed_at = contract.functions.getRevocationDetails(agent_key).call()[5]
+    low, high = from_block, web3.eth.block_number
+    while low < high:
+        middle = (low + high) // 2
+        if web3.eth.get_block(middle).timestamp < confirmed_at:
+            low = middle + 1
+        else:
+            high = middle
+    if web3.eth.get_block(low).timestamp != confirmed_at:
+        return []
     topic = Web3.keccak(text=chain.EVENT_SIGNATURES["revocation"])
-    agent_topic = integration.agent_hash(agent_id)
     logs = web3.eth.get_logs({
-        "fromBlock": 0, "toBlock": "latest", "address": contract.address,
-        "topics": [topic, None, agent_topic],
+        "fromBlock": low, "toBlock": low, "address": contract.address,
+        "topics": [topic, None, agent_key],
     })
     event = contract.events.RevocationAnchored()
     return [event.process_log(log) for log in logs]
@@ -112,7 +125,7 @@ def get_revocation_status(agent_id) -> dict:
                                 "contract_address": contract.address, "chain_id": web3.eth.chain_id},
                 "lookup_latency_ms": (time.perf_counter() - started) * 1000}
 
-    events = _revocation_events(web3, contract, agent_id)
+    events = _revocation_events(web3, contract, agent_id, from_block=deployment.get("block_number", 0))
     if len(events) != 1:
         raise RuntimeError(f"Revoked agent {agent_id} has {len(events)} RevocationAnchored events; expected one")
     event = events[0]
@@ -131,7 +144,7 @@ def get_revocation_status(agent_id) -> dict:
         "content_hash": digest, "transaction_hash": Web3.to_hex(receipt.transactionHash),
         "block_number": receipt.blockNumber, "block_hash": Web3.to_hex(block.hash),
         "contract_address": contract.address, "chain_id": web3.eth.chain_id,
-        "rpc_url": deployment["rpc_url"], "issuer_address": transaction["from"],
+        "rpc_url": deployment.get("rpc_url", ""), "issuer_address": transaction["from"],
         "anchored_at": datetime.fromtimestamp(block.timestamp, timezone.utc).isoformat(),
         "revoked_at": revoked_at, "revoked_by": revoked_by,
         "revoked_permissions": list(permissions), "confirmed_at": int(confirmed_at),
@@ -153,7 +166,7 @@ def verify_revocation_proof(agent_id, proof) -> bool:
         web3, contract, deployment = _registry()
         if proof["contract_address"] != contract.address or proof["chain_id"] != web3.eth.chain_id:
             return False
-        if proof["rpc_url"] != deployment["rpc_url"]:
+        if proof.get("rpc_url", "") != deployment.get("rpc_url", ""):
             return False
         agent_key = integration.agent_hash(agent_id)
         if contract.functions.agentAddresses(agent_key).call() == ZERO_ADDRESS:
@@ -195,7 +208,7 @@ def verify_revocation_proof(agent_id, proof) -> bool:
             return False
         if Web3.to_hex(receipt.transactionHash) != proof["transaction_hash"]:
             return False
-        events = _revocation_events(web3, contract, agent_id)
+        events = _revocation_events(web3, contract, agent_id, from_block=deployment.get("block_number", 0))
         if len(events) != 1:
             return False
         event = events[0]

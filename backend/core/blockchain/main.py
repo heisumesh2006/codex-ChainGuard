@@ -1,4 +1,4 @@
-"""Live Hardhat deployment, Module 1 replay, and blockchain proof demonstration."""
+"""Live EVM deployment, Module 1 replay, and blockchain proof demonstration."""
 
 from contextlib import redirect_stdout
 from copy import deepcopy
@@ -31,7 +31,8 @@ def run_blockchain_demo() -> None:
 
     deployment = chain.deploy_registry()
     web3, contract, root, _ = chain.contract_context()
-    print(f"Hardhat connected: chain_id={deployment['chain_id']}")
+    network_name = "Hardhat Local" if deployment["chain_id"] == 31337 else "Ethereum Sepolia"
+    print(f"{network_name} connected: chain_id={deployment['chain_id']}")
     print(f"AgentTrustRegistry deployed: {deployment['contract_address']}")
 
     identities = chain.register_identities()

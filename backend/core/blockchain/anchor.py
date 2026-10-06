@@ -85,7 +85,7 @@ def verify_proof(record: dict, proof: dict) -> bool:
         if prepared["record_id"] != proof["source_record_id"]:
             return False
 
-        web3 = chain.connect(proof["rpc_url"])
+        web3 = chain.connect(proof.get("rpc_url") or chain.RPC_URL)
         if web3.eth.chain_id != proof["chain_id"]:
             return False
         address = Web3.to_checksum_address(proof["contract_address"])
