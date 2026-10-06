@@ -17,6 +17,8 @@ from backend.core.blockchain.batch_verifier import verify_anchored_proof, verify
 from backend.core.tracing.tracer import trace_action, trace_agent_authority
 from backend.core.revocation.revocation import get_revocation_status
 from backend.core.governance.main import load_scenarios
+from backend.core.governance.runtime_evidence import build_persisted_report, scenario_category, source_action, saved_verdict
+from backend.core.tracing.tracer import trace_audit_record
 from backend.core.governance.pipeline import DATA_DIR, MODEL_PATH, canonical_context, prepare_runtime, run_governance_pipeline
 
 from .schemas import ActionInput
@@ -40,6 +42,9 @@ def _deployment_path() -> Path:
 
 
 def final_report() -> dict:
+    if chain.NETWORK_PROFILE == "sepolia":
+        with LOCK:
+            return build_persisted_report(DATA_DIR, pipeline.AUDIT_BATCH_MANAGER)
     return json.loads(REPORT_PATH.read_text(encoding="utf-8"))
 
 
@@ -98,7 +103,7 @@ def overview() -> dict:
         "credentials": blockchain["credentials_issued"],
         "delegations": blockchain["delegations_anchored"],
         "revocations": blockchain["revocations_anchored"],
-        "anchored_actions": blockchain["action_hashes_anchored"],
+        "anchored_actions": blockchain["action_hashes_anchored"] + blockchain.get("anchored_audit_records", 0),
         "attack_coverage": report["end_to_end_attack_coverage"],
         "average_pipeline_latency_ms": latency["total_average_ms"],
         "worst_pipeline_latency_ms": latency["total_worst_case_ms"],
@@ -175,6 +180,14 @@ def trace_authority(agent_id: str, permission: str) -> dict:
 
 
 def trace_scenario_action(name: str) -> dict:
+    if chain.NETWORK_PROFILE == "sepolia":
+        with LOCK, canonical_context():
+            record = _saved_audit_scenario(name)
+            proof = pipeline.AUDIT_BATCH_MANAGER.generate_proof(record["action_id"])
+            result = trace_audit_record(record, proof)
+            result["governance_decision"] = record["governance_verdict"]
+            result["saved_trace_verdict"] = record["trace_verdict"]
+            return result
     action = scenario_action(name)
     with LOCK, canonical_context():
         return trace_action(action)
@@ -272,6 +285,8 @@ def evaluate(action: ActionInput | dict) -> dict:
 
 
 def scenario_action(name: str) -> dict:
+    if chain.NETWORK_PROFILE == "sepolia":
+        return source_action(_saved_audit_scenario(name))
     code = SCENARIOS[name]
     matches = [action for category, _, action in load_scenarios() if category == code]
     if not matches:
@@ -279,7 +294,25 @@ def scenario_action(name: str) -> dict:
     return matches[0]
 
 
+def _saved_audit_scenario(name: str) -> dict:
+    for record in pipeline.AUDIT_BATCH_MANAGER.audit_store.list_records():
+        if scenario_category(record)[0] == SCENARIOS[name]:
+            return record
+    raise LookupError(f"No saved {name} audit scenario")
+
+
 def run_scenario(name: str) -> dict:
+    if chain.NETWORK_PROFILE == "sepolia":
+        with LOCK, canonical_context():
+            record = _saved_audit_scenario(name)
+            proof = pipeline.AUDIT_BATCH_MANAGER.generate_proof(record["action_id"])
+            trace = trace_audit_record(record, proof)
+            if not trace["action_proof_verified"]:
+                raise ValueError("Saved scenario audit proof failed verification")
+            verdict = saved_verdict(record)
+            verdict["trace_result"] = trace
+            verdict["audit_batch_status"] = pipeline.AUDIT_BATCH_MANAGER.record_status(record["action_id"])
+            return {"scenario": name, "source": "persisted_audit_record", "verdict": verdict}
     action = scenario_action(name)
     with LOCK:
         prepare_runtime()

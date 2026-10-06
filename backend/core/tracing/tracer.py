@@ -348,9 +348,6 @@ def trace_action(action_log_entry: dict) -> TraceResult:
     started = time.perf_counter()
     try:
         context = _load_context()
-        actor = action_log_entry["actor"]
-        action_code = action_log_entry["action"]
-        action_time = _parse_time(action_log_entry["timestamp"])
         try:
             action_proof = get_proof(integration.blockchain_record_id("action", action_log_entry))
         except (KeyError, RuntimeError, ValueError):
@@ -358,51 +355,84 @@ def trace_action(action_log_entry: dict) -> TraceResult:
         if not verify_proof(action_log_entry, action_proof):
             return _finish([], "TAMPERED", "Action log commitment failed verification", started)
 
-        if action_code == "AGENT_DECOMMISSIONED" and actor == "ROOT_AUTHORIZER":
-            _, contract, root, _ = blockchain.contract_context()
-            if contract.functions.rootAuthorizer().call() == root:
-                return _finish([], "VALID_CHAIN", "Root-authorized decommission action verified", started)
-        if action_code == "ROOT_PERMISSION_GRANTED" and actor == "ROOT_AUTHORIZER":
-            result = _walk_authority(action_log_entry["target_agent"], action_log_entry["permission"], context, started, action_time)
-            result["action_result"] = action_log_entry["result"]
-            return result
-
-        permission = action_log_entry.get("permission")
-        if permission is None and action_code.startswith("DELEGATE_"):
-            permission = action_code.removeprefix("DELEGATE_")
-        if permission is None and action_code.startswith("CHECK_"):
-            permission = action_code.removeprefix("CHECK_")
-        if not permission:
-            return _finish([], "BROKEN_CHAIN", f"No permission can be inferred from {action_code}", started)
-
-        historical = _walk_authority(actor, permission, context, started, action_time)
-        if action_code == "UNAUTHORIZED_DELEGATION_ATTEMPT" and not historical["valid"]:
-            return _finish(
-                historical["chain"], "BROKEN_CHAIN",
-                f"{actor} lacked a rooted {permission} permission and could not delegate it", started,
-                action_result=action_log_entry["result"],
-            )
-        if action_code == "SELF_ESCALATION_ATTEMPT" and not historical["valid"]:
-            return _finish(
-                historical["chain"], "UNAUTHORIZED_ROOT",
-                f"{actor} could not grant itself {permission}; no trusted root authority exists", started,
-                action_result=action_log_entry["result"],
-            )
-        if not historical["valid"]:
-            historical["action_result"] = action_log_entry["result"]
-            return historical
-
-        revoked_verdict, revoked_reason, revocation_evidence = _revocation_at_time(context, actor, action_time)
-        if revoked_verdict:
-            if revoked_verdict == "AUTHORITY_REVOKED_AT_TIME_OF_ACTION":
-                historical["chain"][-1]["valid_at_action_time"] = False
-            return _finish(
-                historical["chain"], revoked_verdict, revoked_reason, started,
-                action_result=action_log_entry["result"], revocation_evidence=revocation_evidence,
-            )
-        return _finish(
-            historical["chain"], "VALID_CHAIN", "Authority was valid at the action timestamp", started,
-            action_result=action_log_entry["result"],
-        )
+        return _trace_committed_action(action_log_entry, context, started)
     except Exception as exc:
         return _finish([], "BROKEN_CHAIN", f"Could not complete action trace: {exc}", started)
+
+
+def trace_audit_record(record: dict, proof: dict) -> TraceResult:
+    """Verify an action's Merkle commitment before tracing critical trust hops.
+
+    Batched actions do not have ActionHashAnchored receipts. Credential,
+    delegation and revocation verification remains the same as legacy tracing.
+    """
+    from backend.core.blockchain.batch_verifier import verify_anchored_proof
+    from backend.core.governance.runtime_evidence import source_action
+
+    started = time.perf_counter()
+    if not verify_anchored_proof(record, proof):
+        return _finish([], "TAMPERED", "Audit Merkle commitment failed verification", started,
+                       evidence_type="AUDIT_BATCH", audit_action_id=record.get("action_id"),
+                       action_proof_verified=False)
+    try:
+        result = _trace_committed_action(source_action(record), _load_context(), started)
+    except Exception:
+        # Provider exceptions can contain credential-bearing URLs.
+        result = _finish([], "BROKEN_CHAIN", "Could not complete audit authority trace", started)
+    result.update(evidence_type="AUDIT_BATCH", audit_action_id=record["action_id"],
+                  batch_id=proof["batch_id"], action_proof_verified=True,
+                  action_commitment={key: proof["blockchain"][key]
+                                     for key in ("transaction_hash", "block_number", "contract_address", "chain_id")})
+    return result
+
+
+def _trace_committed_action(action_log_entry: dict, context: TraceContext, started: float) -> TraceResult:
+    actor = action_log_entry["actor"]
+    action_code = action_log_entry["action"]
+    action_time = _parse_time(action_log_entry["timestamp"])
+    if action_code == "AGENT_DECOMMISSIONED" and actor == "ROOT_AUTHORIZER":
+        _, contract, root, _ = blockchain.contract_context()
+        if contract.functions.rootAuthorizer().call() == root:
+            return _finish([], "VALID_CHAIN", "Root-authorized decommission action verified", started)
+    if action_code == "ROOT_PERMISSION_GRANTED" and actor == "ROOT_AUTHORIZER":
+        result = _walk_authority(action_log_entry["target_agent"], action_log_entry["permission"], context, started, action_time)
+        result["action_result"] = action_log_entry["result"]
+        return result
+
+    permission = action_log_entry.get("permission")
+    if permission is None and action_code.startswith("DELEGATE_"):
+        permission = action_code.removeprefix("DELEGATE_")
+    if permission is None and action_code.startswith("CHECK_"):
+        permission = action_code.removeprefix("CHECK_")
+    if not permission:
+        return _finish([], "BROKEN_CHAIN", f"No permission can be inferred from {action_code}", started)
+
+    historical = _walk_authority(actor, permission, context, started, action_time)
+    if action_code == "UNAUTHORIZED_DELEGATION_ATTEMPT" and not historical["valid"]:
+        return _finish(
+            historical["chain"], "BROKEN_CHAIN",
+            f"{actor} lacked a rooted {permission} permission and could not delegate it", started,
+            action_result=action_log_entry["result"],
+        )
+    if action_code == "SELF_ESCALATION_ATTEMPT" and not historical["valid"]:
+        return _finish(
+            historical["chain"], "UNAUTHORIZED_ROOT",
+            f"{actor} could not grant itself {permission}; no trusted root authority exists", started,
+            action_result=action_log_entry["result"],
+        )
+    if not historical["valid"]:
+        historical["action_result"] = action_log_entry["result"]
+        return historical
+
+    revoked_verdict, revoked_reason, revocation_evidence = _revocation_at_time(context, actor, action_time)
+    if revoked_verdict:
+        if revoked_verdict == "AUTHORITY_REVOKED_AT_TIME_OF_ACTION":
+            historical["chain"][-1]["valid_at_action_time"] = False
+        return _finish(
+            historical["chain"], revoked_verdict, revoked_reason, started,
+            action_result=action_log_entry["result"], revocation_evidence=revocation_evidence,
+        )
+    return _finish(
+        historical["chain"], "VALID_CHAIN", "Authority was valid at the action timestamp", started,
+        action_result=action_log_entry["result"],
+    )
