@@ -1,9 +1,11 @@
 """Trace Module 1 authority through Module 2 Ethereum evidence."""
 
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 import time
 from typing import TypedDict
+
+from backend.core.blockchain.diagnostics import safe_error
 
 from web3 import Web3
 
@@ -65,12 +67,32 @@ def _finish(chain: list[dict], verdict: str, reason: str, started: float, **extr
 
 def _parse_time(value: str) -> datetime:
     parsed = datetime.fromisoformat(value)
-    if parsed.tzinfo is None:
+    if parsed.tzinfo is None or parsed.utcoffset() is None:
         raise ValueError("Trace timestamp must include a timezone")
-    return parsed
+    return parsed.astimezone(timezone.utc)
 
 
-def _verify_root_credential(credential: dict, agent_id: str, permission: str) -> dict:
+def _validity_at_time(record: dict, action_time: datetime, issue_field: str = "issued_at") -> tuple[bool, str]:
+    """Historical validity is [issue, expiry), independent of current status."""
+    try:
+        if action_time.tzinfo is None or action_time.utcoffset() is None:
+            raise ValueError("Action timestamp must include a timezone")
+        when = action_time.astimezone(timezone.utc)
+        issued = _parse_time(record[issue_field])
+        expiry = record.get("expires_at")
+        expires = _parse_time(expiry) if expiry is not None else None
+        if expires is not None and expires <= issued:
+            return False, "Authority validity window is empty or reversed"
+        if when < issued:
+            return False, "Authority was not yet issued at the action timestamp"
+        if expires is not None and when >= expires:
+            return False, "Authority expired at the action timestamp"
+        return True, "Authority was valid at the action timestamp"
+    except (KeyError, TypeError, ValueError, OverflowError):
+        return False, "Authority validity timestamp is missing, malformed or timezone-naive"
+
+
+def _verify_credential(credential: dict, agent_id: str, permission: str, issuer: str | None = None) -> dict:
     """Verify the issuance commitment, receipt, event, registration and scope."""
     payload_fields = (
         "agent_id", "agent_hash", "agent_address", "issuer",
@@ -93,8 +115,8 @@ def _verify_root_credential(credential: dict, agent_id: str, permission: str) ->
             raise ValueError("Agent hash mismatch")
 
         web3, contract, root, _ = blockchain.contract_context()
-        if payload["issuer"] != root or contract.functions.rootAuthorizer().call() != root:
-            raise ValueError("Credential issuer is not ROOT_AUTHORIZER")
+        if payload["issuer"] != (issuer or root) or contract.functions.rootAuthorizer().call() != root:
+            raise ValueError("Credential issuer does not match the authority hop")
         if contract.functions.agentAddresses(integration.agent_hash("ROOT_AUTHORIZER")).call() != root:
             raise ValueError("Root identity is not registered")
         if contract.functions.agentAddresses(integration.agent_hash(agent_id)).call() != payload["agent_address"]:
@@ -107,7 +129,7 @@ def _verify_root_credential(credential: dict, agent_id: str, permission: str) ->
         if (
             stored[0] != integration.agent_hash(agent_id)
             or stored[1] != payload["agent_address"]
-            or stored[2] != root
+            or stored[2] != payload["issuer"]
             or stored[3] != expected_scope
             or stored[4] != expected_delegation_scope
             or stored[5] != integration.timestamp_seconds(payload["issued_at"])
@@ -139,12 +161,16 @@ def _verify_root_credential(credential: dict, agent_id: str, permission: str) ->
             raise ValueError("CredentialIssued event mismatch")
         return {
             "verified": True,
-            "reason": "Root credential and issuance transaction verified",
+            "reason": "Credential and issuance transaction verified",
             "transaction_hash": Web3.to_hex(receipt.transactionHash),
             "block_number": receipt.blockNumber,
         }
     except Exception as exc:
-        return {"verified": False, "reason": str(exc), "transaction_hash": None, "block_number": None}
+        return {"verified": False, "reason": safe_error(exc), "transaction_hash": None, "block_number": None}
+
+
+def _verify_root_credential(credential: dict, agent_id: str, permission: str) -> dict:
+    return _verify_credential(credential, agent_id, permission)
 
 
 def _root_grant_evidence(context: TraceContext, agent_id: str, permission: str) -> dict | None:
@@ -159,6 +185,29 @@ def _root_grant_evidence(context: TraceContext, agent_id: str, permission: str) 
     if not matches:
         return None
     return min(matches, key=lambda item: item["timestamp"])
+
+
+def _delegated_credential_binding(record: dict, permission: str) -> tuple[str | None, str]:
+    """Discover required issuance from immutable registry bindings, not JSON.
+
+    SCOPE_EXISTS prevents replacing a scope credential. Revocation changes
+    active status but does not erase this historical issuance binding. A zero
+    binding can therefore prove a legacy direct grant, rather than merely
+    indicating that a local credential has disappeared.
+    """
+    _, contract, _, _ = blockchain.contract_context()
+    parent = integration.agent_hash(record["delegator"])
+    child = integration.agent_hash(record["delegatee"])
+    scope = integration.permission_hash(permission)
+    issuer = contract.functions.agentAddresses(parent).call()
+    recipient = contract.functions.agentAddresses(child).call()
+    if int(issuer, 16) == 0 or int(recipient, 16) == 0:
+        raise ValueError("Delegation identity is not registered")
+    grant_key = Web3.keccak(Web3().codec.encode(["bytes32", "bytes32", "bytes32"], [parent, child, scope]))
+    if not contract.functions.delegationGrants(grant_key).call():
+        raise ValueError("Registry delegation grant is missing")
+    credential_id = contract.functions.scopeCredentials(child, scope).call()
+    return ("0x" + bytes(credential_id).hex() if bytes(credential_id) != bytes(32) else None, issuer)
 
 
 def _walk_authority(
@@ -214,10 +263,15 @@ def _walk_authority(
         "record_id": root_credential["credential_id"],
         "transaction_hash": credential_check["transaction_hash"],
         "block_number": credential_check["block_number"],
-        "valid_at_action_time": True if action_time else None,
+        "valid_at_action_time": None,
     }
     if not credential_check["verified"]:
         return _finish([root_hop], "TAMPERED", credential_check["reason"], started)
+    if action_time is not None:
+        valid, reason = _validity_at_time(root_credential, action_time)
+        root_hop["valid_at_action_time"] = valid
+        if not valid:
+            return _finish([root_hop], "BROKEN_CHAIN", reason, started)
 
     root_grant = _root_grant_evidence(context, root_agent, permission)
     if root_grant is not None:
@@ -231,6 +285,7 @@ def _walk_authority(
         root_hop["root_grant_proof_verified"] = True
         root_hop["root_grant_transaction_hash"] = root_proof["transaction_hash"]
         if action_time and _parse_time(root_grant["timestamp"]) > action_time:
+            root_hop["valid_at_action_time"] = False
             return _finish([root_hop], "BROKEN_CHAIN", "Root grant occurred after the action", started)
 
     ordered_hops = [root_hop]
@@ -244,13 +299,24 @@ def _walk_authority(
             "record_id": deterministic_id,
             "source_record_id": record.get("record_id"),
             "transaction_hash": None, "block_number": None,
-            "valid_at_action_time": True if action_time else None,
+            "valid_at_action_time": None,
         }
         ordered_hops.append(hop)
-        grant_time = _parse_time(record["timestamp"])
+        if action_time is not None:
+            valid, reason = _validity_at_time(record, action_time, "timestamp")
+            hop["valid_at_action_time"] = valid
+            if not valid:
+                return _finish(ordered_hops, "BROKEN_CHAIN", reason, started)
+        try:
+            grant_time = _parse_time(record["timestamp"])
+        except (KeyError, TypeError, ValueError):
+            hop["valid_at_action_time"] = False if action_time is not None else None
+            return _finish(ordered_hops, "BROKEN_CHAIN", "Delegation timestamp is malformed or timezone-naive", started)
         if last_grant_time and grant_time < last_grant_time:
+            hop["valid_at_action_time"] = False if action_time is not None else None
             return _finish(ordered_hops, "BROKEN_CHAIN", "Delegation timestamps are out of order", started)
         if action_time and grant_time > action_time:
+            hop["valid_at_action_time"] = False
             return _finish(ordered_hops, "BROKEN_CHAIN", "Delegation occurred after the action", started)
         last_grant_time = grant_time
         try:
@@ -291,6 +357,30 @@ def _walk_authority(
                 f"Blockchain proof failed for {record['delegator']} -> {record['delegatee']}", started,
             )
         hop["proof_verified"] = True
+        if action_time is not None:
+            try:
+                required_id, issuer = _delegated_credential_binding(record, permission)
+            except Exception as exc:
+                hop["valid_at_action_time"] = False
+                return _finish(ordered_hops, "BROKEN_CHAIN", safe_error(exc), started)
+            # Only an authenticated zero registry binding permits a legacy
+            # direct grant. Missing local evidence cannot manufacture this case.
+            if required_id is None:
+                continue
+            credentials = [item for item in context.credentials
+                           if item.get("onchain_id") == required_id]
+            if len(credentials) != 1:
+                hop["valid_at_action_time"] = False
+                return _finish(ordered_hops, "BROKEN_CHAIN", "Required credential issuance evidence is missing or ambiguous", started)
+            for credential in credentials:
+                checked = _verify_credential(credential, record["delegatee"], permission, issuer)
+                if not checked["verified"]:
+                    hop["valid_at_action_time"] = False
+                    return _finish(ordered_hops, "TAMPERED", checked["reason"], started)
+                valid, reason = _validity_at_time(credential, action_time)
+                if not valid:
+                    hop["valid_at_action_time"] = False
+                    return _finish(ordered_hops, "BROKEN_CHAIN", reason, started)
 
     return _finish(ordered_hops, "VALID_CHAIN", "Every authority hop verifies back to ROOT_AUTHORIZER", started)
 
@@ -301,7 +391,7 @@ def trace_agent_authority(agent_id: str, permission: str) -> TraceResult:
     try:
         return _walk_authority(agent_id, permission, _load_context(), started)
     except Exception as exc:
-        return _finish([], "BROKEN_CHAIN", f"Could not complete authority trace: {exc}", started)
+        return _finish([], "BROKEN_CHAIN", f"Could not complete authority trace: {safe_error(exc)}", started)
 
 
 def _revocation_at_time(context: TraceContext, agent_id: str, action_time: datetime) -> tuple[str | None, str, dict | None]:
@@ -357,7 +447,7 @@ def trace_action(action_log_entry: dict) -> TraceResult:
 
         return _trace_committed_action(action_log_entry, context, started)
     except Exception as exc:
-        return _finish([], "BROKEN_CHAIN", f"Could not complete action trace: {exc}", started)
+        return _finish([], "BROKEN_CHAIN", f"Could not complete action trace: {safe_error(exc)}", started)
 
 
 def trace_audit_record(record: dict, proof: dict) -> TraceResult:

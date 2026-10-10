@@ -9,6 +9,7 @@ from web3 import Web3
 
 from backend.core.governance import pipeline
 from backend.core.authorization import agents as module1_agents
+from backend.core.blockchain.diagnostics import public_response
 from backend.core.blockchain import chain, integration
 from backend.core.blockchain.anchor import get_proof, verify_proof
 from backend.core.blockchain.audit_log import hash_record
@@ -41,6 +42,7 @@ def _deployment_path() -> Path:
     return chain.DEPLOYMENT_PATH if chain.NETWORK_PROFILE == "sepolia" else DATA_DIR / "deployment.json"
 
 
+@public_response
 def final_report() -> dict:
     if chain.NETWORK_PROFILE == "sepolia":
         with LOCK:
@@ -48,6 +50,7 @@ def final_report() -> dict:
     return json.loads(REPORT_PATH.read_text(encoding="utf-8"))
 
 
+@public_response
 def health() -> dict:
     deployment_path = _deployment_path()
     deployment = json.loads(deployment_path.read_text(encoding="utf-8")) if deployment_path.is_file() else {}
@@ -93,6 +96,7 @@ def health() -> dict:
     }
 
 
+@public_response
 def overview() -> dict:
     report = final_report()
     blockchain = report["modules"]["module2_blockchain"]
@@ -112,6 +116,7 @@ def overview() -> dict:
     }
 
 
+@public_response
 def agents() -> list[dict]:
     with LOCK:
         prepare_runtime()
@@ -136,6 +141,7 @@ def agents() -> list[dict]:
         ]
 
 
+@public_response
 def agent_credentials(agent_id: str) -> dict:
     """Readable credential metadata; Module 3 supplies the historical proof result."""
     with LOCK, canonical_context():
@@ -174,11 +180,13 @@ def agent_credentials(agent_id: str) -> dict:
         return {"agent_id": agent_id, "credentials": credentials}
 
 
+@public_response
 def trace_authority(agent_id: str, permission: str) -> dict:
     with LOCK, canonical_context():
         return trace_agent_authority(agent_id, permission)
 
 
+@public_response
 def trace_scenario_action(name: str) -> dict:
     if chain.NETWORK_PROFILE == "sepolia":
         with LOCK, canonical_context():
@@ -193,6 +201,7 @@ def trace_scenario_action(name: str) -> dict:
         return trace_action(action)
 
 
+@public_response
 def delegation_graph() -> dict:
     with LOCK:
         prepare_runtime()
@@ -258,6 +267,7 @@ def delegation_graph() -> dict:
         return {"nodes": nodes, "edges": edges, "contract_address": contract.address}
 
 
+@public_response
 def metrics() -> dict:
     report = final_report()
     return {
@@ -273,11 +283,13 @@ def metrics() -> dict:
     }
 
 
+@public_response
 def revocation(agent_id: str) -> dict:
     with LOCK, canonical_context():
         return get_revocation_status(agent_id)
 
 
+@public_response
 def evaluate(action: ActionInput | dict) -> dict:
     payload = action.as_injected_action() if isinstance(action, ActionInput) else action
     with LOCK:
@@ -301,6 +313,7 @@ def _saved_audit_scenario(name: str) -> dict:
     raise LookupError(f"No saved {name} audit scenario")
 
 
+@public_response
 def run_scenario(name: str) -> dict:
     if chain.NETWORK_PROFILE == "sepolia":
         with LOCK, canonical_context():
@@ -327,6 +340,7 @@ def run_scenario(name: str) -> dict:
     return {"scenario": name, "source": "saved_module_scenario", "verdict": verdict.to_dict()}
 
 
+@public_response
 def stage_events(verdict: dict) -> list[dict]:
     """Replay measured stages immediately; the frontend controls visual pacing."""
     timings = verdict["step_latencies"]
@@ -374,6 +388,7 @@ def _audit_explorer_base(chain_id: int) -> str | None:
     return "https://sepolia.etherscan.io" if chain_id == 11155111 else None
 
 
+@public_response
 def audit_status() -> dict:
     manager = pipeline.AUDIT_BATCH_MANAGER
     pending = manager.pending_summary()
@@ -425,6 +440,7 @@ def audit_status() -> dict:
     }
 
 
+@public_response
 def audit_logs(limit: int = 100, offset: int = 0) -> dict:
     manager = pipeline.AUDIT_BATCH_MANAGER
     # Put the newest action first so the default page always surfaces recent
@@ -442,6 +458,7 @@ def audit_logs(limit: int = 100, offset: int = 0) -> dict:
     }
 
 
+@public_response
 def audit_batches(limit: int = 100, offset: int = 0) -> dict:
     deployment_path = _deployment_path()
     deployment = json.loads(deployment_path.read_text(encoding="utf-8")) if deployment_path.is_file() else {}
@@ -474,6 +491,7 @@ def audit_batches(limit: int = 100, offset: int = 0) -> dict:
     }
 
 
+@public_response
 def audit_batch(batch_id: str) -> dict:
     batch = pipeline.AUDIT_BATCH_MANAGER.get_batch(batch_id)
     if batch is None:
@@ -499,6 +517,7 @@ def audit_batch(batch_id: str) -> dict:
     }
 
 
+@public_response
 def audit_action(action_id: str) -> dict:
     manager = pipeline.AUDIT_BATCH_MANAGER
     record = manager.audit_store.get(action_id)
@@ -572,9 +591,11 @@ def _audit_action_proof(action_id: str, record_to_verify: dict | None = None) ->
     return result
 
 
+@public_response
 def audit_action_proof(action_id: str) -> dict:
     return _audit_action_proof(action_id)
 
 
+@public_response
 def verify_audit_action(action_id: str, record_override: dict | None = None) -> dict:
     return _audit_action_proof(action_id, record_override)

@@ -13,6 +13,8 @@ import time
 from typing import TypedDict
 from unittest.mock import patch
 
+from backend.core.blockchain.diagnostics import safe_error
+
 from web3 import Web3
 
 from backend.core.blockchain import chain, integration
@@ -58,7 +60,7 @@ class RevocationRecord(TypedDict):
 class RevocationAnchoringError(RuntimeError):
     def __init__(self, cause: Exception, blockchain_anchored=False):
         self.code = "REVOCATION_PROOF_FAILED" if blockchain_anchored else "REVOCATION_ANCHORING_FAILED"
-        super().__init__(f"{self.code}: local decommission succeeded but Ethereum anchoring/proof failed: {cause}")
+        super().__init__(f"{self.code}: local decommission succeeded but Ethereum anchoring/proof failed: {safe_error(cause)}")
         self.local_revocation = True
         self.blockchain_anchored = blockchain_anchored
         self.revocation_complete = False
@@ -320,4 +322,4 @@ def revoke(agent_id, permissions_to_revoke, revoked_by, reason) -> RevocationRec
             raise RuntimeError("Ethereum still reports agent active after anchoring")
         return _record_from_status(agent_id, status)
     except Exception as exc:
-        raise RevocationAnchoringError(exc, blockchain_anchored=anchored) from exc
+        raise RevocationAnchoringError(exc, blockchain_anchored=anchored) from None

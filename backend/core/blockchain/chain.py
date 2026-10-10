@@ -8,6 +8,8 @@ from pathlib import Path
 import re
 
 from eth_account import Account
+from backend.core.blockchain.diagnostics import safe_error, safe_exception
+
 from web3 import Web3
 
 try:
@@ -470,11 +472,11 @@ def commit(kind: str, source: dict, build_call) -> dict:
             "content_hash": digest,
             "source": deepcopy(source),
             "retry": True,
-            "error": str(exc),
+            "error": safe_error(exc),
             "failed_at": datetime.now(timezone.utc).isoformat(),
         }
         save_state(state)
-        raise
+        raise safe_exception(exc) from None
 
 
 def proof_for(record_id: str) -> dict:

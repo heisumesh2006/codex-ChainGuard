@@ -4,6 +4,7 @@ import asyncio
 from fastapi import FastAPI, HTTPException, Query, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 
+from backend.core.blockchain.diagnostics import safe_error, public_data
 from backend.api import services
 from backend.api.schemas import ActionInput, AuditVerifyInput, GovernanceStreamRequest
 
@@ -37,7 +38,7 @@ def agent_credentials(agent_id: str):
     try:
         return services.agent_credentials(agent_id)
     except LookupError as exc:
-        raise HTTPException(status_code=404, detail=str(exc)) from exc
+        raise HTTPException(status_code=404, detail=safe_error(exc)) from None
 
 
 @app.get("/api/trace")
@@ -92,7 +93,7 @@ def audit_batch(batch_id: str):
     try:
         return services.audit_batch(batch_id)
     except LookupError as exc:
-        raise HTTPException(status_code=404, detail=str(exc)) from exc
+        raise HTTPException(status_code=404, detail=safe_error(exc)) from None
 
 
 @app.get("/api/audit/actions/{action_id}")
@@ -100,7 +101,7 @@ def audit_action(action_id: str):
     try:
         return services.audit_action(action_id)
     except LookupError as exc:
-        raise HTTPException(status_code=404, detail=str(exc)) from exc
+        raise HTTPException(status_code=404, detail=safe_error(exc)) from None
 
 
 @app.get("/api/audit/actions/{action_id}/proof")
@@ -108,7 +109,7 @@ def audit_action_proof(action_id: str):
     try:
         return services.audit_action_proof(action_id)
     except LookupError as exc:
-        raise HTTPException(status_code=404, detail=str(exc)) from exc
+        raise HTTPException(status_code=404, detail=safe_error(exc)) from None
 
 
 @app.post("/api/audit/actions/{action_id}/verify")
@@ -118,7 +119,7 @@ def verify_audit_action(action_id: str, request: AuditVerifyInput | None = None)
             action_id, request.record_override if request is not None else None,
         )
     except LookupError as exc:
-        raise HTTPException(status_code=404, detail=str(exc)) from exc
+        raise HTTPException(status_code=404, detail=safe_error(exc)) from None
 
 
 @app.post("/api/governance/evaluate")
@@ -153,8 +154,8 @@ async def governance_stream(websocket: WebSocket):
                 else:
                     verdict = await asyncio.to_thread(services.evaluate, request.action)
                 for event in services.stage_events(verdict):
-                    await websocket.send_json(event)
+                    await websocket.send_json(public_data(event))
             except Exception as exc:
-                await websocket.send_json({"event": "ERROR", "detail": str(exc)})
+                await websocket.send_json({"event": "ERROR", "detail": safe_error(exc)})
     except WebSocketDisconnect:
         return

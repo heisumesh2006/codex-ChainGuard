@@ -8,6 +8,8 @@ from pathlib import Path
 import threading
 from typing import Any
 
+from backend.core.blockchain.diagnostics import safe_error, safe_exception
+
 from web3 import Web3
 
 from .audit_log import AuditLogStore, hash_record
@@ -301,7 +303,7 @@ class BatchManager:
                     "blockchain_block_number": receipt.blockNumber,
                     "blockchain_contract_address": contract.address,
                     "blockchain_chain_id": web3.eth.chain_id,
-                    "blockchain_rpc_url": deployment.get("rpc_url", ""),
+                    "blockchain_rpc_url": "" if chain.NETWORK_PROFILE == "sepolia" else deployment.get("rpc_url", ""),
                     "blockchain_anchored_by": Web3.to_checksum_address(confirmed[4]),
                     "blockchain_anchored_at": confirmed[5],
                     "anchor_retry": False,
@@ -312,9 +314,9 @@ class BatchManager:
             except Exception as exc:
                 batch["status"] = "SEALED_UNANCHORED"
                 batch["anchor_retry"] = True
-                batch["anchor_error"] = str(exc)
+                batch["anchor_error"] = safe_error(exc)
                 self._write_state(state)
-                raise
+                raise safe_exception(exc) from None
 
     def anchor_unanchored_batches(self) -> list[dict[str, Any]]:
         """Attempt every sealed batch and retain failures as retryable metadata."""

@@ -7,6 +7,8 @@ from pathlib import Path
 import time
 from unittest.mock import patch
 
+from backend.core.blockchain.diagnostics import safe_error
+
 import joblib
 
 from backend.core.authorization import agents as module1_agents
@@ -171,7 +173,7 @@ def _verify_chain(action, trace, status, audit):
             return True, "VERIFIED_CONTEXT", evidence
         return False, "FAILED", evidence
     except Exception as exc:
-        evidence["error"] = str(exc)
+        evidence["error"] = safe_error(exc)
         return False, "FAILED", evidence
 
 
