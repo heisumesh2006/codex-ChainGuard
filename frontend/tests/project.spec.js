@@ -128,8 +128,6 @@ test('trust graph controls node and edge details and historical trace', async ({
   await page.locator('.react-flow__controls-zoomin').click()
   await page.locator('.react-flow__controls-zoomout').click()
   await page.locator('.react-flow__controls-fitview').click()
-  await page.locator('.react-flow__controls-interactive').click()
-  await page.locator('.react-flow__controls-interactive').click()
   await page.locator('.react-flow__node').filter({ hasText: 'Agent_B' }).click()
   await expect(page.locator('.graph-drawer')).toContainText('Agent_B')
   await page.getByRole('button', { name: 'Close details' }).click()
