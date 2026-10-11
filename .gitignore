@@ -133,3 +133,6 @@ temp*/
 # Sepolia runtime state; public deployment metadata is stored separately.
 /backend/core/governance/data/sepolia/
 /backend/core/blockchain/data/sepolia/
+
+# Stable OS coordination sidecars; never canonical evidence.
+*.lock

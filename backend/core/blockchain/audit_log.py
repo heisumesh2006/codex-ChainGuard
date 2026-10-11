@@ -1,7 +1,7 @@
 """Canonical off-chain audit records for governed agent actions.
 
 Audit records are serialized as canonical UTF-8 JSON and hashed with Ethereum
-Keccak-256. JSONL is append-only for normal writes; BatchManager assigns records
+Keccak-256. JSONL is logically append-only; BatchManager assigns records
 to Merkle batches separately without modifying this log.
 """
 
@@ -10,13 +10,14 @@ from datetime import date, datetime, timezone
 from decimal import Decimal
 from enum import Enum
 import json
-import os
 from pathlib import Path
-import threading
 from typing import Any
 from uuid import uuid4
 
 from web3 import Web3
+
+from .persistence import FileLock, atomic_write
+from .evidence import EvidenceError, validate_record, decode_json
 
 
 AUDIT_LOG_PATH = Path(__file__).resolve().parent / "data" / "audit_logs.jsonl"
@@ -50,7 +51,7 @@ class DuplicateActionIdError(AuditLogError):
     """Raised when append is attempted with an action ID already in the log."""
 
 
-class AuditLogCorruptionError(AuditLogError):
+class AuditLogCorruptionError(AuditLogError, EvidenceError):
     """Raised when an existing JSONL line cannot be decoded safely."""
 
 
@@ -157,47 +158,52 @@ def audit_record_from_verdict(verdict: Any) -> AuditRecord:
 class AuditLogStore:
     """Append-only JSONL store with deterministic duplicate-ID rejection."""
 
-    _lock = threading.RLock()
-
-    def __init__(self, path: Path | str | None = None):
-        self.path = Path(path) if path is not None else AUDIT_LOG_PATH
+    def __init__(self, path: Path | str | None = None, *, lock_timeout: float = 10.0):
+        self.path = (Path(path) if path is not None else AUDIT_LOG_PATH).resolve()
+        self._lock = FileLock(str(self.path) + ".lock", lock_timeout)
 
     def _read_records(self) -> list[dict[str, Any]]:
+        with self._lock:
+            return self._read_records_unlocked()
+
+    def _read_records_unlocked(self) -> list[dict[str, Any]]:
         if not self.path.exists():
             return []
         records = []
-        with self.path.open("r", encoding="utf-8") as handle:
-            for line_number, line in enumerate(handle, start=1):
-                if not line.strip():
-                    continue
-                try:
-                    record = json.loads(line)
-                except json.JSONDecodeError as exc:
-                    raise AuditLogCorruptionError(
-                        f"Invalid audit JSON at {self.path}:{line_number}"
-                    ) from exc
-                if not isinstance(record, dict) or not isinstance(record.get("action_id"), str):
-                    raise AuditLogCorruptionError(
-                        f"Invalid audit record shape at {self.path}:{line_number}"
-                    )
-                records.append(record)
+        try:
+            lines = self.path.read_text(encoding="utf-8").splitlines()
+        except (OSError, UnicodeError):
+            raise AuditLogCorruptionError("EVIDENCE_CORRUPT") from None
+        for line in lines:
+            if not line.strip():
+                continue
+            try:
+                record = decode_json(line)
+                validate_record(record)
+            except (ValueError, EvidenceError):
+                raise AuditLogCorruptionError("EVIDENCE_CORRUPT") from None
+            records.append(record)
+        if len({record["action_id"] for record in records}) != len(records):
+            raise AuditLogCorruptionError("EVIDENCE_CORRUPT")
         return records
 
     def append(self, record: AuditRecord | dict[str, Any]) -> dict[str, Any]:
         """Append once; duplicate action IDs raise without altering prior lines."""
         encoded = canonicalize_record(record)
         value = json.loads(encoded)
+        validate_record(value)
         action_id = value.get("action_id")
         if not isinstance(action_id, str) or not action_id:
             raise ValueError("Audit records require a non-empty action_id")
         with self._lock:
             if any(existing["action_id"] == action_id for existing in self._read_records()):
                 raise DuplicateActionIdError(f"Audit action_id already exists: {action_id}")
-            self.path.parent.mkdir(parents=True, exist_ok=True)
-            with self.path.open("ab") as handle:
-                handle.write(encoded + b"\n")
-                handle.flush()
-                os.fsync(handle.fileno())
+            # Preserve every committed byte as a prefix. Atomic publication
+            # avoids a killed writer leaving a torn JSONL tail; the tradeoff is
+            # copying the existing log, rather than an in-place physical append.
+            previous = self.path.read_bytes() if self.path.exists() else b""
+            separator = b"\n" if previous and not previous.endswith(b"\n") else b""
+            atomic_write(self.path, previous + separator + encoded + b"\n")
         return value
 
     def get(self, action_id: str) -> dict[str, Any] | None:

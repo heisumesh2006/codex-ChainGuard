@@ -9,6 +9,8 @@ import re
 
 from eth_account import Account
 from backend.core.blockchain.diagnostics import safe_error, safe_exception
+from backend.core.blockchain.evidence import read_object, validate_deployment, EvidenceError
+from backend.core.blockchain.persistence import atomic_write
 
 from web3 import Web3
 
@@ -68,20 +70,13 @@ EVENT_SIGNATURES = {
 
 
 def _write_json(path: Path, value: dict) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    temporary = path.with_suffix(path.suffix + ".tmp")
-    with temporary.open("w", encoding="utf-8") as handle:
-        json.dump(value, handle, indent=2, ensure_ascii=False, allow_nan=False)
-        handle.flush()
-        os.fsync(handle.fileno())
-    os.replace(temporary, path)
+    atomic_write(path, json.dumps(value, indent=2, ensure_ascii=False, allow_nan=False).encode("utf-8"))
 
 
 def _read_json(path: Path, default: dict) -> dict:
     if not path.exists():
         return deepcopy(default)
-    with path.open("r", encoding="utf-8") as handle:
-        return json.load(handle)
+    return read_object(path)
 
 
 def empty_state() -> dict:
@@ -91,7 +86,9 @@ def empty_state() -> dict:
 def load_state() -> dict:
     state = _read_json(STATE_PATH, empty_state())
     if state.get("version") != 2:
-        raise ValueError("Unsupported Ethereum state version")
+        raise EvidenceError("EVIDENCE_CORRUPT")
+    if any(not isinstance(state.get(key), dict) for key in ("records", "index", "pending", "failed", "credentials")):
+        raise EvidenceError("EVIDENCE_CORRUPT")
     return state
 
 
@@ -145,7 +142,7 @@ def root_address(web3: Web3 | None = None) -> str:
     return signer.address if hasattr(signer, "address") else Web3.to_checksum_address(signer)
 
 
-def submit_transaction(web3: Web3, transaction_builder, sender: str):
+def submit_transaction(web3: Web3, transaction_builder, sender: str, *, before_send=None):
     """Submit through an unlocked local account or sign with the configured root key."""
     private_key = _selected_private_key()
     if not private_key:
@@ -167,6 +164,8 @@ def submit_transaction(web3: Web3, transaction_builder, sender: str):
     if "gas" not in tx:
         tx["gas"] = int(web3.eth.estimate_gas(tx) * 1.2)
     signed = account.sign_transaction(tx)
+    if before_send is not None:
+        before_send(Web3.to_hex(Web3.keccak(signed.raw_transaction)), nonce)
     return web3.eth.send_raw_transaction(signed.raw_transaction)
 
 
@@ -251,6 +250,7 @@ def contract_context() -> tuple[Web3, object, str, dict]:
     deployment = _read_json(DEPLOYMENT_PATH, {})
     if not deployment:
         raise RuntimeError("Deploy AgentTrustRegistry before anchoring")
+    validate_deployment(deployment, NETWORK_PROFILE)
     web3 = connect(deployment.get("rpc_url") or RPC_URL)
     if web3.eth.chain_id != deployment["chain_id"]:
         raise RuntimeError("Chain ID does not match deployment")
@@ -384,9 +384,11 @@ def credential_ids_for_agent(agent_id: str) -> list[bytes]:
 def _event_receipt(web3: Web3, contract: object, kind: str, digest: str):
     topic = Web3.keccak(text=EVENT_SIGNATURES[kind])
     onchain_id = onchain_record_id(KIND_CODES[kind], digest)
-    logs = web3.eth.get_logs(
-        {"fromBlock": 0, "toBlock": "latest", "address": contract.address, "topics": [topic, onchain_id]}
-    )
+    from .batch_manager import _bounded_event_logs
+    deployment = read_object(DEPLOYMENT_PATH)
+    validate_deployment(deployment, NETWORK_PROFILE)
+    anchored_at = contract.functions.commitments(onchain_id).call()[2]
+    logs = _bounded_event_logs(web3, contract.address, [topic, onchain_id], deployment, anchored_at)
     if len(logs) != 1:
         raise RuntimeError(f"Expected one {EVENT_NAMES[kind]} event for {digest}; found {len(logs)}")
     return web3.eth.get_transaction_receipt(logs[0].transactionHash)
