@@ -45,14 +45,14 @@ export default function Dashboard() {
     { label: 'Delegations anchored', value: overview?.delegations, detail: 'Verified trust hops', icon: GitBranch },
     { label: 'Revocations', value: overview?.revocations, detail: 'Public chain proof', icon: LockKeyhole, tone: 'red' },
     { label: 'Action proofs', value: overview?.anchored_actions, detail: 'Tamper-evident commitments', icon: ScanSearch },
-    { label: 'Attack coverage', value: overview ? overview.attack_coverage * 100 : null, detail: 'Integrated evaluation', icon: ShieldCheck, tone: 'emerald', suffix: '%' },
+    { label: 'Attack coverage', value: overview?.attack_coverage == null ? null : overview.attack_coverage * 100, detail: 'Integrated evaluation', icon: ShieldCheck, tone: 'emerald', suffix: '%' },
   ]
-  const latencyData = useMemo(() => Object.entries(metrics?.module6?.latency?.average_ms || {}).map(([key, value]) => ({ name: stageNames[key], average: +value.toFixed(2), worst: +metrics.module6.latency.worst_case_ms[key].toFixed(2) })), [metrics])
-  const modelData = useMemo(() => ['precision', 'recall', 'f1', 'false_positive_rate'].map((key) => ({ name: key === 'false_positive_rate' ? 'FPR' : key.toUpperCase(), isolation: (metrics?.module4?.isolation_forest?.[key] || 0) * 100, rules: (metrics?.module4?.rule_baseline?.[key] || 0) * 100 })), [metrics])
+  const latencyData = useMemo(() => Object.entries(metrics?.module6?.latency?.average_ms || {}).filter(([,value]) => Number.isFinite(value)).map(([key, value]) => ({ name: stageNames[key], average: +value.toFixed(2), worst: Number.isFinite(metrics.module6.latency.worst_case_ms?.[key]) ? +metrics.module6.latency.worst_case_ms[key].toFixed(2) : null })), [metrics])
+  const modelData = useMemo(() => metrics?.module4 ? ['precision', 'recall', 'f1', 'false_positive_rate'].map((key) => ({ name: key === 'false_positive_rate' ? 'FPR' : key.toUpperCase(), isolation: metrics.module4.isolation_forest[key] * 100, rules: metrics.module4.rule_baseline[key] * 100 })) : [], [metrics])
   const recallData = useMemo(() => Object.entries(metrics?.module4?.isolation_forest?.per_category || {}).map(([key, value]) => ({ name: categoryNames[key], recall: value.recall * 100 })), [metrics])
   const attackRows = detail.report?.layer_by_layer_attack_detection || []
   const detected = attackRows.filter((row) => row.detected_by?.length).length
-  const coverageData = [{ name: 'Detected', value: detected }, { name: 'Missed', value: attackRows.length - detected }]
+  const coverageData = detail.report ? [{ name: 'Detected', value: detected }, { name: 'Missed', value: attackRows.length - detected }] : []
   const recent = useMemo(() => ['BLOCK', 'REVIEW', 'ALLOW'].flatMap((decision) => (detail.report?.scenarios || []).filter((row) => row.final_decision === decision).slice(-2).reverse()), [detail.report])
   const authority = (agent) => {
     if (agent.agent_id === 'Agent_C' && detail.revocation?.is_revoked) return 'Revoked on Ethereum'

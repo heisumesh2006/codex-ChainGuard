@@ -12,8 +12,9 @@ const tooltipStyle = { background: '#101a2d', border: '1px solid #294061', borde
 
 export default function Analytics() {
   const { metrics, error } = useOutletContext()
+  const [reportError, setReportError] = useState(null)
   const [report, setReport] = useState(null)
-  useEffect(() => { let active = true; api.finalReport().then((value) => { if (active) setReport(value) }).catch(() => {}); return () => { active = false } }, [])
+  useEffect(() => { let active = true; api.finalReport().then((value) => { if (active) setReport(value) }).catch((cause) => { if (active) setReportError(cause.message) }); return () => { active = false } }, [])
   const ml = metrics?.module4?.isolation_forest
   const rules = metrics?.module4?.rule_baseline
   const dataset = metrics?.module4?.dataset
@@ -33,13 +34,13 @@ export default function Analytics() {
     { label: 'False positive rate', value: ml ? ml.false_positive_rate * 100 : null, suffix: '%', decimals: 1, detail: 'Held-out normal actions', icon: Activity, tone: 'red' },
     { label: 'Average detection', value: latency?.average_ms, suffix: ' ms', decimals: 1, detail: 'Feature extraction + scoring', icon: Clock3 },
   ]
-  const comparison = ['precision', 'recall', 'f1', 'false_positive_rate'].map((key) => ({ name: key === 'false_positive_rate' ? 'FPR' : key.toUpperCase(), isolation: (ml?.[key] || 0) * 100, rules: (rules?.[key] || 0) * 100 }))
-  const categories = Object.entries(ml?.per_category || {}).map(([key, value]) => ({ name: names[key] || key, isolation: value.recall * 100, rules: (rules?.per_category?.[key]?.recall || 0) * 100 }))
+  const comparison = ml && rules ? ['precision', 'recall', 'f1', 'false_positive_rate'].map((key) => ({ name: key === 'false_positive_rate' ? 'FPR' : key.toUpperCase(), isolation: ml[key] * 100, rules: rules[key] * 100 })) : []
+  const categories = ml && rules ? Object.entries(ml.per_category || {}).map(([key, value]) => ({ name: names[key] || key, isolation: value.recall * 100, rules: rules.per_category?.[key]?.recall == null ? null : rules.per_category[key].recall * 100 })) : []
   const matrix = ml?.confusion_matrix
   return <div className="analytics-page">
     <div className="eyebrow"><span className="eyebrow__line" /> BEHAVIORAL INTELLIGENCE</div>
     <div className="page-heading"><div><h1>ML Analytics</h1><p>Normal-only Isolation Forest evaluation on the held-out synthetic experiment.</p></div><span className="page-heading__count">MODULE 4 · SAVED MODEL</span></div>
-    {error && <div className="error-banner">{error}</div>}
+    {(error || reportError) && <div className="error-banner">{error || reportError}</div>}
     <section className="analytics-kpis">{cards.map((card, index) => ml ? <MetricCard key={card.label} {...card} index={index} /> : <Skeleton key={card.label} className="metric-card" />)}</section>
     <div className="analytics-grid">
       <motion.section className="panel analytics-chart" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}><span className="section-heading__overline">HELD-OUT CLASSIFICATION</span><h3>Isolation Forest vs rule baseline</h3><div className="analytics-chart__body"><ResponsiveContainer width="100%" height="100%"><BarChart data={comparison} margin={{ top: 10, right: 10, left: -18, bottom: 5 }}><CartesianGrid vertical={false} stroke="#274058" strokeDasharray="3 6" /><XAxis dataKey="name" tick={{ fill: '#9bb4c7', fontSize: 10 }} /><YAxis domain={[0, 100]} tick={{ fill: '#7b9ab0', fontSize: 9 }} /><Tooltip contentStyle={tooltipStyle} formatter={(value) => `${value.toFixed(1)}%`} /><Legend wrapperStyle={{ fontSize: 10 }} /><Bar dataKey="isolation" name="Isolation Forest" fill="#4fd1b1" radius={[4, 4, 0, 0]} /><Bar dataKey="rules" name="Rule baseline" fill="#417b9a" radius={[4, 4, 0, 0]} /></BarChart></ResponsiveContainer></div><p>Lower FPR means fewer held-out normal actions were flagged.</p></motion.section>

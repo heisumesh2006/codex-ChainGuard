@@ -38,7 +38,7 @@ export default function Evaluation() {
   const revocation = report?.modules?.module5_revocation
   const latency = report?.end_to_end_latency
   const coverage = report?.end_to_end_attack_coverage
-  const latencyData = Object.entries(latency?.average_ms || {}).map(([key, value]) => ({ name: latencyLabels[key] || key, average: value, worst: latency?.worst_case_ms?.[key] || 0 }))
+  const latencyData = Object.entries(latency?.average_ms || {}).filter(([,value]) => Number.isFinite(value)).map(([key, value]) => ({ name: latencyLabels[key] || key, average: value, worst: latency?.worst_case_ms?.[key] ?? null }))
   const recallData = Object.entries(ml?.per_category || {}).map(([key, value]) => ({ name: key.replaceAll('_', ' '), recall: value.recall * 100 }))
   const decisions = ['ALLOW', 'REVIEW', 'BLOCK'].map((name) => ({ name, value: report?.scenarios?.filter((row) => row.final_decision === name).length || 0 }))
   const cards = [

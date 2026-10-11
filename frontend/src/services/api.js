@@ -1,15 +1,25 @@
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000'
 
 async function request(path, options = {}) {
-  const response = await fetch(`${API_BASE}${path}`, {
-    ...options,
-    headers: { 'Content-Type': 'application/json', ...options.headers },
-  })
-  if (!response.ok) {
-    const details = await response.text()
-    throw new Error(`${response.status} ${response.statusText}: ${details}`)
+  const controller = new AbortController()
+  const timeout = window.setTimeout(() => controller.abort(), 120000)
+  let response
+  try {
+    response = await fetch(`${API_BASE}${path}`, {
+      ...options, signal: controller.signal,
+      headers: { 'Content-Type': 'application/json', ...options.headers },
+    })
+    if (!response.ok) {
+      const details = await response.text()
+      throw new Error(`${response.status} ${response.statusText}: ${details}`)
+    }
+    return await response.json()
+  } catch (cause) {
+    if (response && cause.name !== 'AbortError') throw cause
+    throw new Error(cause.name === 'AbortError' ? 'API request timed out. Retry the connection.' : 'API connection unavailable. Retry the connection.')
+  } finally {
+    window.clearTimeout(timeout)
   }
-  return response.json()
 }
 
 export const api = {
