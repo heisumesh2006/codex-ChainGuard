@@ -6,7 +6,7 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
-from unittest.mock import patch
+from unittest.mock import patch, Mock
 
 from fastapi.testclient import TestClient
 
@@ -23,7 +23,9 @@ class BatchedEvidenceTests(unittest.TestCase):
     def setUp(self):
         self.stack = ExitStack()
         self.addCleanup(self.stack.close)
-        self.directory = Path(self.stack.enter_context(tempfile.TemporaryDirectory(dir=services.ROOT / ".runtime")))
+        # Use the OS temporary root so Windows ACLs and antivirus filters on
+        # repository runtime folders cannot affect the isolated persistence fixture.
+        self.directory = Path(self.stack.enter_context(tempfile.TemporaryDirectory()))
         store = AuditLogStore(self.directory / "audit.jsonl")
         self.manager = BatchManager(store, self.directory / "batches.json", batch_size=5)
         codes = ("USE_PERMISSION", "SELF_ESCALATION_ATTEMPT", "UNAUTHORIZED_DELEGATION_ATTEMPT", "USE_PERMISSION", "POST_DECOMMISSION_ACTIVITY")
@@ -47,14 +49,25 @@ class BatchedEvidenceTests(unittest.TestCase):
                                      blockchain_block_number=123, blockchain_anchored_by="0x" + "56" * 20,
                                      blockchain_anchored_at=123, blockchain_rpc_url="")
         self.manager._write_state(metadata)
-        state = {"version": 2, "records": {}, "credentials": {"test": {"agent_id": "Agent_A"}}}
+        state = chain.empty_state()
+        state["credentials"] = {"test": {"agent_id": "Agent_A", "credential_id": "credential:fixture",
+                                        "issuer": "0x" + "56" * 20, "current_status": "ACTIVE",
+                                        "content_hash": "ab" * 32, "transaction_hash": "0x" + "34" * 32,
+                                        "allowed_permission_scope": ["CREATE_AGENT"], "delegation_scope": ["CREATE_AGENT"],
+                                        "issued_at": "2026-10-03T06:00:00Z", "expires_at": "2027-10-03T06:00:00Z"}}
         (self.directory / "ethereum_state.json").write_text(json.dumps(state))
         (self.directory / "deployment.json").write_text(json.dumps({"chain_id": 11155111, "contract_address": "0x" + "12" * 20}))
         for module, attr, value in ((chain, "NETWORK_PROFILE", "sepolia"), (chain, "STATE_PATH", self.directory / "ethereum_state.json"), (pipeline, "DATA_DIR", self.directory),
+                                    (chain, "DEPLOYMENT_PATH", self.directory / "deployment.json"),
                                     (services, "DATA_DIR", self.directory), (services, "REPORT_PATH", self.directory / "missing.json"),
                                     (pipeline, "AUDIT_BATCH_MANAGER", self.manager)):
             self.stack.enter_context(patch.object(module, attr, value))
         # Keep real Merkle validation; mock only Ethereum and authority discovery.
+        web3 = Mock()
+        web3.eth.chain_id = 11155111
+        web3.eth.block_number = 123
+        web3.eth.get_code.return_value = b'fixture-contract'
+        self.stack.enter_context(patch.object(chain, "connect", return_value=web3))
         self.stack.enter_context(patch.object(batch_verifier, "verify_anchored_batch", return_value=True))
         self.stack.enter_context(patch.object(tracer, "_walk_authority", side_effect=self.walk))
         self.stack.enter_context(patch.object(tracer, "_revocation_at_time", side_effect=lambda ctx, actor, when:
@@ -164,9 +177,10 @@ class BatchedEvidenceTests(unittest.TestCase):
 
     def test_hardhat_uses_legacy_report(self):
         path = self.directory / "legacy.json"
-        path.write_text(json.dumps({"legacy": "unchanged"}))
+        report = json.loads((services.ROOT / "backend/core/governance/data/final_report.json").read_text())
+        path.write_text(json.dumps(report))
         with patch.object(chain, "NETWORK_PROFILE", "hardhat"), patch.object(services, "REPORT_PATH", path):
-            self.assertEqual(services.final_report(), {"legacy": "unchanged"})
+            self.assertEqual(services.final_report(), report)
 
     def test_hardhat_trace_uses_legacy_evidence(self):
         action = {"record_id": "legacy:test"}

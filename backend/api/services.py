@@ -23,6 +23,7 @@ from backend.core.tracing.tracer import trace_audit_record
 from backend.core.governance.pipeline import DATA_DIR, MODEL_PATH, canonical_context, prepare_runtime, run_governance_pipeline
 
 from .schemas import ActionInput
+from backend.core.blockchain.evidence import EvidenceError, read_object, validate_deployment, validate_provenance, validate_credential_metadata, validate_model_metrics
 
 ROOT = Path(__file__).resolve().parents[2]
 REPORT_PATH = DATA_DIR / "final_report.json"
@@ -36,6 +37,40 @@ SCENARIOS = {
 }
 
 
+def _validate_report(report):
+    try:
+        modules = report["modules"]
+        if any(not isinstance(modules[key], dict) for key in ("module2_blockchain", "module3_tracing", "module4_anomaly", "module5_revocation")):
+            raise ValueError()
+        validate_model_metrics(modules["module4_anomaly"])
+        blockchain = modules["module2_blockchain"]
+        for key in ("registered_identities", "credentials_issued", "delegations_anchored", "revocations_anchored", "action_hashes_anchored"):
+            if type(blockchain[key]) is not int or blockchain[key] < 0:
+                raise ValueError()
+        latency = report["end_to_end_latency"]
+        for key in ("total_average_ms", "total_worst_case_ms", "pipeline_bottleneck_step"):
+            latency[key]
+        if type(report["scenario_counts"]["total"]) is not int or not isinstance(report["scenarios"], list):
+            raise ValueError()
+        if report["scenario_counts"]["total"] != len(report["scenarios"]):
+            raise ValueError()
+        for row in report["scenarios"]:
+            for key in ("scenario", "actor", "expected_class", "record_id"):
+                if not isinstance(row[key], str):
+                    raise ValueError()
+            for key in ("authorized", "drift_applicable", "drift_flagged", "revoked", "chain_verified"):
+                if type(row[key]) is not bool:
+                    raise ValueError()
+            if row["final_decision"] not in ("ALLOW", "BLOCK", "REVIEW") or not isinstance(row["detected_by"], list):
+                raise ValueError()
+            for key in ("drift_score", "resolution_time_ms"):
+                if row[key] is not None and type(row[key]) not in (int, float):
+                    raise ValueError()
+        report["end_to_end_attack_coverage"]
+    except (KeyError, TypeError, ValueError):
+        raise EvidenceError("EVIDENCE_CORRUPT") from None
+
+
 def _deployment_path() -> Path:
     # The local API uses the canonical governance registry. The Sepolia
     # deployment is recorded in blockchain's network-specific state directory.
@@ -47,13 +82,20 @@ def final_report() -> dict:
     if chain.NETWORK_PROFILE == "sepolia":
         with LOCK:
             return build_persisted_report(DATA_DIR, pipeline.AUDIT_BATCH_MANAGER)
-    return json.loads(REPORT_PATH.read_text(encoding="utf-8"))
+    report = read_object(REPORT_PATH)
+    if "blockchain_deployment" in report:
+        # Legacy reports are historical, but must belong to this profile.
+        validate_deployment(report["blockchain_deployment"], chain.NETWORK_PROFILE)
+    _validate_report(report)
+    return report
 
 
 @public_response
 def health() -> dict:
     deployment_path = _deployment_path()
-    deployment = json.loads(deployment_path.read_text(encoding="utf-8")) if deployment_path.is_file() else {}
+    deployment = read_object(deployment_path, optional=True)
+    if deployment:
+        validate_deployment(deployment, chain.NETWORK_PROFILE)
     rpc_connected = contract_available = False
     live_chain_id = None
     latest_block = None
@@ -61,6 +103,8 @@ def health() -> dict:
     try:
         with LOCK, canonical_context():
             web3 = chain.connect(deployment.get("rpc_url") or None)
+            if web3.eth.chain_id != chain.EXPECTED_CHAIN_IDS[chain.NETWORK_PROFILE]:
+                raise EvidenceError("NETWORK_MISMATCH", 409)
             rpc_connected = True
             live_chain_id = web3.eth.chain_id
             latest_block = web3.eth.block_number
@@ -70,6 +114,8 @@ def health() -> dict:
                 and live_chain_id == deployment.get("chain_id")
                 and web3.eth.get_code(contract_address)
             )
+    except EvidenceError:
+        raise
     except Exception as exc:
         # Provider exceptions may include credential-bearing RPC URLs; expose
         # only a short diagnostic category to the browser.
@@ -99,6 +145,7 @@ def health() -> dict:
 @public_response
 def overview() -> dict:
     report = final_report()
+    _validate_report(report)
     blockchain = report["modules"]["module2_blockchain"]
     latency = report["end_to_end_latency"]
     return {
@@ -156,6 +203,7 @@ def agent_credentials(agent_id: str) -> dict:
         }
         credentials = []
         for credential in state["credentials"].values():
+            validate_credential_metadata(credential)
             if credential["agent_id"] != agent_id:
                 continue
             permission = credential["allowed_permission_scope"][0]
@@ -207,7 +255,7 @@ def delegation_graph() -> dict:
         prepare_runtime()
     with LOCK, canonical_context():
         state = chain.load_state()
-        _, contract, _, _ = chain.contract_context()
+        _, contract, _, deployment = chain.contract_context()
         identities = ("ROOT_AUTHORIZER", "Agent_A", "Agent_B", "Agent_C", "Agent_D")
         nodes = [
             {
@@ -226,6 +274,7 @@ def delegation_graph() -> dict:
         edges = []
         root_address = contract.functions.rootAuthorizer().call()
         for credential in state["credentials"].values():
+            validate_credential_metadata(credential)
             if credential["issuer"] != root_address:
                 continue
             agent_id = credential["agent_id"]
@@ -247,10 +296,18 @@ def delegation_graph() -> dict:
                 "data": {"permission": permission, "evidence_type": "ROOT_CREDENTIAL", "proof_status": "PASS" if verified else "FAIL"},
             })
         for record_id, entry in state["records"].items():
+            if not isinstance(entry, dict) or not isinstance(entry.get("kind"), str):
+                raise EvidenceError("EVIDENCE_CORRUPT")
             if entry["kind"] != "delegation":
                 continue
-            source = entry["source"]
-            proof = get_proof(record_id)
+            source = entry.get("source")
+            if not isinstance(source, dict) or any(not isinstance(source.get(key), str) for key in ("delegator", "delegatee", "permission", "authority_source", "status")):
+                raise EvidenceError("EVIDENCE_CORRUPT")
+            try:
+                proof = get_proof(record_id)
+            except LookupError:
+                raise EvidenceError("PROOF_UNAVAILABLE") from None
+            validate_provenance(proof, deployment)
             verified = verify_proof(source, proof)
             edges.append({
                 "id": record_id, "source": source["delegator"], "target": source["delegatee"],
@@ -270,6 +327,7 @@ def delegation_graph() -> dict:
 @public_response
 def metrics() -> dict:
     report = final_report()
+    _validate_report(report)
     return {
         "module2": report["modules"]["module2_blockchain"],
         "module3": report["modules"]["module3_tracing"],
@@ -291,7 +349,7 @@ def revocation(agent_id: str) -> dict:
 
 @public_response
 def evaluate(action: ActionInput | dict) -> dict:
-    payload = action.as_injected_action() if isinstance(action, ActionInput) else action
+    payload = (action if isinstance(action, ActionInput) else ActionInput.model_validate(action)).as_injected_action()
     with LOCK:
         return run_governance_pipeline(payload).to_dict()
 
@@ -310,7 +368,7 @@ def _saved_audit_scenario(name: str) -> dict:
     for record in pipeline.AUDIT_BATCH_MANAGER.audit_store.list_records():
         if scenario_category(record)[0] == SCENARIOS[name]:
             return record
-    raise LookupError(f"No saved {name} audit scenario")
+    raise EvidenceError("EVIDENCE_NOT_FOUND", 404)
 
 
 @public_response
@@ -321,7 +379,7 @@ def run_scenario(name: str) -> dict:
             proof = pipeline.AUDIT_BATCH_MANAGER.generate_proof(record["action_id"])
             trace = trace_audit_record(record, proof)
             if not trace["action_proof_verified"]:
-                raise ValueError("Saved scenario audit proof failed verification")
+                raise EvidenceError("PROOF_UNAVAILABLE", 503)
             verdict = saved_verdict(record)
             verdict["trace_result"] = trace
             verdict["audit_batch_status"] = pipeline.AUDIT_BATCH_MANAGER.record_status(record["action_id"])
@@ -391,16 +449,24 @@ def _audit_explorer_base(chain_id: int) -> str | None:
 @public_response
 def audit_status() -> dict:
     manager = pipeline.AUDIT_BATCH_MANAGER
-    pending = manager.pending_summary()
-    batches = manager.list_batches()
+    with manager.snapshot() as (_, state):
+        pending = manager.pending_summary()
+        batches = state["batches"]
     deployment_path = _deployment_path()
-    deployment = json.loads(deployment_path.read_text(encoding="utf-8")) if deployment_path.is_file() else {}
+    deployment = read_object(deployment_path, optional=True)
     chain_id = deployment.get("chain_id") or chain.EXPECTED_CHAIN_IDS.get(chain.NETWORK_PROFILE)
+    if deployment:
+        validate_deployment(deployment, chain.NETWORK_PROFILE)
+    for batch in batches:
+        if batch["status"] == "ANCHORED":
+            validate_provenance(batch, deployment, prefix="blockchain_")
     rpc_connected = contract_available = False
     current_block = latest_block = contract_address = None
     try:
         with LOCK, canonical_context():
             web3 = chain.connect(deployment.get("rpc_url") or None)
+            if web3.eth.chain_id != chain.EXPECTED_CHAIN_IDS[chain.NETWORK_PROFILE]:
+                raise EvidenceError("NETWORK_MISMATCH", 409)
             rpc_connected = True
             current_block = latest_block = web3.eth.block_number
             chain_id = web3.eth.chain_id
@@ -410,6 +476,8 @@ def audit_status() -> dict:
                 and chain_id == deployment.get("chain_id")
                 and web3.eth.get_code(contract_address)
             )
+    except EvidenceError:
+        raise
     except Exception:
         pass
     explorer_base = _audit_explorer_base(chain_id or 0)
@@ -445,31 +513,41 @@ def audit_logs(limit: int = 100, offset: int = 0) -> dict:
     manager = pipeline.AUDIT_BATCH_MANAGER
     # Put the newest action first so the default page always surfaces recent
     # governed activity even when the append-only log grows beyond its limit.
-    records = list(reversed(manager.audit_store.list_records()))
-    selected = records[offset:offset + limit]
-    return {
-        "total": len(records),
-        "limit": limit,
-        "offset": offset,
-        "records": [
-            {**record, "batch_status": manager.record_status(record["action_id"])}
-            for record in selected
-        ],
-    }
+    with manager.snapshot() as (snapshot_records, _):
+        records = list(reversed(snapshot_records))
+        selected = records[offset:offset + limit]
+        return {
+            "total": len(records),
+            "limit": limit,
+            "offset": offset,
+            "records": [
+                {**record, "batch_status": manager.record_status(record["action_id"])}
+                for record in selected
+            ],
+        }
 
 
 @public_response
 def audit_batches(limit: int = 100, offset: int = 0) -> dict:
     deployment_path = _deployment_path()
-    deployment = json.loads(deployment_path.read_text(encoding="utf-8")) if deployment_path.is_file() else {}
+    deployment = read_object(deployment_path, optional=True)
+    if deployment:
+        validate_deployment(deployment, chain.NETWORK_PROFILE)
     chain_id = deployment.get("chain_id") or chain.EXPECTED_CHAIN_IDS.get(chain.NETWORK_PROFILE)
     with LOCK, canonical_context():
         try:
             web3 = chain.connect(deployment.get("rpc_url") or None)
+            if web3.eth.chain_id != chain.EXPECTED_CHAIN_IDS[chain.NETWORK_PROFILE]:
+                raise EvidenceError("NETWORK_MISMATCH", 409)
             chain_id = web3.eth.chain_id
+        except EvidenceError:
+            raise
         except Exception:
             pass
     all_batches = pipeline.AUDIT_BATCH_MANAGER.list_batches()
+    for batch in all_batches:
+        if batch["status"] == "ANCHORED":
+            validate_provenance(batch, deployment, prefix="blockchain_")
     selected = all_batches[offset:offset + limit]
     explorer = _audit_explorer_base(chain_id or 0)
     return {
@@ -497,6 +575,7 @@ def audit_batch(batch_id: str) -> dict:
     if batch is None:
         raise LookupError(f"Unknown audit batch: {batch_id}")
     if batch["status"] == "ANCHORED":
+        validate_provenance(batch, read_object(_deployment_path()), prefix="blockchain_")
         proof_status = "VERIFIED" if pipeline.AUDIT_BATCH_MANAGER.verify_anchored_record_proof(
             batch["first_action_id"]
         ) else "VERIFY FAILED"
@@ -567,6 +646,7 @@ def _audit_action_proof(action_id: str, record_to_verify: dict | None = None) ->
         )
         return result
 
+    validate_provenance(batch, read_object(_deployment_path()), prefix="blockchain_")
     blockchain_root = None
     try:
         with LOCK, canonical_context():

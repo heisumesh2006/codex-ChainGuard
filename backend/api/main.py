@@ -1,14 +1,40 @@
 """ChainGuard-AI presentation API. Run from the project root with Uvicorn."""
 
 import asyncio
+import logging
 from fastapi import FastAPI, HTTPException, Query, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from fastapi.exceptions import RequestValidationError
+from backend.core.blockchain.evidence import EvidenceError
 
-from backend.core.blockchain.diagnostics import safe_error, public_data
+from backend.core.blockchain.diagnostics import safe_error, public_data, redact_text
 from backend.api import services
 from backend.api.schemas import ActionInput, AuditVerifyInput, GovernanceStreamRequest
 
 app = FastAPI(title="ChainGuard-AI API", version="1.0.0")
+logger = logging.getLogger(__name__)
+
+
+@app.exception_handler(RequestValidationError)
+async def invalid_request(request, exc):
+    # Never echo rejected bodies (including non-finite values or credentials).
+    details = [{"loc": error["loc"], "type": error["type"], "msg": redact_text(error["msg"])} for error in exc.errors()]
+    return JSONResponse(status_code=422, content={"detail": details})
+
+
+@app.exception_handler(EvidenceError)
+async def evidence_error(request, exc):
+    return JSONResponse(status_code=exc.status_code, content={"detail": {"code": exc.code}})
+
+
+@app.exception_handler(TimeoutError)
+@app.exception_handler(ConnectionError)
+@app.exception_handler(RuntimeError)
+async def provider_unavailable(request, exc):
+    diagnostic = safe_error(exc)
+    logger.error("Request failed: %s", diagnostic)
+    return JSONResponse(status_code=503, content={"detail": {"code": diagnostic.split(":", 1)[0]}})
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:5173"],
@@ -155,6 +181,8 @@ async def governance_stream(websocket: WebSocket):
                     verdict = await asyncio.to_thread(services.evaluate, request.action)
                 for event in services.stage_events(verdict):
                     await websocket.send_json(public_data(event))
+            except WebSocketDisconnect:
+                return
             except Exception as exc:
                 await websocket.send_json({"event": "ERROR", "detail": safe_error(exc)})
     except WebSocketDisconnect:

@@ -1,10 +1,12 @@
 """Input contracts for the presentation API."""
 
 from datetime import datetime, timezone
+import json
 from typing import Any
 from uuid import uuid4
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
+from backend.core.blockchain.evidence import aware_timestamp
 
 
 class ActionInput(BaseModel):
@@ -17,6 +19,13 @@ class ActionInput(BaseModel):
     timestamp: str | None = None
     target_agent: str | None = None
     delegatee: str | None = None
+
+    @field_validator("timestamp")
+    @classmethod
+    def timestamp_is_aware(cls, value):
+        if value is None:
+            return value
+        return aware_timestamp(value).isoformat().replace("+00:00", "Z")
 
     def as_injected_action(self) -> dict[str, Any]:
         """Mark user input as synthetic so Module 6 applies live Module 1 checks."""
@@ -37,3 +46,10 @@ class AuditVerifyInput(BaseModel):
     """Optional off-chain record copy for forensic/tamper verification."""
 
     record_override: dict[str, Any] | None = None
+
+    @field_validator("record_override")
+    @classmethod
+    def finite_record(cls, value):
+        if value is not None:
+            json.dumps(value, allow_nan=False)
+        return value

@@ -68,7 +68,9 @@ class RevocationAnchoringError(RuntimeError):
 
 def _registry():
     """Connect from RPC/deployment/ABI only; no unlocked account is required."""
-    deployment = json.loads(BUNDLE_DEPLOYMENT_PATH.read_text(encoding="utf-8"))
+    from backend.core.blockchain.evidence import read_object, validate_deployment
+    deployment = read_object(BUNDLE_DEPLOYMENT_PATH)
+    validate_deployment(deployment, chain.NETWORK_PROFILE)
     web3 = chain.connect(deployment.get("rpc_url") or chain.RPC_URL)
     if web3.eth.chain_id != deployment["chain_id"]:
         raise RuntimeError("Configured chain ID differs from Ethereum")

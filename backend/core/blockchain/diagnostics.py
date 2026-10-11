@@ -110,6 +110,9 @@ def safe_error(error: object) -> str:
 
 def safe_exception(error: Exception) -> Exception:
     """Keep common failure types and suppress raw exception chains at rethrow."""
+    from .evidence import EvidenceError
+    if isinstance(error, EvidenceError):
+        return EvidenceError(error.code, error.status_code)
     cls = (TimeoutError if isinstance(error, TimeoutError) else
            ConnectionError if isinstance(error, ConnectionError) else
            ValueError if isinstance(error, ValueError) else
