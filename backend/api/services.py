@@ -348,10 +348,10 @@ def revocation(agent_id: str) -> dict:
 
 
 @public_response
-def evaluate(action: ActionInput | dict) -> dict:
+def evaluate(action: ActionInput | dict, authentication=None) -> dict:
     payload = (action if isinstance(action, ActionInput) else ActionInput.model_validate(action)).as_injected_action()
     with LOCK:
-        return run_governance_pipeline(payload).to_dict()
+        return run_governance_pipeline(payload, authentication=authentication).to_dict()
 
 
 def scenario_action(name: str) -> dict:
@@ -373,7 +373,9 @@ def _saved_audit_scenario(name: str) -> dict:
 
 @public_response
 def run_scenario(name: str) -> dict:
-    if chain.NETWORK_PROFILE == "sepolia":
+    # Public demo endpoints only replay authenticated stored evidence. Local
+    # fresh evaluations require the same signed boundary as every other caller.
+    if chain.NETWORK_PROFILE == "sepolia" or pipeline.AUDIT_LOG_STORE.count():
         with LOCK, canonical_context():
             record = _saved_audit_scenario(name)
             proof = pipeline.AUDIT_BATCH_MANAGER.generate_proof(record["action_id"])
@@ -382,20 +384,16 @@ def run_scenario(name: str) -> dict:
                 raise EvidenceError("PROOF_UNAVAILABLE", 503)
             verdict = saved_verdict(record)
             verdict["trace_result"] = trace
+            # This reference comes from the Merkle proof just verified above.
+            # Fresh synthetic actions have no individual action transaction.
+            verdict["audit_anchor_reference"] = {
+                "transaction_hash": proof["blockchain"]["transaction_hash"],
+                "block_number": proof["blockchain"]["block_number"],
+                "record_id": record["action_id"],
+            }
             verdict["audit_batch_status"] = pipeline.AUDIT_BATCH_MANAGER.record_status(record["action_id"])
             return {"scenario": name, "source": "persisted_audit_record", "verdict": verdict}
-    action = scenario_action(name)
-    with LOCK:
-        prepare_runtime()
-        live_model = pipeline._runtime["model"]
-        try:
-            # A saved scenario is a replay. Score it from the persisted model
-            # baseline so earlier UI runs cannot change its decision.
-            pipeline._runtime["model"] = joblib.load(MODEL_PATH)
-            verdict = run_governance_pipeline(action)
-        finally:
-            pipeline._runtime["model"] = live_model
-    return {"scenario": name, "source": "saved_module_scenario", "verdict": verdict.to_dict()}
+    raise EvidenceError("SAVED_SCENARIO_UNAVAILABLE", 404)
 
 
 @public_response
@@ -403,14 +401,14 @@ def stage_events(verdict: dict) -> list[dict]:
     """Replay measured stages immediately; the frontend controls visual pacing."""
     timings = verdict["step_latencies"]
     hops = (verdict.get("trace_result") or {}).get("chain") or []
-    reference = None
-    if hops:
+    reference = verdict.get("audit_anchor_reference")
+    if reference is None and hops:
         hop = hops[-1]
         reference = {"transaction_hash": hop.get("transaction_hash"), "block_number": hop.get("block_number"), "record_id": hop.get("record_id")}
-    elif (verdict.get("revocation_status") or {}).get("is_revoked"):
+    elif reference is None and (verdict.get("revocation_status") or {}).get("is_revoked"):
         proof = verdict["revocation_status"].get("chain_proof") or {}
         reference = {"transaction_hash": proof.get("transaction_hash"), "block_number": proof.get("block_number"), "record_id": proof.get("record_id")}
-    elif not str(verdict["action"].get("record_id", "")).startswith("synthetic:"):
+    elif reference is None and not str(verdict["action"].get("record_id", "")).startswith("synthetic:"):
         try:
             with LOCK, canonical_context():
                 proof = get_proof(integration.blockchain_record_id("action", verdict["action"]))

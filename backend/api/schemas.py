@@ -40,6 +40,7 @@ class ActionInput(BaseModel):
 class GovernanceStreamRequest(BaseModel):
     scenario: str | None = None
     action: ActionInput | None = None
+    authentication: dict[str, Any] | None = None
 
 
 class AuditVerifyInput(BaseModel):

@@ -8,6 +8,7 @@ from types import SimpleNamespace
 import unittest
 from unittest.mock import Mock, patch
 
+from backend.testing.signed_requests import authenticated_revoke
 from backend.core.blockchain import chain
 from backend.core.revocation.audit import calculate_revocation_completeness, check_post_revocation_activity
 from backend.core.revocation.main import _cold_status_check, _real_action, isolated_registry
@@ -18,6 +19,13 @@ from backend.core.revocation.revocation import (
 
 
 class NarrowProviderEventTests(unittest.TestCase):
+    def test_isolated_write_demo_refuses_public_network_before_deployment(self):
+        with patch.object(chain, "NETWORK_PROFILE", "sepolia"), patch.object(chain, "deploy_registry") as deploy:
+            with self.assertRaisesRegex(RuntimeError, "local Hardhat"):
+                with isolated_registry():
+                    self.fail("Public-network isolated write fixture must not open")
+            deploy.assert_not_called()
+
     def test_revocation_event_lookup_queries_only_confirmed_block(self):
         web3 = Mock()
         web3.eth.block_number = 115
@@ -103,8 +111,8 @@ class PublicStatusTests(unittest.TestCase):
 
     def test_double_revoke_reuses_same_transaction(self):
         before = self.c["chain_proof"]
-        first = revoke("Agent_C", "ALL", "ROOT_AUTHORIZER", "again")
-        second = revoke("Agent_C", None, "ROOT_AUTHORIZER", "again")
+        first = authenticated_revoke("Agent_C", "ALL", "ROOT_AUTHORIZER", "again")
+        second = authenticated_revoke("Agent_C", None, "ROOT_AUTHORIZER", "again")
         after = get_revocation_status("Agent_C")["chain_proof"]
         self.assertEqual(first["transaction_hash"], second["transaction_hash"])
         self.assertEqual(before["transaction_hash"], after["transaction_hash"])
@@ -113,12 +121,12 @@ class PublicStatusTests(unittest.TestCase):
 
     def test_partial_revocation_rejected(self):
         with self.assertRaisesRegex(ValueError, "PARTIAL_REVOCATION_NOT_SUPPORTED"):
-            revoke("Agent_B", ["READ_CATALOG"], "ROOT_AUTHORIZER", "subset")
+            authenticated_revoke("Agent_B", ["READ_CATALOG"], "ROOT_AUTHORIZER", "subset")
         self.assertEqual(get_revocation_status("Agent_B")["status"], "ACTIVE")
 
     def test_missing_agent_rejected(self):
         with self.assertRaisesRegex(ValueError, "AGENT_NOT_FOUND"):
-            revoke("Unknown_Agent", "ALL", "ROOT_AUTHORIZER", "unknown")
+            authenticated_revoke("Unknown_Agent", "ALL", "ROOT_AUTHORIZER", "unknown")
 
 
 class AuditTests(unittest.TestCase):
@@ -166,7 +174,7 @@ class FreshRevocationTests(unittest.TestCase):
         with isolated_registry():
             import time
             started = time.perf_counter()
-            result = revoke("Agent_D", ["VERIFY_ORDER"], "ROOT_AUTHORIZER", "isolated")
+            result = authenticated_revoke("Agent_D", ["VERIFY_ORDER"], "ROOT_AUTHORIZER", "isolated")
             status = get_revocation_status("Agent_D")
             latency = (time.perf_counter() - started) * 1000
             self.assertTrue(result["proof_verified"] and status["is_revoked"])
@@ -179,7 +187,7 @@ class FreshRevocationTests(unittest.TestCase):
         with isolated_registry():
             with patch.object(chain, "contract_context", side_effect=ConnectionError("simulated outage")):
                 with self.assertRaises(RevocationAnchoringError) as caught:
-                    revoke("Agent_D", "ALL", "ROOT_AUTHORIZER", "outage")
+                    authenticated_revoke("Agent_D", "ALL", "ROOT_AUTHORIZER", "outage")
             error = caught.exception
             self.assertEqual(error.code, "REVOCATION_ANCHORING_FAILED")
             self.assertTrue(error.local_revocation)
@@ -189,7 +197,7 @@ class FreshRevocationTests(unittest.TestCase):
             failures = list(chain.load_state()["failed"].values())
             self.assertEqual(len(failures), 1)
             self.assertTrue(failures[0]["retry"])
-            result = revoke("Agent_D", "ALL", "ROOT_AUTHORIZER", "retry")
+            result = authenticated_revoke("Agent_D", "ALL", "ROOT_AUTHORIZER", "retry")
             self.assertTrue(result["proof_verified"])
             self.assertFalse(chain.load_state()["failed"])
             self.assertEqual(get_revocation_status("Agent_D")["status"], "REVOKED")
@@ -198,7 +206,7 @@ class FreshRevocationTests(unittest.TestCase):
         with isolated_registry():
             with patch("backend.core.revocation.revocation.verify_revocation_proof", return_value=False):
                 with self.assertRaises(RevocationAnchoringError) as caught:
-                    revoke("Agent_D", "ALL", "ROOT_AUTHORIZER", "proof failure")
+                    authenticated_revoke("Agent_D", "ALL", "ROOT_AUTHORIZER", "proof failure")
             self.assertEqual(caught.exception.code, "REVOCATION_PROOF_FAILED")
             self.assertTrue(caught.exception.local_revocation)
             self.assertTrue(caught.exception.blockchain_anchored)

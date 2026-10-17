@@ -2,7 +2,8 @@
 
 import asyncio
 import logging
-from fastapi import FastAPI, HTTPException, Query, WebSocket, WebSocketDisconnect
+import json
+from fastapi import FastAPI, HTTPException, Query, WebSocket, WebSocketDisconnect, Header
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
@@ -11,9 +12,30 @@ from backend.core.blockchain.evidence import EvidenceError
 from backend.core.blockchain.diagnostics import safe_error, public_data, redact_text
 from backend.api import services
 from backend.api.schemas import ActionInput, AuditVerifyInput, GovernanceStreamRequest
+from backend.core.authorization.authentication import AuthenticationError
 
 app = FastAPI(title="ChainGuard-AI API", version="1.0.0")
 logger = logging.getLogger(__name__)
+
+
+@app.exception_handler(AuthenticationError)
+async def authentication_error(request, exc):
+    return JSONResponse(status_code=401, content={"detail": {"code": str(exc)}})
+
+
+def authentication_header(value):
+    if value is None:
+        return None
+    try:
+        if len(value) > 4096:
+            raise ValueError()
+        from backend.core.blockchain.evidence import decode_json
+        parsed = decode_json(value)
+        if not isinstance(parsed, dict):
+            raise ValueError()
+        return parsed
+    except (ValueError, TypeError):
+        raise AuthenticationError("INVALID_AUTHENTICATION") from None
 
 
 @app.exception_handler(RequestValidationError)
@@ -149,8 +171,8 @@ def verify_audit_action(action_id: str, request: AuditVerifyInput | None = None)
 
 
 @app.post("/api/governance/evaluate")
-def evaluate(action: ActionInput):
-    return services.evaluate(action)
+def evaluate(action: ActionInput, x_chainguard_authentication: str | None = Header(default=None)):
+    return services.evaluate(action, authentication_header(x_chainguard_authentication))
 
 
 @app.post("/api/scenarios/{scenario_name}")
@@ -178,7 +200,7 @@ async def governance_stream(websocket: WebSocket):
                     result = await asyncio.to_thread(services.run_scenario, request.scenario)
                     verdict = result["verdict"]
                 else:
-                    verdict = await asyncio.to_thread(services.evaluate, request.action)
+                    verdict = await asyncio.to_thread(services.evaluate, request.action, request.authentication)
                 for event in services.stage_events(verdict):
                     await websocket.send_json(public_data(event))
             except WebSocketDisconnect:

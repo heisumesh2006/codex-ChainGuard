@@ -8,6 +8,8 @@ import time
 from unittest.mock import patch
 
 from backend.core.blockchain.diagnostics import safe_error
+from backend.core.authorization.authentication import authenticate, registered_verifier
+from backend.core.authorization.state import refresh_policy
 
 import joblib
 
@@ -17,7 +19,7 @@ from backend.core.blockchain import chain, integration
 from backend.core.blockchain.anchor import get_proof, verify_proof
 from backend.core.blockchain.audit_log import AuditLogStore, audit_record_from_verdict
 from backend.core.blockchain.batch_manager import BatchManager
-from backend.core.tracing.tracer import trace_action, trace_agent_authority
+from backend.core.tracing.tracer import trace_action, trace_agent_authority, trace_effective_authority
 from backend.core.drift_detection.detector import score_action
 from backend.core.revocation import revocation as module5_revocation
 from backend.core.revocation.audit import check_post_revocation_activity
@@ -101,7 +103,11 @@ def _permission(action):
 def _authorize(action):
     # Existing anchored Module 1 events carry the actual real-time outcome.
     if not str(action.get("record_id", "")).startswith("synthetic:"):
-        return action.get("result") in ("ALLOWED", "REVOKED")
+        try:
+            proof = get_proof(integration.blockchain_record_id("action", action))
+            return bool(verify_proof(action, proof) and action.get("result") in ("ALLOWED", "REVOKED"))
+        except (KeyError, ValueError, RuntimeError):
+            return False
     actor = action["actor"]
     agent = module1_agents.AGENTS.get(actor)
     permission = _permission(action)
@@ -111,7 +117,21 @@ def _authorize(action):
 
 def _trace_context(action):
     if str(action.get("record_id", "")).startswith("synthetic:"):
-        return trace_agent_authority(action["actor"], _permission(action))
+        from backend.core.blockchain import grant_authority
+        if grant_authority.manifest_path().exists() or action.get("authority_grant_id"):
+            granted = grant_authority.trace(action["actor"], _permission(action), at_time=action.get("timestamp"),
+                                             grant_id=action.get("authority_grant_id"))
+            if granted["valid"] or action.get("authority_grant_id"):
+                return granted
+            # An independent legacy credential still needs the full existing
+            # verifier below; absence of a grant is never positive evidence.
+        historical = trace_effective_authority(action["actor"], _permission(action), action.get("timestamp"))
+        if not historical["valid"]:
+            return historical
+        # A live caller cannot backdate an action to revive an expired or
+        # revoked credential. Archived, committed actions use trace_action.
+        current = trace_effective_authority(action["actor"], _permission(action))
+        return historical if current["valid"] else current
     return trace_action(action)
 
 
@@ -177,15 +197,28 @@ def _verify_chain(action, trace, status, audit):
         return False, "FAILED", evidence
 
 
-def run_governance_pipeline(action_log_entry) -> GovernanceVerdict:
+def run_governance_pipeline(action_log_entry, *, authentication=None, verifier=None) -> GovernanceVerdict:
     """Return a timed verdict; trace once and pass it into Module 4 scoring."""
-    prepare_runtime()
     action = dict(action_log_entry)
+    if str(action.get("record_id", "")).startswith("synthetic:"):
+        payload = {k: v for k, v in action.items() if k not in ("record_id", "trace_result")}
+        if authentication is None:
+            authenticate(None, "evaluate", payload, action["actor"])
+        with canonical_context():
+            verifier = verifier or registered_verifier()
+        authenticate(authentication, "evaluate", payload, action["actor"], verifier)
+        refresh_policy(verifier)
+    # Historical replay must pass _authorize and _verify_chain's existing
+    # root-sent commitments; missing evidence yields BLOCK, never a grant.
+    prepare_runtime()
+    if str(action.get("record_id", "")).startswith("synthetic:"):
+        refresh_policy(verifier)
     pipeline_started = time.perf_counter()
     timings = {}
 
     started = time.perf_counter()
-    authorized = _authorize(action)
+    with canonical_context():
+        authorized = _authorize(action)
     timings["authorization_ms"] = (time.perf_counter() - started) * 1000
 
     with canonical_context():

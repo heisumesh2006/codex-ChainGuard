@@ -279,7 +279,15 @@ def _validate_full_request(requested, current_permissions):
     raise ValueError("PARTIAL_REVOCATION_NOT_SUPPORTED")
 
 
-def revoke(agent_id, permissions_to_revoke, revoked_by, reason) -> RevocationRecord:
+def revoke(agent_id, permissions_to_revoke, revoked_by, reason, *, authentication=None, verifier=None) -> RevocationRecord:
+    from backend.core.authorization.authentication import authenticated_operation
+    with authenticated_operation(authentication, "decommission", {"agent_id": agent_id, "reason": reason},
+                                 revoked_by, verifier):
+        return _revoke_authenticated(agent_id, permissions_to_revoke, revoked_by, reason,
+                                     authentication=authentication, verifier=verifier)
+
+
+def _revoke_authenticated(agent_id, permissions_to_revoke, revoked_by, reason, *, authentication, verifier) -> RevocationRecord:
     """Fully decommission locally and anchor before declaring success.
 
     Selective revocation is future work. A prior local-only failure is retried
@@ -309,7 +317,8 @@ def revoke(agent_id, permissions_to_revoke, revoked_by, reason) -> RevocationRec
             raise RuntimeError("Local agent is decommissioned but its revocation event is unavailable")
         event = candidates[-1]
     else:
-        result = module1_agents.decommission_agent(agent_id, revoked_by=revoked_by, reason=reason)
+        result = module1_agents.decommission_agent(agent_id, revoked_by=revoked_by, reason=reason,
+                                                   authentication=authentication, verifier=verifier)
         if result["result"] != "REVOKED":
             raise RuntimeError(f"Module 1 decommission failed: {result}")
         event = next(item for item in reversed(get_action_log()) if item.get("action") == "AGENT_DECOMMISSIONED"

@@ -131,7 +131,14 @@ def run_demo(run_tests=True):
         deployment = json.loads((DATA_DIR / "deployment.json").read_text(encoding="utf-8"))
         print(f"Canonical Registry: {deployment['contract_address']} | chain {deployment['chain_id']}")
     for number, (category, expected, action) in enumerate(scenarios, start=1):
-        verdict = run_governance_pipeline(action)
+        credentials = {}
+        if str(action.get("record_id", "")).startswith("synthetic:"):
+            # Explicit operator CLI: never automatically sign an HTTP request.
+            from backend.core.authorization.operator_signing import operator_credentials
+            payload = {key: value for key, value in action.items() if key not in ("record_id", "trace_result")}
+            with canonical_context():
+                credentials = operator_credentials(action["actor"], "evaluate", payload)
+        verdict = run_governance_pipeline(action, **credentials)
         results.append((category, expected, verdict))
         _print_verdict(number, category, expected, verdict)
     scenario_tests = _validate_scenarios(results)

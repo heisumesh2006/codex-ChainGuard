@@ -1,6 +1,6 @@
 """F8: real independent spawn processes, isolated files and mocked sends."""
 from contextlib import ExitStack
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 import json
 import multiprocessing as mp
 import os
@@ -19,12 +19,23 @@ from backend.core.blockchain.persistence import FileLock, PersistenceLockTimeout
 from backend.core.blockchain.tests.test_batching import record
 
 TEMP_ROOT = Path(tempfile.gettempdir())
+SIZE_TEST_TIME = datetime(2026, 10, 1, tzinfo=timezone.utc)
+
+
+class SizeThresholdBatchManager(BatchManager):
+    """Keep size-race tests independent of scheduling/host clock pauses.
+
+    All production persistence/locking/sealing code runs unchanged. Age-policy
+    boundaries are exercised separately below using explicit advancing times.
+    """
+    def seal_due_batches(self, now=None):
+        return super().seal_due_batches(now=SIZE_TEST_TIME if now is None else now)
 
 
 def stores(folder, size=5, timeout=10):
     folder = Path(folder)
     store = AuditLogStore(folder / 'audit.jsonl', lock_timeout=timeout)
-    return store, BatchManager(store, folder / 'batches.json', batch_size=size, lock_timeout=timeout)
+    return store, SizeThresholdBatchManager(store, folder / 'batches.json', batch_size=size, lock_timeout=timeout)
 
 
 def fake_chain(folder, receipt_ready=None, receipt_release=None, crash_send=False):
@@ -81,6 +92,8 @@ def operation_worker(folder, mode, index, barrier, queue, count=1, size=5, ready
         barrier.wait(60)
         if mode == 'seal':
             result['sealed'] = len(manager.seal_due_batches())
+        elif mode == 'seal_age':
+            result['sealed'] = len(manager.seal_due_batches(now=SIZE_TEST_TIME + timedelta(seconds=31)))
         elif mode == 'update':
             with manager.state_transaction() as state:
                 state['pending_since'][str(index)] = '2026-10-01T00:00:00Z'
@@ -404,10 +417,33 @@ class ConcurrencyTests(TestCase):
         self.assertEqual(self.manager.pending_records()[0]['action_id'],record(5)['action_id'])
         self.assertTrue(self.manager.verify_record_proof(record(0)['action_id']))
 
+    def test_concurrent_age_sealing_is_idempotent(self):
+        for i in range(2): self.store.append(record(i))
+        self.manager.seal_due_batches(now=SIZE_TEST_TIME)
+        results = self.run_workers('seal_age')
+        self.assertEqual(sum(result['sealed'] for result in results), 1)
+        state = self.integrity(2, 2)
+        self.assertEqual([batch['log_count'] for batch in state['batches']], [2])
+
+    def test_age_partial_batch_preserves_below_threshold_tail_until_due(self):
+        self.manager = BatchManager(self.store, self.manager.metadata_path, batch_size=5, max_age_seconds=30)
+        for i in range(2): self.store.append(record(i))
+        self.manager.seal_due_batches(now=SIZE_TEST_TIME)
+        self.manager.seal_due_batches(now=SIZE_TEST_TIME + timedelta(seconds=31))
+        for i in range(2, 10): self.store.append(record(i))
+        self.manager.seal_due_batches(now=SIZE_TEST_TIME + timedelta(seconds=31))
+        state = self.integrity(10, 7)
+        self.assertEqual([b['log_count'] for b in state['batches']], [2, 5])
+        self.assertEqual([r['action_id'] for r in self.manager.pending_records()],
+                         [record(i)['action_id'] for i in range(7, 10)])
+        self.manager.seal_due_batches(now=SIZE_TEST_TIME + timedelta(seconds=62))
+        state = self.integrity(10, 10)
+        self.assertEqual([b['log_count'] for b in state['batches']], [2, 5, 3])
+
     def test_bounded_ten_process_500_action_stress(self):
         start=time.perf_counter();results=self.run_workers('stress',workers=10,count=50)
         self.assertEqual(sum(r['success'] for r in results),500)
         self.assertEqual(sum(r['duplicates'] for r in results),10)
         self.manager.seal_due_batches();state=self.integrity(500,500)
-        result={'seconds':time.perf_counter()-start,'workers':10,'distinct_attempts':500,'successful_actions':500,'deliberate_duplicate_rejections':10,'persisted_records':500,'persisted_duplicates':0,'lost_successful_actions':0,'batches':len(state['batches']),'mapped_actions':len(state['action_index']),'lock_timeouts':sum(r['timeouts'] for r in results),'worker_results':results,'jsonl_valid':True,'mapping_valid':True,'deterministic_merkle_from_persisted_order':True}
+        result={'seconds':time.perf_counter()-start,'workers':10,'distinct_attempts':500,'successful_actions':500,'deliberate_duplicate_rejections':10,'persisted_records':500,'persisted_duplicates':0,'lost_successful_actions':0,'batches':len(state['batches']),'mapped_actions':len(state['action_index']),'lock_timeouts':sum(r['timeouts'] for r in results),'worker_results':results,'jsonl_valid':True,'mapping_valid':True,'deterministic_merkle_from_persisted_order':True,'size_threshold_clock_controlled':True}
         (TEMP_ROOT/'F8_STRESS_RESULTS.json').write_text(json.dumps(result,indent=2))

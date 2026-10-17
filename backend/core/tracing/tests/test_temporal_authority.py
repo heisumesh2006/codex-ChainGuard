@@ -26,7 +26,11 @@ class TemporalAuthorityTests(TestCase):
         checked = {"verified": True, "reason": "Mock issuance proof verified",
                    "transaction_hash": "mock", "block_number": 1}
         with patch.object(tracer.blockchain, "identity_addresses", return_value={"ROOT_AUTHORIZER": self.root, "Agent_A": self.parent}), \
-                patch.object(tracer, "_verify_root_credential", return_value=checked), \
+                patch.object(tracer, "_revocation_at_time", return_value=(None, "", None)), \
+                patch.object(tracer, "_verify_root_credential", side_effect=lambda credential, agent, scope:
+                             checked if agent == "Agent_A" and credential.get("issuer") == self.root
+                             else {"verified": False, "reason": "Not the authenticated root issuance",
+                                   "transaction_hash": None, "block_number": None}), \
                 patch.object(tracer, "_root_grant_evidence", return_value=None), \
                 patch.object(tracer, "_delegated_credential_binding", return_value=(None if legacy else "mock-onchain-Agent_B", self.parent)), \
                 patch.object(tracer, "get_proof", return_value={"transaction_hash": "mock", "block_number": 1}), \

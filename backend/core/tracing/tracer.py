@@ -210,7 +210,7 @@ def _delegated_credential_binding(record: dict, permission: str) -> tuple[str | 
     return ("0x" + bytes(credential_id).hex() if bytes(credential_id) != bytes(32) else None, issuer)
 
 
-def _walk_authority(
+def _walk_single_authority(
     agent_id: str, permission: str, context: TraceContext, started: float,
     action_time: datetime | None = None,
 ) -> TraceResult:
@@ -289,6 +289,12 @@ def _walk_authority(
             return _finish([root_hop], "BROKEN_CHAIN", "Root grant occurred after the action", started)
 
     ordered_hops = [root_hop]
+    # Every issuer/ancestor must be valid at the action time. Revoking B
+    # invalidates B-derived authority at C/D, without rewriting old records.
+    if action_time is not None:
+        verdict, reason, evidence = _revocation_at_time(context, root_agent, action_time)
+        if verdict:
+            return _finish(ordered_hops, verdict, reason, started, revocation_evidence=evidence)
     last_grant_time = _parse_time(root_grant["timestamp"]) if root_grant else None
     for record in reversed(reverse_records):
         deterministic_id = integration.blockchain_record_id("delegation", record)
@@ -358,6 +364,10 @@ def _walk_authority(
             )
         hop["proof_verified"] = True
         if action_time is not None:
+            verdict, reason, evidence = _revocation_at_time(context, record["delegatee"], action_time)
+            if verdict:
+                hop["valid_at_action_time"] = False
+                return _finish(ordered_hops, verdict, reason, started, revocation_evidence=evidence)
             try:
                 required_id, issuer = _delegated_credential_binding(record, permission)
             except Exception as exc:
@@ -383,6 +393,55 @@ def _walk_authority(
                     return _finish(ordered_hops, "BROKEN_CHAIN", reason, started)
 
     return _finish(ordered_hops, "VALID_CHAIN", "Every authority hop verifies back to ROOT_AUTHORIZER", started)
+
+
+def _walk_authority(agent_id, permission, context, started, action_time=None):
+    """Try independently authenticated candidate paths, with bounded discovery.
+
+    The newest local parent is not necessarily the only valid authority path.
+    Every selected path still passes the original chain/credential verifier.
+    """
+    candidates = []
+    def discover(child, path, visited):
+        if len(candidates) >= 64 or len(path) > 32:
+            raise ValueError("AUTHORITY_PATH_LIMIT")
+        if child in visited:
+            candidates.append(path)
+            return
+        parents = [g for g in context.delegations if g.get("delegatee") == child
+                   and g.get("permission") == permission]
+        if not parents:
+            candidates.append(path)
+        for grant in parents:
+            discover(grant["delegator"], path + [grant], visited | {child})
+        # An incoming delegation does not erase an independently issued root
+        # credential. Local metadata only discovers this alternative: the
+        # complete root issuance/identity/proof checks below still authenticate
+        # it before it can establish authority.
+        if parents and any(item.get("agent_id") == child
+                           and permission in item.get("allowed_permission_scope", [])
+                           for item in context.credentials):
+            if len(candidates) >= 64:
+                raise ValueError("AUTHORITY_PATH_LIMIT")
+            candidates.append(path)
+    discover(agent_id, [], set())
+    results = []
+    for path in candidates:
+        selected = TraceContext(path, context.actions, context.revocations, context.credentials)
+        result = _walk_single_authority(agent_id, permission, selected, started, action_time)
+        if result["valid"]:
+            return result
+        results.append(result)
+    return results[0] if results else _finish([], "BROKEN_CHAIN", "No authenticated authority path", started)
+
+
+def trace_effective_authority(agent_id: str, permission: str, at_time=None) -> TraceResult:
+    started = time.perf_counter()
+    try:
+        when = _parse_time(at_time) if at_time else datetime.now(timezone.utc)
+        return _walk_authority(agent_id, permission, _load_context(), started, when)
+    except Exception as exc:
+        return _finish([], "BROKEN_CHAIN", safe_error(exc), started)
 
 
 def trace_agent_authority(agent_id: str, permission: str) -> TraceResult:
@@ -424,7 +483,7 @@ def _revocation_at_time(context: TraceContext, agent_id: str, action_time: datet
             "revoked_at": record["decommissioned_at"],
             "proof_verified": True,
         }
-        if action_time > revoked_at:
+        if action_time >= revoked_at:
             return (
                 "AUTHORITY_REVOKED_AT_TIME_OF_ACTION",
                 f"{agent_id} was decommissioned at {record['decommissioned_at']} before this action",

@@ -111,6 +111,9 @@ def safe_error(error: object) -> str:
 def safe_exception(error: Exception) -> Exception:
     """Keep common failure types and suppress raw exception chains at rethrow."""
     from .evidence import EvidenceError
+    from backend.core.authorization.authentication import AuthenticationError
+    if isinstance(error, AuthenticationError):
+        return AuthenticationError(str(error))
     if isinstance(error, EvidenceError):
         return EvidenceError(error.code, error.status_code)
     cls = (TimeoutError if isinstance(error, TimeoutError) else

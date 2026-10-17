@@ -33,7 +33,10 @@ export const api = {
   metrics: () => request('/api/metrics'),
   revocation: (agentId) => request(`/api/revocation/${encodeURIComponent(agentId)}`),
   finalReport: () => request('/api/final-report'),
-  evaluate: (action) => request('/api/governance/evaluate', { method: 'POST', body: JSON.stringify(action) }),
+  evaluate: (action, authentication) => request('/api/governance/evaluate', {
+    method: 'POST', body: JSON.stringify(action),
+    headers: authentication ? { 'X-ChainGuard-Authentication': JSON.stringify(authentication) } : {},
+  }),
   scenario: (name) => request(`/api/scenarios/${encodeURIComponent(name)}`, { method: 'POST' }),
   auditStatus: () => request('/api/audit/status'),
   auditLogs: (params = {}) => request(`/api/audit/logs?${new URLSearchParams(params)}`),

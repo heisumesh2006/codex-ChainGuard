@@ -1,6 +1,8 @@
 """Run the Module 1 trust, delegation, attack, and revocation demonstration."""
 
 import json
+from .authentication import AuthenticationError
+from .demo_identity import DemoIdentity
 
 try:
     from .agents import (
@@ -64,10 +66,13 @@ def print_attack(name: str, actor: str, permission: str, result: dict) -> None:
     )
 
 
-def simulate_direct_grant(actor_id: str, target_agent_id: str, permission: str) -> dict:
-    """Route a simulated grant request according to its claimed authority."""
-    if actor_id != ROOT_AUTHORIZER:
-        result = {"result": "BLOCKED", "reason": "ROOT_AUTHORITY_REQUIRED"}
+def simulate_direct_grant(actor_id: str, target_agent_id: str, permission: str, **credentials) -> dict:
+    """A claimed root name alone cannot issue a grant, including in the demo."""
+    try:
+        result = grant_root_permission(target_agent_id, permission, requester=actor_id, **credentials)
+    except AuthenticationError as exc:
+        result = {"result": "BLOCKED", "reason": str(exc)}
+    if result["result"] == "BLOCKED":
         append_action_log(
             actor=actor_id,
             action="SELF_ESCALATION_ATTEMPT",
@@ -78,10 +83,17 @@ def simulate_direct_grant(actor_id: str, target_agent_id: str, permission: str) 
             reason=result["reason"],
         )
         return result
-    return grant_root_permission(target_agent_id, permission)
+    return result
 
 
-def run_demo() -> None:
+def run_demo(identity=None) -> None:
+    if identity is not None:
+        return _run_demo(identity)
+    with DemoIdentity() as identity:
+        _run_demo(identity)
+
+
+def _run_demo(identity) -> None:
     print("=" * 54)
     print("CHAINGUARD-AI | MODULE 1: TRUST AND DELEGATION")
     print("=" * 54)
@@ -112,13 +124,17 @@ def run_demo() -> None:
             )
 
     section("ROOT AUTHORIZER")
-    root_result = grant_root_permission("Agent_A", "CREATE_AGENT")
+    root_result = grant_root_permission("Agent_A", "CREATE_AGENT", **identity.credentials(
+        ROOT_AUTHORIZER, "root_grant", {"agent_id": "Agent_A", "permission": "CREATE_AGENT", "expires_at": None}))
     assert root_result["result"] == "ALLOWED"
     print(f"{ROOT_AUTHORIZER} -> Agent_A / CREATE_AGENT: {root_result['result']}")
 
     section("DELEGATION CHAIN")
     for delegator_id, delegatee_id in (("Agent_A", "Agent_B"), ("Agent_B", "Agent_C")):
-        result = delegate_permission(AGENTS[delegator_id], AGENTS[delegatee_id], "CREATE_AGENT")
+        result = delegate_permission(AGENTS[delegator_id], AGENTS[delegatee_id], "CREATE_AGENT",
+                                     **identity.credentials(delegator_id, "delegate", {
+                                         "delegator": delegator_id, "delegatee": delegatee_id,
+                                         "permission": "CREATE_AGENT", "expires_at": None}))
         assert result["result"] == "ALLOWED"
         print(f"{delegator_id} -> {delegatee_id} / CREATE_AGENT: {result['result']}")
 
@@ -133,7 +149,8 @@ def run_demo() -> None:
     blocked_attacks = 0
 
     if "SELF_ESCALATION" in ENABLED_ATTACKS:
-        result = simulate_direct_grant("Agent_D", "Agent_D", "CREATE_AGENT")
+        result = simulate_direct_grant("Agent_D", "Agent_D", "CREATE_AGENT", **identity.credentials(
+            "Agent_D", "root_grant", {"agent_id": "Agent_D", "permission": "CREATE_AGENT", "expires_at": None}))
         total_attack_attempts += 1
         blocked_attacks += result["result"] == "BLOCKED"
         assert result == {"result": "BLOCKED", "reason": "ROOT_AUTHORITY_REQUIRED"}
@@ -141,13 +158,17 @@ def run_demo() -> None:
         print_attack("SELF_ESCALATION", "Agent_D", "CREATE_AGENT", result)
 
     if "UNAUTHORIZED_DELEGATION" in ENABLED_ATTACKS:
-        result = delegate_permission(AGENTS["Agent_D"], AGENTS["Agent_C"], "CREATE_AGENT")
+        result = delegate_permission(AGENTS["Agent_D"], AGENTS["Agent_C"], "CREATE_AGENT",
+                                     **identity.credentials("Agent_D", "delegate", {
+                                         "delegator": "Agent_D", "delegatee": "Agent_C",
+                                         "permission": "CREATE_AGENT", "expires_at": None}))
         total_attack_attempts += 1
         blocked_attacks += result["result"] == "BLOCKED"
         assert result == {"result": "BLOCKED", "reason": "PERMISSION_NOT_GRANTED"}
         print_attack("UNAUTHORIZED_DELEGATION", "Agent_D", "CREATE_AGENT", result)
 
-    decommission_result = decommission_agent("Agent_C", reason="Attack simulation")
+    decommission_result = decommission_agent("Agent_C", reason="Attack simulation", **identity.credentials(
+        ROOT_AUTHORIZER, "decommission", {"agent_id": "Agent_C", "reason": "Attack simulation"}))
     assert decommission_result["result"] == "REVOKED"
     print(f"Agent_C decommissioned: {decommission_result['result']}")
 
