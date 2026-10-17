@@ -1,0 +1,31 @@
+{
+  "generated_utc": "2026-10-17T17:45:49.533464+00:00",
+  "analysis_source_sha256": "11b6c454f1b5ed821d6b2170358b614838122d9fe72b150beb2b21a0b9a62bf2",
+  "numeric_aggregates_independently_checked": true,
+  "layout_note": "Legend placement only changed after Experiment1; final policy reruns captured this final analysis source. Prior layout validation and aggregates are archived.",
+  "inputs": {
+    "experiment1_manifest.json": "5f37038237b5c869ad9280056e3188239825f1625b1abb7a7b3be4692ac0c078",
+    "experiment2_manifest.json": "3b4570bf4b392ccc2923802d5766ef431bbaf84ad5e50fe9a7b36983bcb420ce",
+    "experiment3_manifest.json": "b6295b06af894106a895d3f6cb2e727bcf34cbcc771953c7ae9a12a40021504c"
+  },
+  "figures_sha256": {
+    "experiment1_performance.pdf": "c2a0793e996f7aaf93d0af4b0e67c722099f70490317382dcdf801dc39a0655c",
+    "experiment1_performance.png": "8f93d51d43251b6db33a1d606cf3f4869fe07756053f68e8514b5dc2f6e4f257",
+    "experiment1_performance.svg": "10dc3b71cbf38d934973b0eab24ef2d740a5a70cbacf1bd1b1dafacb268e5d8d",
+    "experiment1_tampering.pdf": "a54eaeb1d765b84e3fc389c90ece09a034985d67b410c96c32cac4040a57d9d9",
+    "experiment1_tampering.png": "af6efbbf89f0f78dce0d73d7cbfdc04ccbe84c785479cd9e236d211766768da9",
+    "experiment1_tampering.svg": "9f66f218a957015db3de283c7246103beb828c64a425f60776e338358d0206dc",
+    "experiment2_revocation.pdf": "d999d5c04c2c933988b365cdb47f35660408e3d69196c37ffdb9eb250c160299",
+    "experiment2_revocation.png": "de4918e7f3ebea5473b68e257eea87841af69d95421d84267bec2f42d9c3349a",
+    "experiment2_revocation.svg": "9e9d8562c3046315a36228dd7b5b97ad295abc2277c177c616c96dbb73de27f6",
+    "experiment3_security_matrix.pdf": "3615a1c484e1da760dba770cc04c5808ffcf0577858e6706673c35d28be8d155",
+    "experiment3_security_matrix.png": "1776bdfa7a4826ec04ad298a110ccd481ef752bb534d41fc4df614f7f7fd20b0",
+    "experiment3_security_matrix.svg": "12d1d2343b9ec15902ceab20cee836796fc53066cd12056e77734c0bd082a7a0"
+  },
+  "aggregate_sha256": {
+    "aggregated_experiment1.csv": "bd6cba20f29ba3851b604dc87c448be3256320640fc1089f434088b76560caab",
+    "aggregated_experiment2.csv": "e1f36daf9856fbf0d2a5244e415d165d8ffba7cef43c771200bdd238e252648a",
+    "aggregated_experiment3.csv": "5b20715dcd2147d8c1f8141889eff043be5a6e8ec9e86029a987e7ee2d51b634",
+    "aggregated_tampering.csv": "903a9e06f2443ea71daca0aca6a52f568dddf8040970751b994564fcabf91c8f"
+  }
+}

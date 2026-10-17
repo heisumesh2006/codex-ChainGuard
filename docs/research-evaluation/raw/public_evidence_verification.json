@@ -1,0 +1,39 @@
+{
+  "api_matrix": 29,
+  "governance_outcomes": [
+    "ALLOW",
+    "BLOCK",
+    "BLOCK",
+    "REVIEW",
+    "BLOCK"
+  ],
+  "original_proofs": [
+    "VERIFIED",
+    "VERIFIED",
+    "VERIFIED",
+    "VERIFIED",
+    "VERIFIED"
+  ],
+  "tampered_copies": [
+    "TAMPERED",
+    "TAMPERED",
+    "TAMPERED",
+    "TAMPERED",
+    "TAMPERED"
+  ],
+  "canonical_files_unchanged": true,
+  "contract": "0x61c74D0525f4f5A1a7b20f2eA561e485E71dd243",
+  "batch_root": "0xee6028db0fb103cc0c5e1685e586b24d9213515a806aa9717f3ed0b54341006c",
+  "rpc_counts": {
+    "web3_clientVersion": 106,
+    "eth_chainId": 686,
+    "eth_getCode": 90,
+    "eth_call": 268,
+    "eth_getTransactionReceipt": 52,
+    "eth_getTransactionByHash": 50,
+    "eth_blockNumber": 5,
+    "eth_accounts": 16,
+    "eth_getBlockByNumber": 49,
+    "eth_getLogs": 2
+  }
+}

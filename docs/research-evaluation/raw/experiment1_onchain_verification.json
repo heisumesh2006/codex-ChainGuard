@@ -1,0 +1,14 @@
+{
+  "chain_id": 31337,
+  "contracts_verified": 12,
+  "anchor_receipts_verified": 483,
+  "records_reconstructed": 4830,
+  "all_roots_match": true,
+  "gas_and_fees_match_raw_csv": true,
+  "public_transactions": 0,
+  "local_inventory_query_range": [
+    0,
+    1755
+  ],
+  "input_manifest_started_utc": "20261017T165326486370Z"
+}

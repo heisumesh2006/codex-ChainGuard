@@ -1,0 +1,51 @@
+flowchart TB
+    caller["Caller owns agent or root private key"]
+    envelope["EIP-191 signed envelope: domain, actor, operation, payload digest, nonce, issue and expiry"]
+    api["FastAPI HTTP /evaluate or custom WebSocket action"]
+    mutator["SDK root grant, delegation or decommission boundary"]
+    auth["Recover signer and resolve trusted registry identity"]
+    replay["Durable nonce check-and-consume"]
+    deny["Controlled authentication rejection"]
+    policy["Profile and registry-specific signed authority snapshot"]
+    ancestry["Scope, current status, time windows and exact parent-grant paths"]
+    trace["Authenticated credential / delegation tracing"]
+    drift["Persisted Isolation Forest behavioral scoring"]
+    revocation["Revocation status and action-time audit"]
+    proofcheck["Required blockchain evidence verification"]
+    verdict["Governance: ALLOW / REVIEW / BLOCK"]
+    audit["Canonical off-chain AuditRecord JSONL"]
+    batch["Ordered Keccak-256 Merkle batch and durable assignment"]
+    claim["Durable anchor claim and receipt reconciliation"]
+    legacy["AgentTrustRegistry: identities, legacy credentials, revocations and batch roots"]
+    extension["Optional GrantAuthority: root-attested grant ancestry and transitive validity"]
+    verifier["Independent auditor: record, proof, authenticated registry commitment"]
+    saved["Saved demo replay: read-only existing records"]
+    dashboard["React dashboard"]
+    caller --> envelope --> api --> auth
+    auth -->|invalid| deny
+    auth -->|valid signature| replay
+    replay -->|fresh nonce| policy --> ancestry --> trace --> drift --> revocation --> proofcheck --> verdict
+    replay -->|used or unavailable| deny
+    legacy -. trusted public identity lookup .-> auth
+    legacy -. original authority and public batch evidence .-> trace
+    extension -. optional local anchored grant path .-> trace
+    legacy -. read-only status and proof .-> proofcheck
+    verdict --> audit --> batch --> claim
+    claim -->|explicit local experiment transactions| legacy
+    caller -->|signed mutation| mutator --> auth
+    policy -. explicit local operator attestation .-> extension
+    legacy --> verifier
+    audit --> verifier
+    batch -->|siblings and batch metadata| verifier
+    saved --> dashboard
+    audit -. existing record .-> saved
+    legacy -. verify existing batch .-> saved
+    verdict --> dashboard
+    verifier --> dashboard
+    subgraph scopes["Network separation"]
+        local["Isolated Hardhat experiments: writes permitted, chain 31337"]
+        public["Existing Sepolia evidence: read-only, chain 11155111; no GrantAuthority deployment"]
+    end
+    local -. deployment profile .-> legacy
+    local -. deployment profile .-> extension
+    public -. historical legacy evidence .-> legacy

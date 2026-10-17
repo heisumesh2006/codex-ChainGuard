@@ -1,0 +1,9 @@
+{
+  "path": "backend/core/blockchain/tests/test_concurrency.py",
+  "measured_sha256": "d63ef49e3a871cbc346ae0f455dcc76b343c2b805524f565a9aeae01a296eef9",
+  "final_sha256": "696c99b1de74773e53565ff6eecef0a33f24954e3dc0d0abeea7aca0bee420b7",
+  "production_code_changed": false,
+  "experiment_runtime_uses_this_test_module": false,
+  "reason": "Make size-threshold concurrency tests independent of host pauses; explicitly verify age-partial pending-tail behavior with production BatchManager",
+  "age_boundary_regression_methods_added": 2
+}

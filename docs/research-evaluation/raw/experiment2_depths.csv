@@ -1,0 +1,161 @@
+version,depth,trial,authorized_before,authorized_after,expected_downstream_invalidated,downstream_invalidated,incorrectly_retained,incorrectly_revoked,revocation_ms,trace_average_ms,trace_median_ms,trace_semantics
+original_flat,1,1,1,1,0,0,0,0,0.038,0.000737,0.0007,flat permission check
+corrected_cascade,1,1,1,1,0,0,0,0,40.1407,0.052186,0.0505,verified signed local grant ancestry
+original_flat,1,2,1,1,0,0,0,0,0.0324,0.0006929999999999999,0.0006,flat permission check
+corrected_cascade,1,2,1,1,0,0,0,0,37.8277,0.053029,0.0509,verified signed local grant ancestry
+original_flat,1,3,1,1,0,0,0,0,0.0287,0.000679,0.0006,flat permission check
+corrected_cascade,1,3,1,1,0,0,0,0,37.4925,0.050876,0.0493,verified signed local grant ancestry
+original_flat,1,4,1,1,0,0,0,0,0.0307,0.000718,0.0007,flat permission check
+corrected_cascade,1,4,1,1,0,0,0,0,37.0474,0.054069,0.05245,verified signed local grant ancestry
+original_flat,1,5,1,1,0,0,0,0,0.0328,0.000701,0.0006,flat permission check
+corrected_cascade,1,5,1,1,0,0,0,0,66.6596,0.144628,0.1387,verified signed local grant ancestry
+original_flat,1,6,1,1,0,0,0,0,0.0742,0.001883,0.0017,flat permission check
+corrected_cascade,1,6,1,1,0,0,0,0,74.7928,0.151723,0.14175,verified signed local grant ancestry
+original_flat,1,7,1,1,0,0,0,0,0.077,0.001705,0.0016,flat permission check
+corrected_cascade,1,7,1,1,0,0,0,0,93.3478,0.267811,0.2244,verified signed local grant ancestry
+original_flat,1,8,1,1,0,0,0,0,0.0444,0.000999,0.0009,flat permission check
+corrected_cascade,1,8,1,1,0,0,0,0,85.7496,0.212905,0.18730000000000002,verified signed local grant ancestry
+original_flat,1,9,1,1,0,0,0,0,0.0302,0.00102,0.001,flat permission check
+corrected_cascade,1,9,1,1,0,0,0,0,38.5377,0.051374,0.0501,verified signed local grant ancestry
+original_flat,1,10,1,1,0,0,0,0,0.032,0.000695,0.0006,flat permission check
+corrected_cascade,1,10,1,1,0,0,0,0,38.8013,0.06833,0.051,verified signed local grant ancestry
+original_flat,1,11,1,1,0,0,0,0,0.0304,0.000728,0.0007,flat permission check
+corrected_cascade,1,11,1,1,0,0,0,0,38.5603,0.057032,0.0528,verified signed local grant ancestry
+original_flat,1,12,1,1,0,0,0,0,0.0302,0.000719,0.0007,flat permission check
+corrected_cascade,1,12,1,1,0,0,0,0,39.9096,0.052128,0.0503,verified signed local grant ancestry
+original_flat,1,13,1,1,0,0,0,0,0.0327,0.000725,0.0007,flat permission check
+corrected_cascade,1,13,1,1,0,0,0,0,41.5463,0.056106,0.0499,verified signed local grant ancestry
+original_flat,1,14,1,1,0,0,0,0,0.0305,0.000682,0.0006,flat permission check
+corrected_cascade,1,14,1,1,0,0,0,0,42.3873,0.059322,0.0519,verified signed local grant ancestry
+original_flat,1,15,1,1,0,0,0,0,0.0337,0.000701,0.0006,flat permission check
+corrected_cascade,1,15,1,1,0,0,0,0,43.2886,0.054782,0.05215,verified signed local grant ancestry
+original_flat,1,16,1,1,0,0,0,0,0.0354,0.000795,0.0007,flat permission check
+corrected_cascade,1,16,1,1,0,0,0,0,77.6046,0.173908,0.16244999999999998,verified signed local grant ancestry
+original_flat,1,17,1,1,0,0,0,0,0.0375,0.000801,0.0007,flat permission check
+corrected_cascade,1,17,1,1,0,0,0,0,101.0603,0.184919,0.1813,verified signed local grant ancestry
+original_flat,1,18,1,1,0,0,0,0,0.034,0.000801,0.0007,flat permission check
+corrected_cascade,1,18,1,1,0,0,0,0,88.0489,0.238026,0.22,verified signed local grant ancestry
+original_flat,1,19,1,1,0,0,0,0,0.0405,0.000928,0.0009,flat permission check
+corrected_cascade,1,19,1,1,0,0,0,0,82.263,0.200974,0.18545,verified signed local grant ancestry
+original_flat,1,20,1,1,0,0,0,0,0.0334,0.000707,0.0006,flat permission check
+corrected_cascade,1,20,1,1,0,0,0,0,37.0605,0.060824,0.05645,verified signed local grant ancestry
+original_flat,2,1,2,1,0,0,0,0,0.0324,0.0007289999999999999,0.0007,flat permission check
+corrected_cascade,2,1,2,1,0,0,0,0,61.2631,0.126118,0.11335,verified signed local grant ancestry
+original_flat,2,2,2,1,0,0,0,0,0.0323,0.00074,0.0007,flat permission check
+corrected_cascade,2,2,2,1,0,0,0,0,65.0335,0.114731,0.1082,verified signed local grant ancestry
+original_flat,2,3,2,1,0,0,0,0,0.0467,0.000915,0.0009,flat permission check
+corrected_cascade,2,3,2,1,0,0,0,0,65.4509,0.118065,0.1142,verified signed local grant ancestry
+original_flat,2,4,2,1,0,0,0,0,0.0355,0.000886,0.00075,flat permission check
+corrected_cascade,2,4,2,1,0,0,0,0,48.394,0.115233,0.10935,verified signed local grant ancestry
+original_flat,2,5,2,1,0,0,0,0,0.0334,0.000776,0.0007,flat permission check
+corrected_cascade,2,5,2,1,0,0,0,0,55.4019,0.113414,0.1097,verified signed local grant ancestry
+original_flat,2,6,2,1,0,0,0,0,0.032,0.000771,0.0007,flat permission check
+corrected_cascade,2,6,2,1,0,0,0,0,54.3091,0.111276,0.1084,verified signed local grant ancestry
+original_flat,2,7,2,1,0,0,0,0,0.033,0.00074,0.0007,flat permission check
+corrected_cascade,2,7,2,1,0,0,0,0,60.5961,0.141459,0.1168,verified signed local grant ancestry
+original_flat,2,8,2,1,0,0,0,0,0.0309,0.000733,0.0007,flat permission check
+corrected_cascade,2,8,2,1,0,0,0,0,40.005,0.115067,0.1087,verified signed local grant ancestry
+original_flat,2,9,2,1,0,0,0,0,0.0317,0.000779,0.0007,flat permission check
+corrected_cascade,2,9,2,1,0,0,0,0,63.3795,0.125802,0.11215,verified signed local grant ancestry
+original_flat,2,10,2,1,0,0,0,0,0.0391,0.000914,0.0009,flat permission check
+corrected_cascade,2,10,2,1,0,0,0,0,107.9731,0.524407,0.47155,verified signed local grant ancestry
+original_flat,2,11,2,1,0,0,0,0,0.0524,0.001107,0.001,flat permission check
+corrected_cascade,2,11,2,1,0,0,0,0,90.6148,0.487497,0.4162,verified signed local grant ancestry
+original_flat,2,12,2,1,0,0,0,0,0.0405,0.000918,0.0009,flat permission check
+corrected_cascade,2,12,2,1,0,0,0,0,60.6884,0.123235,0.1076,verified signed local grant ancestry
+original_flat,2,13,2,1,0,0,0,0,0.0378,0.000915,0.0009,flat permission check
+corrected_cascade,2,13,2,1,0,0,0,0,57.5526,0.133113,0.114,verified signed local grant ancestry
+original_flat,2,14,2,1,0,0,0,0,0.0381,0.000815,0.0008,flat permission check
+corrected_cascade,2,14,2,1,0,0,0,0,74.3104,0.283072,0.24580000000000002,verified signed local grant ancestry
+original_flat,2,15,2,1,0,0,0,0,0.057,0.001248,0.0012,flat permission check
+corrected_cascade,2,15,2,1,0,0,0,0,38.523,0.109903,0.1065,verified signed local grant ancestry
+original_flat,2,16,2,1,0,0,0,0,0.0312,0.000719,0.0007,flat permission check
+corrected_cascade,2,16,2,1,0,0,0,0,47.7966,0.110221,0.10925,verified signed local grant ancestry
+original_flat,2,17,2,1,0,0,0,0,0.0441,0.005298,0.0007,flat permission check
+corrected_cascade,2,17,2,1,0,0,0,0,48.776,0.126264,0.10905000000000001,verified signed local grant ancestry
+original_flat,2,18,2,1,0,0,0,0,0.032,0.000726,0.0007,flat permission check
+corrected_cascade,2,18,2,1,0,0,0,0,74.63,0.13169,0.11445,verified signed local grant ancestry
+original_flat,2,19,2,1,0,0,0,0,0.0327,0.000786,0.0007,flat permission check
+corrected_cascade,2,19,2,1,0,0,0,0,78.6093,0.11441,0.10844999999999999,verified signed local grant ancestry
+original_flat,2,20,2,1,0,0,0,0,0.0347,0.000852,0.0007,flat permission check
+corrected_cascade,2,20,2,1,0,0,0,0,39.2915,0.111473,0.109,verified signed local grant ancestry
+original_flat,3,1,3,2,1,0,1,0,0.035,0.000799,0.0008,flat permission check
+corrected_cascade,3,1,3,1,1,1,0,0,75.6611,0.182634,0.16745,verified signed local grant ancestry
+original_flat,3,2,3,2,1,0,1,0,0.0326,0.00072,0.0007,flat permission check
+corrected_cascade,3,2,3,1,1,1,0,0,92.2816,0.220029,0.21715,verified signed local grant ancestry
+original_flat,3,3,3,2,1,0,1,0,0.0322,0.000736,0.0007,flat permission check
+corrected_cascade,3,3,3,1,1,1,0,0,67.2552,0.184319,0.17045,verified signed local grant ancestry
+original_flat,3,4,3,2,1,0,1,0,0.0321,0.000721,0.0007,flat permission check
+corrected_cascade,3,4,3,1,1,1,0,0,77.3874,0.177965,0.16915,verified signed local grant ancestry
+original_flat,3,5,3,2,1,0,1,0,0.0357,0.000816,0.0008,flat permission check
+corrected_cascade,3,5,3,1,1,1,0,0,75.7739,0.191546,0.17595,verified signed local grant ancestry
+original_flat,3,6,3,2,1,0,1,0,0.0319,0.000727,0.0007,flat permission check
+corrected_cascade,3,6,3,1,1,1,0,0,90.8008,0.226855,0.20679999999999998,verified signed local grant ancestry
+original_flat,3,7,3,2,1,0,1,0,0.0429,0.000981,0.001,flat permission check
+corrected_cascade,3,7,3,1,1,1,0,0,86.3991,0.609387,0.5913999999999999,verified signed local grant ancestry
+original_flat,3,8,3,2,1,0,1,0,0.0336,0.0008230000000000001,0.0008,flat permission check
+corrected_cascade,3,8,3,1,1,1,0,0,74.772,0.172548,0.16820000000000002,verified signed local grant ancestry
+original_flat,3,9,3,2,1,0,1,0,0.0321,0.000705,0.0007,flat permission check
+corrected_cascade,3,9,3,1,1,1,0,0,74.8616,0.21243599999999999,0.1758,verified signed local grant ancestry
+original_flat,3,10,3,2,1,0,1,0,0.0347,0.0007830000000000001,0.0008,flat permission check
+corrected_cascade,3,10,3,1,1,1,0,0,74.1471,0.18309,0.16935,verified signed local grant ancestry
+original_flat,3,11,3,2,1,0,1,0,0.0543,0.001194,0.0012,flat permission check
+corrected_cascade,3,11,3,1,1,1,0,0,88.1786,0.6346849999999999,0.59545,verified signed local grant ancestry
+original_flat,3,12,3,2,1,0,1,0,0.0319,0.000733,0.0007,flat permission check
+corrected_cascade,3,12,3,1,1,1,0,0,73.7288,0.172302,0.16244999999999998,verified signed local grant ancestry
+original_flat,3,13,3,2,1,0,1,0,0.0515,0.0011330000000000001,0.0011,flat permission check
+corrected_cascade,3,13,3,1,1,1,0,0,74.1768,0.173339,0.1623,verified signed local grant ancestry
+original_flat,3,14,3,2,1,0,1,0,0.038,0.000838,0.0008,flat permission check
+corrected_cascade,3,14,3,1,1,1,0,0,75.7675,0.17337,0.16465000000000002,verified signed local grant ancestry
+original_flat,3,15,3,2,1,0,1,0,0.0321,0.000776,0.0008,flat permission check
+corrected_cascade,3,15,3,1,1,1,0,0,67.5182,0.165619,0.1623,verified signed local grant ancestry
+original_flat,3,16,3,2,1,0,1,0,0.0521,0.001141,0.0011,flat permission check
+corrected_cascade,3,16,3,1,1,1,0,0,78.3002,0.171881,0.16305,verified signed local grant ancestry
+original_flat,3,17,3,2,1,0,1,0,0.033,0.000753,0.0007,flat permission check
+corrected_cascade,3,17,3,1,1,1,0,0,80.0367,0.200559,0.1799,verified signed local grant ancestry
+original_flat,3,18,3,2,1,0,1,0,0.0329,0.000714,0.0007,flat permission check
+corrected_cascade,3,18,3,1,1,1,0,0,76.153,0.167507,0.16549999999999998,verified signed local grant ancestry
+original_flat,3,19,3,2,1,0,1,0,0.039,0.000858,0.0008,flat permission check
+corrected_cascade,3,19,3,1,1,1,0,0,91.3207,0.610326,0.5820000000000001,verified signed local grant ancestry
+original_flat,3,20,3,2,1,0,1,0,0.0461,0.001058,0.001,flat permission check
+corrected_cascade,3,20,3,1,1,1,0,0,94.9246,0.692849,0.61275,verified signed local grant ancestry
+original_flat,4,1,4,3,2,0,2,0,0.0322,0.000735,0.0007,flat permission check
+corrected_cascade,4,1,4,1,2,2,0,0,91.2113,0.347079,0.22115,verified signed local grant ancestry
+original_flat,4,2,4,3,2,0,2,0,0.0332,0.000747,0.0007,flat permission check
+corrected_cascade,4,2,4,1,2,2,0,0,94.5432,0.8489369999999999,0.79345,verified signed local grant ancestry
+original_flat,4,3,4,3,2,0,2,0,0.0316,0.000744,0.0007,flat permission check
+corrected_cascade,4,3,4,1,2,2,0,0,101.7731,0.292706,0.22920000000000001,verified signed local grant ancestry
+original_flat,4,4,4,3,2,0,2,0,0.0315,0.000728,0.0007,flat permission check
+corrected_cascade,4,4,4,1,2,2,0,0,87.1836,0.284436,0.23155,verified signed local grant ancestry
+original_flat,4,5,4,3,2,0,2,0,0.0308,0.000732,0.0007,flat permission check
+corrected_cascade,4,5,4,1,2,2,0,0,81.7943,0.287495,0.24775,verified signed local grant ancestry
+original_flat,4,6,4,3,2,0,2,0,0.0316,0.000718,0.0007,flat permission check
+corrected_cascade,4,6,4,1,2,2,0,0,89.4607,0.256066,0.22815,verified signed local grant ancestry
+original_flat,4,7,4,3,2,0,2,0,0.0419,0.000892,0.0009,flat permission check
+corrected_cascade,4,7,4,1,2,2,0,0,87.8653,0.316611,0.22260000000000002,verified signed local grant ancestry
+original_flat,4,8,4,3,2,0,2,0,0.0478,0.001129,0.0011,flat permission check
+corrected_cascade,4,8,4,1,2,2,0,0,92.7123,0.824418,0.78245,verified signed local grant ancestry
+original_flat,4,9,4,3,2,0,2,0,0.0315,0.000728,0.0007,flat permission check
+corrected_cascade,4,9,4,1,2,2,0,0,88.0104,0.336778,0.2468,verified signed local grant ancestry
+original_flat,4,10,4,3,2,0,2,0,0.0316,0.0007289999999999999,0.0007,flat permission check
+corrected_cascade,4,10,4,1,2,2,0,0,88.546,0.224465,0.2175,verified signed local grant ancestry
+original_flat,4,11,4,3,2,0,2,0,0.0566,0.008346000000000001,0.0008,flat permission check
+corrected_cascade,4,11,4,1,2,2,0,0,87.203,0.244823,0.2237,verified signed local grant ancestry
+original_flat,4,12,4,3,2,0,2,0,0.0365,0.000797,0.0008,flat permission check
+corrected_cascade,4,12,4,1,2,2,0,0,86.5108,0.236208,0.21860000000000002,verified signed local grant ancestry
+original_flat,4,13,4,3,2,0,2,0,0.0331,0.000728,0.0007,flat permission check
+corrected_cascade,4,13,4,1,2,2,0,0,93.3092,0.269994,0.2203,verified signed local grant ancestry
+original_flat,4,14,4,3,2,0,2,0,0.0398,0.000889,0.0009,flat permission check
+corrected_cascade,4,14,4,1,2,2,0,0,90.945,0.257068,0.2209,verified signed local grant ancestry
+original_flat,4,15,4,3,2,0,2,0,0.0328,0.000729,0.0007,flat permission check
+corrected_cascade,4,15,4,1,2,2,0,0,84.5704,0.246493,0.2294,verified signed local grant ancestry
+original_flat,4,16,4,3,2,0,2,0,0.0586,0.000851,0.0008,flat permission check
+corrected_cascade,4,16,4,1,2,2,0,0,98.0483,0.855308,0.7957000000000001,verified signed local grant ancestry
+original_flat,4,17,4,3,2,0,2,0,0.0315,0.000742,0.0007,flat permission check
+corrected_cascade,4,17,4,1,2,2,0,0,102.7538,0.247074,0.22335,verified signed local grant ancestry
+original_flat,4,18,4,3,2,0,2,0,0.0373,0.0008990000000000001,0.0009,flat permission check
+corrected_cascade,4,18,4,1,2,2,0,0,87.4752,0.342361,0.23325,verified signed local grant ancestry
+original_flat,4,19,4,3,2,0,2,0,0.0318,0.000722,0.0007,flat permission check
+corrected_cascade,4,19,4,1,2,2,0,0,99.479,0.282009,0.22920000000000001,verified signed local grant ancestry
+original_flat,4,20,4,3,2,0,2,0,0.0546,0.001128,0.0011,flat permission check
+corrected_cascade,4,20,4,1,2,2,0,0,85.2678,1.2305,1.08995,verified signed local grant ancestry

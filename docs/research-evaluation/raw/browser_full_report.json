@@ -1,0 +1,1075 @@
+{
+  "config": {
+    "argv": [
+      "C:\\Program Files\\nodejs\\node.exe",
+      "C:\\Users\\umesh\\Desktop\\projects\\codex chainguard\\frontend\\node_modules\\@playwright\\test\\cli.js",
+      "test"
+    ],
+    "configFile": "C:\\Users\\umesh\\Desktop\\projects\\codex chainguard\\frontend\\playwright.config.js",
+    "rootDir": "C:/Users/umesh/Desktop/projects/codex chainguard/frontend/tests",
+    "failOnFlakyTests": false,
+    "forbidOnly": true,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "C:/Users/umesh/Desktop/projects/codex chainguard/.runtime/browser-artifacts",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "",
+        "name": "",
+        "testDir": "C:/Users/umesh/Desktop/projects/codex chainguard/frontend/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 300000
+      }
+    ],
+    "filteredProjects": [
+      {
+        "grep": {},
+        "grepInvert": null,
+        "outputDir": "C:\\Users\\umesh\\Desktop\\projects\\codex chainguard\\.runtime\\browser-artifacts",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "name": "",
+        "testDir": "C:\\Users\\umesh\\Desktop\\projects\\codex chainguard\\frontend\\tests",
+        "snapshotDir": "C:\\Users\\umesh\\Desktop\\projects\\codex chainguard\\frontend\\tests",
+        "testIgnore": [],
+        "testMatch": "**/*.@(spec|test).?(c|m)[jt]s?(x)",
+        "timeout": 300000,
+        "use": {
+          "baseURL": "http://127.0.0.1:5179",
+          "channel": "msedge",
+          "viewport": {
+            "width": 1440,
+            "height": 1000
+          },
+          "screenshot": "only-on-failure"
+        },
+        "dependencies": [],
+        "ignoreSnapshots": false,
+        "__projectId": ""
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "../.runtime/browser-results.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "default",
+    "updateSourceMethod": "patch",
+    "version": "1.64.0",
+    "workers": 1,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "project.spec.js",
+      "file": "project.spec.js",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "page / renders with live read-only evidence",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 300000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 45068,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-17T11:46:04.409Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "console-and-api",
+                      "contentType": "application/json",
+                      "body": "eyJlcnJvcnMiOltdLCJyZXNwb25zZXMiOlt7InBhdGgiOiIvYXBpL2hlYWx0aCIsInN0YXR1cyI6MjAwfSx7InBhdGgiOiIvYXBpL3N5c3RlbS9vdmVydmlldyIsInN0YXR1cyI6MjAwfSx7InBhdGgiOiIvYXBpL21ldHJpY3MiLCJzdGF0dXMiOjIwMH0seyJwYXRoIjoiL2FwaS9hZ2VudHMiLCJzdGF0dXMiOjIwMH0seyJwYXRoIjoiL2FwaS9maW5hbC1yZXBvcnQiLCJzdGF0dXMiOjIwMH0seyJwYXRoIjoiL2FwaS9yZXZvY2F0aW9uL0FnZW50X0MiLCJzdGF0dXMiOjIwMH0seyJwYXRoIjoiL2FwaS9kZWxlZ2F0aW9uLWdyYXBoIiwic3RhdHVzIjoyMDB9LHsicGF0aCI6Ii9hcGkvc3lzdGVtL292ZXJ2aWV3Iiwic3RhdHVzIjoyMDB9XX0="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "6a20988b37df4bd30373-ed895da4a1d31d0710c2",
+          "file": "project.spec.js",
+          "line": 27,
+          "column": 3
+        },
+        {
+          "title": "page /agents renders with live read-only evidence",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 300000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 5536,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-17T11:46:50.526Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "console-and-api",
+                      "contentType": "application/json",
+                      "body": "eyJlcnJvcnMiOltdLCJyZXNwb25zZXMiOlt7InBhdGgiOiIvYXBpL3N5c3RlbS9vdmVydmlldyIsInN0YXR1cyI6MjAwfSx7InBhdGgiOiIvYXBpL2hlYWx0aCIsInN0YXR1cyI6MjAwfSx7InBhdGgiOiIvYXBpL21ldHJpY3MiLCJzdGF0dXMiOjIwMH1dfQ=="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "6a20988b37df4bd30373-810322ee557f5789dc3c",
+          "file": "project.spec.js",
+          "line": 27,
+          "column": 3
+        },
+        {
+          "title": "page /trust-graph renders with live read-only evidence",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 300000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 43344,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-17T11:46:56.143Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "console-and-api",
+                      "contentType": "application/json",
+                      "body": "eyJlcnJvcnMiOltdLCJyZXNwb25zZXMiOlt7InBhdGgiOiIvYXBpL3N5c3RlbS9vdmVydmlldyIsInN0YXR1cyI6MjAwfSx7InBhdGgiOiIvYXBpL2hlYWx0aCIsInN0YXR1cyI6MjAwfSx7InBhdGgiOiIvYXBpL21ldHJpY3MiLCJzdGF0dXMiOjIwMH0seyJwYXRoIjoiL2FwaS9hZ2VudHMiLCJzdGF0dXMiOjIwMH0seyJwYXRoIjoiL2FwaS9kZWxlZ2F0aW9uLWdyYXBoIiwic3RhdHVzIjoyMDB9XX0="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "6a20988b37df4bd30373-36d3bf7ff62f0c61483c",
+          "file": "project.spec.js",
+          "line": 27,
+          "column": 3
+        },
+        {
+          "title": "page /governance renders with live read-only evidence",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 300000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 6197,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-17T11:47:39.530Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "console-and-api",
+                      "contentType": "application/json",
+                      "body": "eyJlcnJvcnMiOltdLCJyZXNwb25zZXMiOlt7InBhdGgiOiIvYXBpL3N5c3RlbS9vdmVydmlldyIsInN0YXR1cyI6MjAwfSx7InBhdGgiOiIvYXBpL21ldHJpY3MiLCJzdGF0dXMiOjIwMH0seyJwYXRoIjoiL2FwaS9oZWFsdGgiLCJzdGF0dXMiOjIwMH1dfQ=="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "6a20988b37df4bd30373-3e392837e9946e359e07",
+          "file": "project.spec.js",
+          "line": 27,
+          "column": 3
+        },
+        {
+          "title": "page /threat-lab renders with live read-only evidence",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 300000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 5864,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-17T11:47:45.779Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "console-and-api",
+                      "contentType": "application/json",
+                      "body": "eyJlcnJvcnMiOltdLCJyZXNwb25zZXMiOlt7InBhdGgiOiIvYXBpL2hlYWx0aCIsInN0YXR1cyI6MjAwfSx7InBhdGgiOiIvYXBpL3N5c3RlbS9vdmVydmlldyIsInN0YXR1cyI6MjAwfSx7InBhdGgiOiIvYXBpL21ldHJpY3MiLCJzdGF0dXMiOjIwMH0seyJwYXRoIjoiL2FwaS9maW5hbC1yZXBvcnQiLCJzdGF0dXMiOjIwMH1dfQ=="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "6a20988b37df4bd30373-268085357030117c7e8a",
+          "file": "project.spec.js",
+          "line": 27,
+          "column": 3
+        },
+        {
+          "title": "page /analytics renders with live read-only evidence",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 300000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 7583,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-17T11:47:51.705Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "console-and-api",
+                      "contentType": "application/json",
+                      "body": "eyJlcnJvcnMiOltdLCJyZXNwb25zZXMiOlt7InBhdGgiOiIvYXBpL2hlYWx0aCIsInN0YXR1cyI6MjAwfSx7InBhdGgiOiIvYXBpL21ldHJpY3MiLCJzdGF0dXMiOjIwMH0seyJwYXRoIjoiL2FwaS9zeXN0ZW0vb3ZlcnZpZXciLCJzdGF0dXMiOjIwMH0seyJwYXRoIjoiL2FwaS9maW5hbC1yZXBvcnQiLCJzdGF0dXMiOjIwMH1dfQ=="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "6a20988b37df4bd30373-c89038ba927e1ce0599e",
+          "file": "project.spec.js",
+          "line": 27,
+          "column": 3
+        },
+        {
+          "title": "page /revocation renders with live read-only evidence",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 300000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 24373,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-17T11:47:59.336Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "console-and-api",
+                      "contentType": "application/json",
+                      "body": "eyJlcnJvcnMiOltdLCJyZXNwb25zZXMiOlt7InBhdGgiOiIvYXBpL3N5c3RlbS9vdmVydmlldyIsInN0YXR1cyI6MjAwfSx7InBhdGgiOiIvYXBpL2hlYWx0aCIsInN0YXR1cyI6MjAwfSx7InBhdGgiOiIvYXBpL21ldHJpY3MiLCJzdGF0dXMiOjIwMH0seyJwYXRoIjoiL2FwaS9yZXZvY2F0aW9uL0FnZW50X0MiLCJzdGF0dXMiOjIwMH1dfQ=="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "6a20988b37df4bd30373-812680e81b0039d6ebc7",
+          "file": "project.spec.js",
+          "line": 27,
+          "column": 3
+        },
+        {
+          "title": "page /evaluation renders with live read-only evidence",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 300000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 5401,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-17T11:48:23.758Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "console-and-api",
+                      "contentType": "application/json",
+                      "body": "eyJlcnJvcnMiOltdLCJyZXNwb25zZXMiOlt7InBhdGgiOiIvYXBpL3N5c3RlbS9vdmVydmlldyIsInN0YXR1cyI6MjAwfSx7InBhdGgiOiIvYXBpL2hlYWx0aCIsInN0YXR1cyI6MjAwfSx7InBhdGgiOiIvYXBpL21ldHJpY3MiLCJzdGF0dXMiOjIwMH0seyJwYXRoIjoiL2FwaS9maW5hbC1yZXBvcnQiLCJzdGF0dXMiOjIwMH1dfQ=="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "6a20988b37df4bd30373-ecb08328caefdeabc5c1",
+          "file": "project.spec.js",
+          "line": 27,
+          "column": 3
+        },
+        {
+          "title": "page /blockchain-audit renders with live read-only evidence",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 300000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 12765,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-17T11:48:29.220Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "console-and-api",
+                      "contentType": "application/json",
+                      "body": "eyJlcnJvcnMiOltdLCJyZXNwb25zZXMiOlt7InBhdGgiOiIvYXBpL21ldHJpY3MiLCJzdGF0dXMiOjIwMH0seyJwYXRoIjoiL2FwaS9zeXN0ZW0vb3ZlcnZpZXciLCJzdGF0dXMiOjIwMH0seyJwYXRoIjoiL2FwaS9hdWRpdC9sb2dzIiwic3RhdHVzIjoyMDB9LHsicGF0aCI6Ii9hcGkvaGVhbHRoIiwic3RhdHVzIjoyMDB9LHsicGF0aCI6Ii9hcGkvYXVkaXQvYmF0Y2hlcyIsInN0YXR1cyI6MjAwfSx7InBhdGgiOiIvYXBpL2F1ZGl0L3N0YXR1cyIsInN0YXR1cyI6MjAwfSx7InBhdGgiOiIvYXBpL2F1ZGl0L2xvZ3MiLCJzdGF0dXMiOjIwMH1dfQ=="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "6a20988b37df4bd30373-6d4e104d3015aee7c355",
+          "file": "project.spec.js",
+          "line": 27,
+          "column": 3
+        },
+        {
+          "title": "all nine navigation links and responsive navigation",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 300000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 6057,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-17T11:48:42.034Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "console-and-api",
+                      "contentType": "application/json",
+                      "body": "eyJlcnJvcnMiOltdLCJyZXNwb25zZXMiOlt7InBhdGgiOiIvYXBpL3N5c3RlbS9vdmVydmlldyIsInN0YXR1cyI6MjAwfSx7InBhdGgiOiIvYXBpL21ldHJpY3MiLCJzdGF0dXMiOjIwMH1dfQ=="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "6a20988b37df4bd30373-e7828a3ecdfeacfac2b0",
+          "file": "project.spec.js",
+          "line": 44,
+          "column": 1
+        },
+        {
+          "title": "agent credential expansions expose real proof details",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 300000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 143216,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-17T11:48:48.159Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "console-and-api",
+                      "contentType": "application/json",
+                      "body": "eyJlcnJvcnMiOltdLCJyZXNwb25zZXMiOlt7InBhdGgiOiIvYXBpL3N5c3RlbS9vdmVydmlldyIsInN0YXR1cyI6MjAwfSx7InBhdGgiOiIvYXBpL2hlYWx0aCIsInN0YXR1cyI6MjAwfSx7InBhdGgiOiIvYXBpL21ldHJpY3MiLCJzdGF0dXMiOjIwMH0seyJwYXRoIjoiL2FwaS9hZ2VudHMiLCJzdGF0dXMiOjIwMH0seyJwYXRoIjoiL2FwaS9oZWFsdGgiLCJzdGF0dXMiOjIwMH0seyJwYXRoIjoiL2FwaS9zeXN0ZW0vb3ZlcnZpZXciLCJzdGF0dXMiOjIwMH0seyJwYXRoIjoiL2FwaS9tZXRyaWNzIiwic3RhdHVzIjoyMDB9LHsicGF0aCI6Ii9hcGkvaGVhbHRoIiwic3RhdHVzIjoyMDB9LHsicGF0aCI6Ii9hcGkvc3lzdGVtL292ZXJ2aWV3Iiwic3RhdHVzIjoyMDB9LHsicGF0aCI6Ii9hcGkvbWV0cmljcyIsInN0YXR1cyI6MjAwfSx7InBhdGgiOiIvYXBpL3N5c3RlbS9vdmVydmlldyIsInN0YXR1cyI6MjAwfSx7InBhdGgiOiIvYXBpL2hlYWx0aCIsInN0YXR1cyI6MjAwfSx7InBhdGgiOiIvYXBpL21ldHJpY3MiLCJzdGF0dXMiOjIwMH0seyJwYXRoIjoiL2FwaS9hZ2VudHMvQWdlbnRfQS9jcmVkZW50aWFscyIsInN0YXR1cyI6MjAwfSx7InBhdGgiOiIvYXBpL3N5c3RlbS9vdmVydmlldyIsInN0YXR1cyI6MjAwfSx7InBhdGgiOiIvYXBpL21ldHJpY3MiLCJzdGF0dXMiOjIwMH0seyJwYXRoIjoiL2FwaS9oZWFsdGgiLCJzdGF0dXMiOjIwMH0seyJwYXRoIjoiL2FwaS9oZWFsdGgiLCJzdGF0dXMiOjIwMH0seyJwYXRoIjoiL2FwaS9tZXRyaWNzIiwic3RhdHVzIjoyMDB9LHsicGF0aCI6Ii9hcGkvc3lzdGVtL292ZXJ2aWV3Iiwic3RhdHVzIjoyMDB9LHsicGF0aCI6Ii9hcGkvc3lzdGVtL292ZXJ2aWV3Iiwic3RhdHVzIjoyMDB9LHsicGF0aCI6Ii9hcGkvYWdlbnRzL0FnZW50X0IvY3JlZGVudGlhbHMiLCJzdGF0dXMiOjIwMH0seyJwYXRoIjoiL2FwaS9oZWFsdGgiLCJzdGF0dXMiOjIwMH0seyJwYXRoIjoiL2FwaS9tZXRyaWNzIiwic3RhdHVzIjoyMDB9LHsicGF0aCI6Ii9hcGkvc3lzdGVtL292ZXJ2aWV3Iiwic3RhdHVzIjoyMDB9LHsicGF0aCI6Ii9hcGkvYWdlbnRzL0FnZW50X0MvY3JlZGVudGlhbHMiLCJzdGF0dXMiOjIwMH0seyJwYXRoIjoiL2FwaS9oZWFsdGgiLCJzdGF0dXMiOjIwMH0seyJwYXRoIjoiL2FwaS9tZXRyaWNzIiwic3RhdHVzIjoyMDB9LHsicGF0aCI6Ii9hcGkvc3lzdGVtL292ZXJ2aWV3Iiwic3RhdHVzIjoyMDB9LHsicGF0aCI6Ii9hcGkvYWdlbnRzL0FnZW50X0QvY3JlZGVudGlhbHMiLCJzdGF0dXMiOjIwMH1dfQ=="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "6a20988b37df4bd30373-bd5e211c67fbca442c6d",
+          "file": "project.spec.js",
+          "line": 57,
+          "column": 1
+        },
+        {
+          "title": "audit original and tampered proof controls and drawer",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 300000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 66664,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-17T11:51:11.440Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "console-and-api",
+                      "contentType": "application/json",
+                      "body": "eyJlcnJvcnMiOltdLCJyZXNwb25zZXMiOlt7InBhdGgiOiIvYXBpL2F1ZGl0L2xvZ3MiLCJzdGF0dXMiOjIwMH0seyJwYXRoIjoiL2FwaS9zeXN0ZW0vb3ZlcnZpZXciLCJzdGF0dXMiOjIwMH0seyJwYXRoIjoiL2FwaS9tZXRyaWNzIiwic3RhdHVzIjoyMDB9LHsicGF0aCI6Ii9hcGkvaGVhbHRoIiwic3RhdHVzIjoyMDB9LHsicGF0aCI6Ii9hcGkvYXVkaXQvYmF0Y2hlcyIsInN0YXR1cyI6MjAwfSx7InBhdGgiOiIvYXBpL2F1ZGl0L3N0YXR1cyIsInN0YXR1cyI6MjAwfSx7InBhdGgiOiIvYXBpL2F1ZGl0L2xvZ3MiLCJzdGF0dXMiOjIwMH0seyJwYXRoIjoiL2FwaS9hdWRpdC9iYXRjaGVzIiwic3RhdHVzIjoyMDB9LHsicGF0aCI6Ii9hcGkvYXVkaXQvc3RhdHVzIiwic3RhdHVzIjoyMDB9LHsicGF0aCI6Ii9hcGkvYXVkaXQvbG9ncyIsInN0YXR1cyI6MjAwfSx7InBhdGgiOiIvYXBpL2F1ZGl0L2JhdGNoZXMiLCJzdGF0dXMiOjIwMH0seyJwYXRoIjoiL2FwaS9hdWRpdC9hY3Rpb25zL2F1ZGl0JTNBM2M3NzRlYTYyMGI4NGMxMzlhNWYzNDU2YzUwNjY3MWQvcHJvb2YiLCJzdGF0dXMiOjIwMH0seyJwYXRoIjoiL2FwaS9hdWRpdC9zdGF0dXMiLCJzdGF0dXMiOjIwMH0seyJwYXRoIjoiL2FwaS9hdWRpdC9sb2dzIiwic3RhdHVzIjoyMDB9LHsicGF0aCI6Ii9hcGkvaGVhbHRoIiwic3RhdHVzIjoyMDB9LHsicGF0aCI6Ii9hcGkvc3lzdGVtL292ZXJ2aWV3Iiwic3RhdHVzIjoyMDB9LHsicGF0aCI6Ii9hcGkvbWV0cmljcyIsInN0YXR1cyI6MjAwfSx7InBhdGgiOiIvYXBpL2F1ZGl0L2FjdGlvbnMvYXVkaXQlM0FkMWViOTNmY2M2YjY0NTJiYjVhOTJiN2JjZDdiYjcyOC9wcm9vZiIsInN0YXR1cyI6MjAwfSx7InBhdGgiOiIvYXBpL2F1ZGl0L3N0YXR1cyIsInN0YXR1cyI6MjAwfSx7InBhdGgiOiIvYXBpL2F1ZGl0L2JhdGNoZXMiLCJzdGF0dXMiOjIwMH0seyJwYXRoIjoiL2FwaS9hdWRpdC9sb2dzIiwic3RhdHVzIjoyMDB9LHsicGF0aCI6Ii9hcGkvYXVkaXQvYmF0Y2hlcyIsInN0YXR1cyI6MjAwfSx7InBhdGgiOiIvYXBpL2F1ZGl0L2FjdGlvbnMvYXVkaXQlM0E2OGE3MWJiNjg5ODY0ODA1OTQ4NTgyMjNmNGRiMTAwMi9wcm9vZiIsInN0YXR1cyI6MjAwfSx7InBhdGgiOiIvYXBpL2F1ZGl0L3N0YXR1cyIsInN0YXR1cyI6MjAwfSx7InBhdGgiOiIvYXBpL21ldHJpY3MiLCJzdGF0dXMiOjIwMH0seyJwYXRoIjoiL2FwaS9zeXN0ZW0vb3ZlcnZpZXciLCJzdGF0dXMiOjIwMH0seyJwYXRoIjoiL2FwaS9oZWFsdGgiLCJzdGF0dXMiOjIwMH0seyJwYXRoIjoiL2FwaS9hdWRpdC9sb2dzIiwic3RhdHVzIjoyMDB9LHsicGF0aCI6Ii9hcGkvYXVkaXQvYWN0aW9ucy9hdWRpdCUzQWM3MWM0ZTFhMTgxNzQ0MWJhNDMwMzQ5ZjRiNmJkYzFmL3Byb29mIiwic3RhdHVzIjoyMDB9LHsicGF0aCI6Ii9hcGkvYXVkaXQvYmF0Y2hlcyIsInN0YXR1cyI6MjAwfSx7InBhdGgiOiIvYXBpL2F1ZGl0L3N0YXR1cyIsInN0YXR1cyI6MjAwfSx7InBhdGgiOiIvYXBpL2F1ZGl0L2xvZ3MiLCJzdGF0dXMiOjIwMH0seyJwYXRoIjoiL2FwaS9hdWRpdC9hY3Rpb25zL2F1ZGl0JTNBMTI2ZTNiMWE1MTI2NGZjNjhkNjY1ZmZkZDJiMmU4MGQvcHJvb2YiLCJzdGF0dXMiOjIwMH0seyJwYXRoIjoiL2FwaS9hdWRpdC9hY3Rpb25zL2F1ZGl0JTNBMTI2ZTNiMWE1MTI2NGZjNjhkNjY1ZmZkZDJiMmU4MGQiLCJzdGF0dXMiOjIwMH0seyJwYXRoIjoiL2FwaS9hdWRpdC9iYXRjaGVzIiwic3RhdHVzIjoyMDB9LHsicGF0aCI6Ii9hcGkvYXVkaXQvc3RhdHVzIiwic3RhdHVzIjoyMDB9LHsicGF0aCI6Ii9hcGkvYXVkaXQvYWN0aW9ucy9hdWRpdCUzQTEyNmUzYjFhNTEyNjRmYzY4ZDY2NWZmZGQyYjJlODBkL3ZlcmlmeSIsInN0YXR1cyI6MjAwfSx7InBhdGgiOiIvYXBpL21ldHJpY3MiLCJzdGF0dXMiOjIwMH0seyJwYXRoIjoiL2FwaS9zeXN0ZW0vb3ZlcnZpZXciLCJzdGF0dXMiOjIwMH0seyJwYXRoIjoiL2FwaS9hdWRpdC9sb2dzIiwic3RhdHVzIjoyMDB9LHsicGF0aCI6Ii9hcGkvaGVhbHRoIiwic3RhdHVzIjoyMDB9LHsicGF0aCI6Ii9hcGkvYXVkaXQvYmF0Y2hlcyIsInN0YXR1cyI6MjAwfSx7InBhdGgiOiIvYXBpL2F1ZGl0L3N0YXR1cyIsInN0YXR1cyI6MjAwfSx7InBhdGgiOiIvYXBpL2F1ZGl0L2xvZ3MiLCJzdGF0dXMiOjIwMH0seyJwYXRoIjoiL2FwaS9hdWRpdC9iYXRjaGVzIiwic3RhdHVzIjoyMDB9LHsicGF0aCI6Ii9hcGkvYXVkaXQvYWN0aW9ucy9hdWRpdCUzQTEyNmUzYjFhNTEyNjRmYzY4ZDY2NWZmZGQyYjJlODBkL3ZlcmlmeSIsInN0YXR1cyI6MjAwfSx7InBhdGgiOiIvYXBpL2F1ZGl0L3N0YXR1cyIsInN0YXR1cyI6MjAwfSx7InBhdGgiOiIvYXBpL2F1ZGl0L2xvZ3MiLCJzdGF0dXMiOjIwMH0seyJwYXRoIjoiL2FwaS9hdWRpdC9iYXRjaGVzL2JhdGNoJTNBMHhlZTYwMjhkYjBmYjEwM2NjMGM1ZTE2ODVlNTg2YjI0ZDkyMTM1MTVhODA2YWE5NzE3ZjNlZDBiNTQzNDEwMDZjIiwic3RhdHVzIjoyMDB9LHsicGF0aCI6Ii9hcGkvYXVkaXQvYmF0Y2hlcyIsInN0YXR1cyI6MjAwfSx7InBhdGgiOiIvYXBpL2F1ZGl0L3N0YXR1cyIsInN0YXR1cyI6MjAwfSx7InBhdGgiOiIvYXBpL21ldHJpY3MiLCJzdGF0dXMiOjIwMH0seyJwYXRoIjoiL2FwaS9hdWRpdC9sb2dzIiwic3RhdHVzIjoyMDB9LHsicGF0aCI6Ii9hcGkvc3lzdGVtL292ZXJ2aWV3Iiwic3RhdHVzIjoyMDB9LHsicGF0aCI6Ii9hcGkvaGVhbHRoIiwic3RhdHVzIjoyMDB9LHsicGF0aCI6Ii9hcGkvYXVkaXQvYmF0Y2hlcyIsInN0YXR1cyI6MjAwfSx7InBhdGgiOiIvYXBpL2F1ZGl0L3N0YXR1cyIsInN0YXR1cyI6MjAwfV19"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "6a20988b37df4bd30373-ba966836fd00e7e490ae",
+          "file": "project.spec.js",
+          "line": 71,
+          "column": 1
+        },
+        {
+          "title": "evaluation filters and architecture controls",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 300000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 4965,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-17T11:52:18.146Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "console-and-api",
+                      "contentType": "application/json",
+                      "body": "eyJlcnJvcnMiOltdLCJyZXNwb25zZXMiOlt7InBhdGgiOiIvYXBpL21ldHJpY3MiLCJzdGF0dXMiOjIwMH0seyJwYXRoIjoiL2FwaS9oZWFsdGgiLCJzdGF0dXMiOjIwMH0seyJwYXRoIjoiL2FwaS9zeXN0ZW0vb3ZlcnZpZXciLCJzdGF0dXMiOjIwMH0seyJwYXRoIjoiL2FwaS9maW5hbC1yZXBvcnQiLCJzdGF0dXMiOjIwMH1dfQ=="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "6a20988b37df4bd30373-0552b19f176e17a8d04e",
+          "file": "project.spec.js",
+          "line": 101,
+          "column": 1
+        },
+        {
+          "title": "revocation queries active revoked and unknown agents",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 300000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 38370,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-17T11:52:23.159Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "console-and-api",
+                      "contentType": "application/json",
+                      "body": "eyJlcnJvcnMiOltdLCJyZXNwb25zZXMiOlt7InBhdGgiOiIvYXBpL21ldHJpY3MiLCJzdGF0dXMiOjIwMH0seyJwYXRoIjoiL2FwaS9zeXN0ZW0vb3ZlcnZpZXciLCJzdGF0dXMiOjIwMH0seyJwYXRoIjoiL2FwaS9oZWFsdGgiLCJzdGF0dXMiOjIwMH0seyJwYXRoIjoiL2FwaS9yZXZvY2F0aW9uL0FnZW50X0MiLCJzdGF0dXMiOjIwMH0seyJwYXRoIjoiL2FwaS9yZXZvY2F0aW9uL0FnZW50X0MiLCJzdGF0dXMiOjIwMH0seyJwYXRoIjoiL2FwaS9oZWFsdGgiLCJzdGF0dXMiOjIwMH0seyJwYXRoIjoiL2FwaS9zeXN0ZW0vb3ZlcnZpZXciLCJzdGF0dXMiOjIwMH0seyJwYXRoIjoiL2FwaS9tZXRyaWNzIiwic3RhdHVzIjoyMDB9LHsicGF0aCI6Ii9hcGkvcmV2b2NhdGlvbi9BZ2VudF9CIiwic3RhdHVzIjoyMDB9LHsicGF0aCI6Ii9hcGkvc3lzdGVtL292ZXJ2aWV3Iiwic3RhdHVzIjoyMDB9LHsicGF0aCI6Ii9hcGkvbWV0cmljcyIsInN0YXR1cyI6MjAwfSx7InBhdGgiOiIvYXBpL2hlYWx0aCIsInN0YXR1cyI6MjAwfSx7InBhdGgiOiIvYXBpL3Jldm9jYXRpb24vVW5rbm93bl9BZ2VudCIsInN0YXR1cyI6MjAwfV19"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "6a20988b37df4bd30373-15f5b4838ba225d3b8f5",
+          "file": "project.spec.js",
+          "line": 115,
+          "column": 1
+        },
+        {
+          "title": "trust graph controls node and edge details and historical trace",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 300000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 116450,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-17T11:53:01.577Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "console-and-api",
+                      "contentType": "application/json",
+                      "body": "eyJlcnJvcnMiOltdLCJyZXNwb25zZXMiOlt7InBhdGgiOiIvYXBpL21ldHJpY3MiLCJzdGF0dXMiOjIwMH0seyJwYXRoIjoiL2FwaS9zeXN0ZW0vb3ZlcnZpZXciLCJzdGF0dXMiOjIwMH0seyJwYXRoIjoiL2FwaS9oZWFsdGgiLCJzdGF0dXMiOjIwMH0seyJwYXRoIjoiL2FwaS9hZ2VudHMiLCJzdGF0dXMiOjIwMH0seyJwYXRoIjoiL2FwaS9kZWxlZ2F0aW9uLWdyYXBoIiwic3RhdHVzIjoyMDB9LHsicGF0aCI6Ii9hcGkvaGVhbHRoIiwic3RhdHVzIjoyMDB9LHsicGF0aCI6Ii9hcGkvc3lzdGVtL292ZXJ2aWV3Iiwic3RhdHVzIjoyMDB9LHsicGF0aCI6Ii9hcGkvbWV0cmljcyIsInN0YXR1cyI6MjAwfSx7InBhdGgiOiIvYXBpL2FnZW50cy9BZ2VudF9CL2NyZWRlbnRpYWxzIiwic3RhdHVzIjoyMDB9LHsicGF0aCI6Ii9hcGkvcmV2b2NhdGlvbi9BZ2VudF9CIiwic3RhdHVzIjoyMDB9LHsicGF0aCI6Ii9hcGkvdHJhY2UiLCJzdGF0dXMiOjIwMH0seyJwYXRoIjoiL2FwaS9oZWFsdGgiLCJzdGF0dXMiOjIwMH0seyJwYXRoIjoiL2FwaS9zeXN0ZW0vb3ZlcnZpZXciLCJzdGF0dXMiOjIwMH0seyJwYXRoIjoiL2FwaS9tZXRyaWNzIiwic3RhdHVzIjoyMDB9LHsicGF0aCI6Ii9hcGkvaGVhbHRoIiwic3RhdHVzIjoyMDB9LHsicGF0aCI6Ii9hcGkvc3lzdGVtL292ZXJ2aWV3Iiwic3RhdHVzIjoyMDB9LHsicGF0aCI6Ii9hcGkvbWV0cmljcyIsInN0YXR1cyI6MjAwfSx7InBhdGgiOiIvYXBpL2hlYWx0aCIsInN0YXR1cyI6MjAwfSx7InBhdGgiOiIvYXBpL3RyYWNlL3NjZW5hcmlvL3Bvc3RfZGVjb21taXNzaW9uIiwic3RhdHVzIjoyMDB9LHsicGF0aCI6Ii9hcGkvc3lzdGVtL292ZXJ2aWV3Iiwic3RhdHVzIjoyMDB9XX0="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "6a20988b37df4bd30373-07beca592b357cf2f090",
+          "file": "project.spec.js",
+          "line": 125,
+          "column": 1
+        },
+        {
+          "title": "threat modal buttons and all five governance scenarios",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 300000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 121863,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-17T11:54:58.116Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "console-and-api",
+                      "contentType": "application/json",
+                      "body": "eyJlcnJvcnMiOltdLCJyZXNwb25zZXMiOlt7InBhdGgiOiIvYXBpL2hlYWx0aCIsInN0YXR1cyI6MjAwfSx7InBhdGgiOiIvYXBpL3N5c3RlbS9vdmVydmlldyIsInN0YXR1cyI6MjAwfSx7InBhdGgiOiIvYXBpL21ldHJpY3MiLCJzdGF0dXMiOjIwMH0seyJwYXRoIjoiL2FwaS9maW5hbC1yZXBvcnQiLCJzdGF0dXMiOjIwMH0seyJwYXRoIjoiL2FwaS9oZWFsdGgiLCJzdGF0dXMiOjIwMH0seyJwYXRoIjoiL2FwaS9tZXRyaWNzIiwic3RhdHVzIjoyMDB9LHsicGF0aCI6Ii9hcGkvc3lzdGVtL292ZXJ2aWV3Iiwic3RhdHVzIjoyMDB9LHsicGF0aCI6Ii9hcGkvaGVhbHRoIiwic3RhdHVzIjoyMDB9LHsicGF0aCI6Ii9hcGkvbWV0cmljcyIsInN0YXR1cyI6MjAwfSx7InBhdGgiOiIvYXBpL3N5c3RlbS9vdmVydmlldyIsInN0YXR1cyI6MjAwfSx7InBhdGgiOiIvYXBpL3N5c3RlbS9vdmVydmlldyIsInN0YXR1cyI6MjAwfSx7InBhdGgiOiIvYXBpL21ldHJpY3MiLCJzdGF0dXMiOjIwMH0seyJwYXRoIjoiL2FwaS9oZWFsdGgiLCJzdGF0dXMiOjIwMH0seyJwYXRoIjoiL2FwaS9oZWFsdGgiLCJzdGF0dXMiOjIwMH0seyJwYXRoIjoiL2FwaS9zeXN0ZW0vb3ZlcnZpZXciLCJzdGF0dXMiOjIwMH0seyJwYXRoIjoiL2FwaS9tZXRyaWNzIiwic3RhdHVzIjoyMDB9LHsicGF0aCI6Ii9hcGkvaGVhbHRoIiwic3RhdHVzIjoyMDB9LHsicGF0aCI6Ii9hcGkvc3lzdGVtL292ZXJ2aWV3Iiwic3RhdHVzIjoyMDB9LHsicGF0aCI6Ii9hcGkvbWV0cmljcyIsInN0YXR1cyI6MjAwfSx7InBhdGgiOiIvYXBpL2hlYWx0aCIsInN0YXR1cyI6MjAwfSx7InBhdGgiOiIvYXBpL3N5c3RlbS9vdmVydmlldyIsInN0YXR1cyI6MjAwfSx7InBhdGgiOiIvYXBpL21ldHJpY3MiLCJzdGF0dXMiOjIwMH0seyJwYXRoIjoiL2FwaS9oZWFsdGgiLCJzdGF0dXMiOjIwMH0seyJwYXRoIjoiL2FwaS9zeXN0ZW0vb3ZlcnZpZXciLCJzdGF0dXMiOjIwMH0seyJwYXRoIjoiL2FwaS9tZXRyaWNzIiwic3RhdHVzIjoyMDB9LHsicGF0aCI6Ii9hcGkvbWV0cmljcyIsInN0YXR1cyI6MjAwfSx7InBhdGgiOiIvYXBpL3N5c3RlbS9vdmVydmlldyIsInN0YXR1cyI6MjAwfV19"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "6a20988b37df4bd30373-1468caacabf32401557c",
+          "file": "project.spec.js",
+          "line": 143,
+          "column": 1
+        },
+        {
+          "title": "complete automatic demo returns all five authenticated saved decisions",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 300000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 111487,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-17T11:57:00.025Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "console-and-api",
+                      "contentType": "application/json",
+                      "body": "eyJlcnJvcnMiOltdLCJyZXNwb25zZXMiOlt7InBhdGgiOiIvYXBpL3N5c3RlbS9vdmVydmlldyIsInN0YXR1cyI6MjAwfSx7InBhdGgiOiIvYXBpL21ldHJpY3MiLCJzdGF0dXMiOjIwMH0seyJwYXRoIjoiL2FwaS9oZWFsdGgiLCJzdGF0dXMiOjIwMH0seyJwYXRoIjoiL2FwaS9zeXN0ZW0vb3ZlcnZpZXciLCJzdGF0dXMiOjIwMH0seyJwYXRoIjoiL2FwaS9oZWFsdGgiLCJzdGF0dXMiOjIwMH0seyJwYXRoIjoiL2FwaS9tZXRyaWNzIiwic3RhdHVzIjoyMDB9LHsicGF0aCI6Ii9hcGkvaGVhbHRoIiwic3RhdHVzIjoyMDB9LHsicGF0aCI6Ii9hcGkvc3lzdGVtL292ZXJ2aWV3Iiwic3RhdHVzIjoyMDB9LHsicGF0aCI6Ii9hcGkvbWV0cmljcyIsInN0YXR1cyI6MjAwfSx7InBhdGgiOiIvYXBpL2hlYWx0aCIsInN0YXR1cyI6MjAwfSx7InBhdGgiOiIvYXBpL3N5c3RlbS9vdmVydmlldyIsInN0YXR1cyI6MjAwfSx7InBhdGgiOiIvYXBpL21ldHJpY3MiLCJzdGF0dXMiOjIwMH0seyJwYXRoIjoiL2FwaS9oZWFsdGgiLCJzdGF0dXMiOjIwMH0seyJwYXRoIjoiL2FwaS9zeXN0ZW0vb3ZlcnZpZXciLCJzdGF0dXMiOjIwMH0seyJwYXRoIjoiL2FwaS9tZXRyaWNzIiwic3RhdHVzIjoyMDB9LHsicGF0aCI6Ii9hcGkvc3lzdGVtL292ZXJ2aWV3Iiwic3RhdHVzIjoyMDB9LHsicGF0aCI6Ii9hcGkvbWV0cmljcyIsInN0YXR1cyI6MjAwfSx7InBhdGgiOiIvYXBpL2hlYWx0aCIsInN0YXR1cyI6MjAwfSx7InBhdGgiOiIvYXBpL3N5c3RlbS9vdmVydmlldyIsInN0YXR1cyI6MjAwfSx7InBhdGgiOiIvYXBpL2hlYWx0aCIsInN0YXR1cyI6MjAwfSx7InBhdGgiOiIvYXBpL21ldHJpY3MiLCJzdGF0dXMiOjIwMH0seyJwYXRoIjoiL2FwaS9zeXN0ZW0vb3ZlcnZpZXciLCJzdGF0dXMiOjIwMH0seyJwYXRoIjoiL2FwaS9tZXRyaWNzIiwic3RhdHVzIjoyMDB9LHsicGF0aCI6Ii9hcGkvaGVhbHRoIiwic3RhdHVzIjoyMDB9XX0="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "6a20988b37df4bd30373-fcf8deec69fef45fc438",
+          "file": "project.spec.js",
+          "line": 168,
+          "column": 1
+        },
+        {
+          "title": "auto demo pause resume next restart and presentation navigation",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 300000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1720,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-17T11:58:51.537Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "console-and-api",
+                      "contentType": "application/json",
+                      "body": "eyJlcnJvcnMiOltdLCJyZXNwb25zZXMiOltdfQ=="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "6a20988b37df4bd30373-a56e3c44ddd6663e6846",
+          "file": "project.spec.js",
+          "line": 181,
+          "column": 1
+        },
+        {
+          "title": "loading shows unknown metadata without false local or offline labels",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 300000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 30950,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-17T11:58:53.275Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "console-and-api",
+                      "contentType": "application/json",
+                      "body": "eyJlcnJvcnMiOltdLCJyZXNwb25zZXMiOlt7InBhdGgiOiIvYXBpL2F1ZGl0L2xvZ3MiLCJzdGF0dXMiOjIwMH0seyJwYXRoIjoiL2FwaS9oZWFsdGgiLCJzdGF0dXMiOjIwMH0seyJwYXRoIjoiL2FwaS9zeXN0ZW0vb3ZlcnZpZXciLCJzdGF0dXMiOjIwMH0seyJwYXRoIjoiL2FwaS9tZXRyaWNzIiwic3RhdHVzIjoyMDB9LHsicGF0aCI6Ii9hcGkvYXVkaXQvYmF0Y2hlcyIsInN0YXR1cyI6MjAwfSx7InBhdGgiOiIvYXBpL2F1ZGl0L3N0YXR1cyIsInN0YXR1cyI6MjAwfV19"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "6a20988b37df4bd30373-ca7500e3be8d42b652dc",
+          "file": "project.spec.js",
+          "line": 198,
+          "column": 1
+        },
+        {
+          "title": "failure state is visible and retry recovers",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 300000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 6347,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-17T11:59:24.249Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "console-and-api",
+                      "contentType": "application/json",
+                      "body": "eyJlcnJvcnMiOlsiRmFpbGVkIHRvIGxvYWQgcmVzb3VyY2U6IG5ldDo6RVJSX0NPTk5FQ1RJT05fUkVGVVNFRCIsIkZhaWxlZCB0byBsb2FkIHJlc291cmNlOiBuZXQ6OkVSUl9DT05ORUNUSU9OX1JFRlVTRUQiLCJGYWlsZWQgdG8gbG9hZCByZXNvdXJjZTogbmV0OjpFUlJfQ09OTkVDVElPTl9SRUZVU0VEIiwiRmFpbGVkIHRvIGxvYWQgcmVzb3VyY2U6IG5ldDo6RVJSX0NPTk5FQ1RJT05fUkVGVVNFRCIsIkZhaWxlZCB0byBsb2FkIHJlc291cmNlOiBuZXQ6OkVSUl9DT05ORUNUSU9OX1JFRlVTRUQiLCJGYWlsZWQgdG8gbG9hZCByZXNvdXJjZTogbmV0OjpFUlJfQ09OTkVDVElPTl9SRUZVU0VEIl0sInJlc3BvbnNlcyI6W3sicGF0aCI6Ii9hcGkvYXVkaXQvbG9ncyIsInN0YXR1cyI6MjAwfSx7InBhdGgiOiIvYXBpL2F1ZGl0L2JhdGNoZXMiLCJzdGF0dXMiOjIwMH0seyJwYXRoIjoiL2FwaS9hdWRpdC9zdGF0dXMiLCJzdGF0dXMiOjIwMH0seyJwYXRoIjoiL2FwaS9tZXRyaWNzIiwic3RhdHVzIjoyMDB9LHsicGF0aCI6Ii9hcGkvc3lzdGVtL292ZXJ2aWV3Iiwic3RhdHVzIjoyMDB9LHsicGF0aCI6Ii9hcGkvYXVkaXQvbG9ncyIsInN0YXR1cyI6MjAwfSx7InBhdGgiOiIvYXBpL2hlYWx0aCIsInN0YXR1cyI6MjAwfV19"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "6a20988b37df4bd30373-750b1a1052070536f70d",
+          "file": "project.spec.js",
+          "line": 211,
+          "column": 1
+        },
+        {
+          "title": "credential failure recovers when proof details are reopened",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 300000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 14889,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-17T11:59:30.633Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "console-and-api",
+                      "contentType": "application/json",
+                      "body": "eyJlcnJvcnMiOlsiRmFpbGVkIHRvIGxvYWQgcmVzb3VyY2U6IHRoZSBzZXJ2ZXIgcmVzcG9uZGVkIHdpdGggYSBzdGF0dXMgb2YgNTAzIChTZXJ2aWNlIFVuYXZhaWxhYmxlKSJdLCJyZXNwb25zZXMiOlt7InBhdGgiOiIvYXBpL21ldHJpY3MiLCJzdGF0dXMiOjIwMH0seyJwYXRoIjoiL2FwaS9zeXN0ZW0vb3ZlcnZpZXciLCJzdGF0dXMiOjIwMH0seyJwYXRoIjoiL2FwaS9oZWFsdGgiLCJzdGF0dXMiOjIwMH0seyJwYXRoIjoiL2FwaS9hZ2VudHMiLCJzdGF0dXMiOjIwMH0seyJwYXRoIjoiL2FwaS9hZ2VudHMvQWdlbnRfQS9jcmVkZW50aWFscyIsInN0YXR1cyI6NTAzfSx7InBhdGgiOiIvYXBpL2FnZW50cy9BZ2VudF9BL2NyZWRlbnRpYWxzIiwic3RhdHVzIjoyMDB9XX0="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "6a20988b37df4bd30373-9e21a1e80bcbc97b5744",
+          "file": "project.spec.js",
+          "line": 224,
+          "column": 1
+        },
+        {
+          "title": "graph drawer failure displays unavailable evidence without runtime errors",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 300000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 29438,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-17T11:59:45.549Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "console-and-api",
+                      "contentType": "application/json",
+                      "body": "eyJlcnJvcnMiOlsiRmFpbGVkIHRvIGxvYWQgcmVzb3VyY2U6IHRoZSBzZXJ2ZXIgcmVzcG9uZGVkIHdpdGggYSBzdGF0dXMgb2YgNTAzIChTZXJ2aWNlIFVuYXZhaWxhYmxlKSJdLCJyZXNwb25zZXMiOlt7InBhdGgiOiIvYXBpL2hlYWx0aCIsInN0YXR1cyI6MjAwfSx7InBhdGgiOiIvYXBpL3N5c3RlbS9vdmVydmlldyIsInN0YXR1cyI6MjAwfSx7InBhdGgiOiIvYXBpL21ldHJpY3MiLCJzdGF0dXMiOjIwMH0seyJwYXRoIjoiL2FwaS9hZ2VudHMiLCJzdGF0dXMiOjIwMH0seyJwYXRoIjoiL2FwaS9kZWxlZ2F0aW9uLWdyYXBoIiwic3RhdHVzIjoyMDB9LHsicGF0aCI6Ii9hcGkvYWdlbnRzL0FnZW50X0EvY3JlZGVudGlhbHMiLCJzdGF0dXMiOjUwM31dfQ=="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "6a20988b37df4bd30373-41ec3fc4af13a09b456d",
+          "file": "project.spec.js",
+          "line": 238,
+          "column": 1
+        },
+        {
+          "title": "WebSocket failure early close exits processing",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 300000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1488,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-17T12:00:15.007Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "console-and-api",
+                      "contentType": "application/json",
+                      "body": "eyJlcnJvcnMiOltdLCJyZXNwb25zZXMiOltdfQ=="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "6a20988b37df4bd30373-da4b57d4e4a7e8f2d312",
+          "file": "project.spec.js",
+          "line": 249,
+          "column": 3
+        },
+        {
+          "title": "WebSocket failure malformed message exits processing",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 300000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1306,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-17T12:00:16.522Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "console-and-api",
+                      "contentType": "application/json",
+                      "body": "eyJlcnJvcnMiOltdLCJyZXNwb25zZXMiOltdfQ=="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "6a20988b37df4bd30373-80062d0d7a2620acc7e3",
+          "file": "project.spec.js",
+          "line": 249,
+          "column": 3
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-10-17T11:45:01.482Z",
+    "duration": 918128.403,
+    "expected": 24,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

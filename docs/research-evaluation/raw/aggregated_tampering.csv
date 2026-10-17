@@ -1,0 +1,5 @@
+version,policy,attempts,detected
+merkle_blockchain,protected_checkpoint,60,60
+merkle_blockchain,rewriteable_local_checkpoint,60,60
+hash_chain,protected_checkpoint,60,60
+hash_chain,rewriteable_local_checkpoint,60,0

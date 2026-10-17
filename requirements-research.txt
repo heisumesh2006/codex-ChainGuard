@@ -1,0 +1,2 @@
+# Optional plotting only; production dependencies remain unchanged.
+matplotlib>=3.10,<4

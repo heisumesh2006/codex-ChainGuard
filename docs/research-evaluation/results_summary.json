@@ -1,0 +1,160 @@
+{
+  "experiment1_trials": 24,
+  "experiment1_recorded_events": 9660,
+  "experiment1_tampering": [
+    {
+      "version": "merkle_blockchain",
+      "policy": "protected_checkpoint",
+      "attempts": 60,
+      "detected": 60
+    },
+    {
+      "version": "merkle_blockchain",
+      "policy": "rewriteable_local_checkpoint",
+      "attempts": 60,
+      "detected": 60
+    },
+    {
+      "version": "hash_chain",
+      "policy": "protected_checkpoint",
+      "attempts": 60,
+      "detected": 60
+    },
+    {
+      "version": "hash_chain",
+      "policy": "rewriteable_local_checkpoint",
+      "attempts": 60,
+      "detected": 0
+    }
+  ],
+  "experiment1_untampered_false_positives": 0,
+  "experiment2_trials": 160,
+  "experiment2_independent_path_cases": 40,
+  "experiment2_independent_incorrect_revocations": 0,
+  "experiment2": [
+    {
+      "version": "corrected_cascade",
+      "depth": 1,
+      "trials": 20,
+      "downstream_checks": 0,
+      "invalidated": 0,
+      "incorrectly_retained": 0,
+      "incorrectly_revoked": 0,
+      "revocation_mean_ms": 57.106325,
+      "revocation_min_ms": 37.0474,
+      "revocation_max_ms": 101.0603,
+      "tracing_mean_ms": 0.1122476
+    },
+    {
+      "version": "corrected_cascade",
+      "depth": 2,
+      "trials": 20,
+      "downstream_checks": 0,
+      "invalidated": 0,
+      "incorrectly_retained": 0,
+      "incorrectly_revoked": 0,
+      "revocation_mean_ms": 61.62994,
+      "revocation_min_ms": 38.523,
+      "revocation_max_ms": 107.9731,
+      "tracing_mean_ms": 0.16682249999999998
+    },
+    {
+      "version": "corrected_cascade",
+      "depth": 3,
+      "trials": 20,
+      "downstream_checks": 20,
+      "invalidated": 20,
+      "incorrectly_retained": 0,
+      "incorrectly_revoked": 0,
+      "revocation_mean_ms": 79.472245,
+      "revocation_min_ms": 67.2552,
+      "revocation_max_ms": 94.9246,
+      "tracing_mean_ms": 0.2761623
+    },
+    {
+      "version": "corrected_cascade",
+      "depth": 4,
+      "trials": 20,
+      "downstream_checks": 40,
+      "invalidated": 40,
+      "incorrectly_retained": 0,
+      "incorrectly_revoked": 0,
+      "revocation_mean_ms": 90.93313500000001,
+      "revocation_min_ms": 81.7943,
+      "revocation_max_ms": 102.7538,
+      "tracing_mean_ms": 0.41154145
+    },
+    {
+      "version": "original_flat",
+      "depth": 1,
+      "trials": 20,
+      "downstream_checks": 0,
+      "invalidated": 0,
+      "incorrectly_retained": 0,
+      "incorrectly_revoked": 0,
+      "revocation_mean_ms": 0.037935,
+      "revocation_min_ms": 0.0287,
+      "revocation_max_ms": 0.077,
+      "tracing_mean_ms": 0.0008708499999999999
+    },
+    {
+      "version": "original_flat",
+      "depth": 2,
+      "trials": 20,
+      "downstream_checks": 0,
+      "invalidated": 0,
+      "incorrectly_retained": 0,
+      "incorrectly_revoked": 0,
+      "revocation_mean_ms": 0.037375,
+      "revocation_min_ms": 0.0309,
+      "revocation_max_ms": 0.057,
+      "tracing_mean_ms": 0.00106835
+    },
+    {
+      "version": "original_flat",
+      "depth": 3,
+      "trials": 20,
+      "downstream_checks": 20,
+      "invalidated": 0,
+      "incorrectly_retained": 20,
+      "incorrectly_revoked": 0,
+      "revocation_mean_ms": 0.037684999999999996,
+      "revocation_min_ms": 0.0319,
+      "revocation_max_ms": 0.0543,
+      "tracing_mean_ms": 0.00085045
+    },
+    {
+      "version": "original_flat",
+      "depth": 4,
+      "trials": 20,
+      "downstream_checks": 40,
+      "invalidated": 0,
+      "incorrectly_retained": 40,
+      "incorrectly_revoked": 0,
+      "revocation_mean_ms": 0.037815,
+      "revocation_min_ms": 0.0308,
+      "revocation_max_ms": 0.0586,
+      "tracing_mean_ms": 0.0011856500000000001
+    }
+  ],
+  "experiment3": {
+    "total_requests": 180,
+    "legitimate": 30,
+    "legitimate_correctly_allowed": 30,
+    "legitimate_incorrectly_blocked": 0,
+    "attacks": 140,
+    "attacks_blocked": 140,
+    "attacks_allowed": 0,
+    "attack_blocking_rate": 1.0,
+    "false_rejection_rate": 0.0,
+    "precision": 1.0,
+    "recall": 1.0,
+    "f1": 1.0,
+    "anomaly_requests": 10,
+    "anomalies_reviewed": 10,
+    "latency_mean_ms": 67.77022611111111,
+    "latency_median_ms": 67.50784999999999
+  },
+  "root_spoof_before_allowed": 10,
+  "root_spoof_after_allowed": 0
+}

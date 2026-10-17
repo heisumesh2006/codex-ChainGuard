@@ -1,0 +1,9 @@
+# Preserve measured byte-level evidence and exported figures on every platform.
+# CRLF is a valid recorded terminator; retain the normal whitespace checks.
+raw/** -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+smoke/** -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+figures/** -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+# Generated vector path whitespace is renderer output, reviewed via PNG/source.
+*.svg binary
+*.png binary
+*.pdf binary

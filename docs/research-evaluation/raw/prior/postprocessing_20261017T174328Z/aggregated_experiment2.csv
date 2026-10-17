@@ -1,0 +1,9 @@
+version,depth,trials,downstream_checks,invalidated,incorrectly_retained,incorrectly_revoked,revocation_mean_ms,revocation_min_ms,revocation_max_ms,tracing_mean_ms
+corrected_cascade,1,20,0,0,0,0,95.68799,74.3024,114.5094,0.18211515
+corrected_cascade,2,20,0,0,0,0,86.44214,49.1155,106.1568,0.3436931
+corrected_cascade,3,20,20,20,0,0,94.2296,78.7287,116.0407,0.6127762999999999
+corrected_cascade,4,20,40,40,0,0,93.44583,78.5594,104.2746,0.7419262
+original_flat,1,20,0,0,0,0,0.051795,0.0376,0.0956,0.00109285
+original_flat,2,20,0,0,0,0,0.04878,0.0388,0.0732,0.0014235
+original_flat,3,20,20,0,20,0,0.05442,0.0386,0.2097,0.0011074
+original_flat,4,20,40,0,40,0,0.052585,0.0395,0.0941,0.0017502

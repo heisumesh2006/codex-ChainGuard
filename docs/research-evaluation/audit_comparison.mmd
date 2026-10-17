@@ -1,0 +1,22 @@
+flowchart TB
+    workload["Same signed authorization engine and canonical AuditRecords"]
+    workload --> a["Variant A: append off-chain JSONL"]
+    workload --> b["Variant B: append cryptographic hash-chain state"]
+    a --> merkle["Ordered record hashes to Merkle root; batch size fixed in experiment"]
+    merkle --> chain["Local Hardhat AgentTrustRegistry root transaction and receipt"]
+    b --> head["Head commits to preceding links and complete ordered history"]
+    head --> protected["Protected external head and count"]
+    head --> mutable["Rewritable local head and count"]
+    attack["Storage attacker: modify / delete / insert / reorder / rewrite; can recompute local links"]
+    attack --> localA["Replace local records; batch metadata is not trusted by the auditor"]
+    attack --> localB["Replace records and recomputed hash chain"]
+    localA --> auditorA["Auditor discovers expected batch inventory from trusted chain and recomputes roots"]
+    chain --> auditorA
+    localB --> auditorB["Auditor validates links and retained checkpoint"]
+    protected --> auditorB
+    mutable --> auditorB
+    auditorA --> detect["Changed history conflicts with external commitment"]
+    auditorB -->|protected checkpoint| detect
+    auditorB -->|attacker also replaces only checkpoint| consistent["Rewritten history can remain internally consistent"]
+    detect --> assumption["External witness is the key trust difference; blockchain is one implementation"]
+    consistent --> assumption
