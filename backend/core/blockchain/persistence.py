@@ -150,7 +150,19 @@ def atomic_write(path: Path, content: bytes) -> None:
             handle.write(content)
             handle.flush()
             os.fsync(handle.fileno())
-        os.replace(temporary, path)
+        # Windows scanners/readers can briefly deny rename even though our
+        # cooperating writers hold the stable lock. Retry only Windows sharing
+        # / access errors, bounded to 0.63 s; persistent denial still fails and
+        # retains the previous snapshot. Never retry an already-published file.
+        for attempt in range(7):
+            try:
+                os.replace(temporary, path)
+                break
+            except PermissionError as exc:
+                if (os.name != "nt" or getattr(exc, "winerror", None) not in (5, 32, 33)
+                        or attempt == 6 or not temporary.exists()):
+                    raise
+                time.sleep(0.01 * 2 ** attempt)
         if os.name != "nt":
             directory = os.open(path.parent, os.O_RDONLY | os.O_DIRECTORY)
             try:
