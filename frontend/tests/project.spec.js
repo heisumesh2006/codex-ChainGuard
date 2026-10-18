@@ -257,3 +257,72 @@ for (const malformed of [false,true]) {
     await expect(page.locator('.verdict-visual')).toHaveCount(0)
   })
 }
+
+
+test('clipboard failure provides the full public value without false success', async ({ page }) => {
+  await page.addInitScript(() => Object.defineProperty(navigator, 'clipboard', { value: { writeText: async () => { throw new Error('synthetic clipboard denial') } } }))
+  await page.goto('/blockchain-audit')
+  const copy = page.locator('.audit-network').getByRole('button', { name: /^Copy / }).first()
+  const publicValue = (await copy.getAttribute('aria-label')).slice(5)
+  await copy.click()
+  await expect(page.getByRole('status').filter({ hasText: 'Clipboard unavailable' })).toContainText(publicValue)
+  await expect(copy).not.toHaveAttribute('title', 'Copied')
+})
+
+test('paused replay reports PAUSED and never a premature complete state', async ({ page }) => {
+  await page.goto('/governance')
+  await page.getByRole('button', { name: 'Auto demo', exact: true }).click()
+  await page.getByRole('button', { name: 'Pause', exact: true }).click()
+  await expect(page.locator('.page-heading')).toContainText('PAUSED')
+  await expect(page.locator('.page-heading')).not.toContainText('PIPELINE COMPLETE')
+  await page.getByRole('button', { name: 'Resume', exact: true }).click()
+  await expect(page.getByRole('button', { name: 'Pause', exact: true })).toBeVisible()
+})
+
+test('profile evidence does not hardcode a Sepolia provenance label', async ({ page }) => {
+  await page.goto('/evaluation')
+  await expect(page.getByText('Saved decisions for the selected network.', { exact: false })).toBeVisible()
+  await expect(page.getByText('Saved Sepolia decisions.', { exact: false })).toHaveCount(0)
+})
+
+
+test('all graph proof labels select their own evidence at laptop size', async ({ page }) => {
+  await page.setViewportSize({width:1366,height:768})
+  const graphResponse = page.waitForResponse(response => response.url().includes('/api/delegation-graph') && response.status() === 200)
+  await page.goto('/trust-graph')
+  const evidence = await (await graphResponse).json()
+  expect(evidence.edges.length).toBeGreaterThan(0)
+  await expect(page.locator('.trust-edge__label')).toHaveCount(evidence.edges.length)
+  for (let index=0;index<evidence.edges.length;index++) {
+    const label=page.locator('.trust-edge__label').nth(index)
+    const permission=await label.locator('span').textContent()
+    await label.click()
+    await expect(page.locator('.graph-drawer h3')).toHaveText(permission)
+    await expect(page.locator('.graph-drawer')).toContainText('PROOF VERIFIED')
+    await page.getByRole('button',{name:'Close details',exact:true}).click()
+  }
+})
+
+
+test('signed action input rejects malformed JSON and unsigned requests clearly', async ({ page }) => {
+  await page.goto('/governance')
+  await page.getByText('Evaluate a signed action',{exact:true}).click()
+  await page.getByRole('textbox',{name:'Action JSON',exact:true}).fill('{broken')
+  await page.getByRole('textbox',{name:'Signed authentication JSON',exact:true}).fill('{}')
+  await page.getByRole('button',{name:'Evaluate signed action',exact:true}).click()
+  await expect(page.getByRole('alert')).toContainText('valid action JSON')
+  await page.getByRole('textbox',{name:'Action JSON',exact:true}).fill(JSON.stringify({actor:'Agent_B',action:'USE_PERMISSION',permission:'CREATE_ORDER',timestamp:new Date().toISOString()}))
+  await page.getByRole('button',{name:'Evaluate signed action',exact:true}).click()
+  await expect(page.locator('.error-banner')).toContainText('INVALID_AUTHENTICATION')
+  await expect(page.getByRole('textbox',{name:'Signed authentication JSON',exact:true})).toHaveValue('')
+  await expect(page.locator('.verdict-visual')).toHaveCount(0)
+})
+
+
+test('unknown route shows a useful page and returns to the dashboard', async ({ page }) => {
+  await page.goto('/qa-route-does-not-exist')
+  await expect(page.getByRole('heading',{name:'Page not found',exact:true})).toBeVisible()
+  await page.getByRole('link',{name:'Return to dashboard',exact:true}).click()
+  await expect(page).toHaveURL(/\/$/)
+  await expect(page.locator('.dashboard-agent:not(.skeleton)')).toHaveCount(4)
+})
