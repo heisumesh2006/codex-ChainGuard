@@ -1,5 +1,7 @@
 # ChainGuard-AI live Chrome end-to-end QA
 
+Preservation follow-up (2026-10-18): the formerly uncommitted fixes below are now preserved in six local commits. See [FINAL_STABILITY_AND_PRESERVATION.md](FINAL_STABILITY_AND_PRESERVATION.md) for the recovery backup, additional test results, Chrome reconnection, clipboard readback, HAR limitation, and final Git state. The original checkpoint results and 85 screenshots below remain intact; three follow-up screenshots were added. Metadata describing uncommitted changes below is historical.
+
 ## Result and provenance
 
 PASS for the tested implemented workflows. This is a scoped QA result, not a claim that the application is completely bug-free or production certified.
