@@ -11,6 +11,11 @@ _URL = re.compile(r"https?://[^\s<>\"']+", re.IGNORECASE)
 _CODES = {"RPC_UNAVAILABLE", "RPC_TIMEOUT", "CHAIN_MISMATCH", "CONTRACT_UNAVAILABLE",
           "TRANSACTION_FAILED", "PROOF_VERIFICATION_FAILED", "RPC_OFFLINE",
           "CONTRACT_NOT_DEPLOYED_ON_CURRENT_NETWORK"}
+_CODES.update({"SAVED_SCENARIO_UNAVAILABLE", "EVIDENCE_NOT_FOUND", "EVIDENCE_UNAVAILABLE",
+               "EVIDENCE_CORRUPT", "NETWORK_MISMATCH", "PROOF_UNAVAILABLE"})
+_CODES.update({"AUTHENTICATION_REQUIRED", "INVALID_AUTHENTICATION", "AUTHENTICATION_EXPIRED_OR_INVALID",
+               "AUTHENTICATION_BINDING_MISMATCH", "INVALID_IDENTITY_SIGNATURE", "AUTHENTICATION_STORE_UNAVAILABLE",
+               "AUTHENTICATION_REPLAYED", "ROOT_IDENTITY_MISMATCH"})
 
 
 def redact_text(value: object, *, diagnostic: bool = False) -> str:
@@ -88,6 +93,10 @@ def _exception_chain(error: object):
 
 
 def safe_error(error: object) -> str:
+    from .evidence import EvidenceError
+    from backend.core.authorization.authentication import AuthenticationError
+    if isinstance(error, (EvidenceError, AuthenticationError)) and str(error) in _CODES:
+        return str(error)
     chain = list(_exception_chain(error))
     message = redact_text(error, diagnostic=True)
     if any(message.startswith(code + ":") or message == code for code in _CODES):
