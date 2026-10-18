@@ -266,7 +266,8 @@ def delegation_graph() -> dict:
                     "label": name,
                     "role": "Trust Root" if index == 0 else module1_agents.AGENTS[name].role,
                     "address": contract.functions.agentAddresses(integration.agent_hash(name)).call(),
-                    "status": "ACTIVE" if index == 0 else module1_agents.AGENTS[name].status,
+                    "status": "DECOMMISSIONED" if index != 0 and contract.functions.agentRevoked(
+                        integration.agent_hash(name)).call() else "ACTIVE",
                 },
             }
             for index, name in enumerate(identities)
@@ -574,9 +575,10 @@ def audit_batch(batch_id: str) -> dict:
         raise LookupError(f"Unknown audit batch: {batch_id}")
     if batch["status"] == "ANCHORED":
         validate_provenance(batch, read_object(_deployment_path()), prefix="blockchain_")
-        proof_status = "VERIFIED" if pipeline.AUDIT_BATCH_MANAGER.verify_anchored_record_proof(
-            batch["first_action_id"]
-        ) else "VERIFY FAILED"
+        with LOCK, canonical_context():
+            proof_status = "VERIFIED" if pipeline.AUDIT_BATCH_MANAGER.verify_anchored_record_proof(
+                batch["first_action_id"]
+            ) else "VERIFY FAILED"
     elif batch.get("anchor_error"):
         proof_status = "ANCHOR FAILED"
     else:
@@ -671,9 +673,11 @@ def _audit_action_proof(action_id: str, record_to_verify: dict | None = None) ->
 
 @public_response
 def audit_action_proof(action_id: str) -> dict:
-    return _audit_action_proof(action_id)
+    with LOCK, canonical_context():
+        return _audit_action_proof(action_id)
 
 
 @public_response
 def verify_audit_action(action_id: str, record_override: dict | None = None) -> dict:
-    return _audit_action_proof(action_id, record_override)
+    with LOCK, canonical_context():
+        return _audit_action_proof(action_id, record_override)
