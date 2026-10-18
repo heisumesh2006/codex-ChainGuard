@@ -23,7 +23,7 @@ export function useGovernanceStream() {
     const socket = api.governanceSocket()
     let finished = false
     socketRef.current = socket
-    socket.onopen = () => { if (socketRef.current === socket) { setConnection('RUNNING'); socket.send(JSON.stringify({ scenario })) } }
+    socket.onopen = () => { if (socketRef.current === socket) { setConnection('RUNNING'); socket.send(JSON.stringify(typeof scenario === 'string' ? { scenario } : scenario)) } }
     socket.onmessage = ({ data }) => {
       if (socketRef.current !== socket) return
       let event
