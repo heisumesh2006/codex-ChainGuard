@@ -146,8 +146,8 @@ def build_persisted_report(data_dir: Path, manager) -> dict:
                                "unavailable_steps": list(STEPS)},
         "overall_test_results": None,
         "known_limitations": ["Pipeline timings and trace benchmark accuracy were not persisted and are unavailable.",
-                              "Shared model metrics use synthetic held-out data, not Sepolia traffic.",
+                              "Shared model metrics use synthetic held-out data, not live network traffic.",
                               "Inventory anchoring counts use saved metadata; proof endpoints verify current Ethereum evidence.",
                               "Saved governance outcomes are preserved; current historical traces may add revocation context.",
-                              "Sepolia is a public testnet; these results do not establish production performance."],
+                              "Local Hardhat and public testnet demonstrations do not establish production performance."],
     }

@@ -15,15 +15,18 @@ const seconds = (value) => value == null ? '—' : `${Number(value).toFixed(1)} 
 
 function CopyValue({ value, className = '' }) {
   const [copied, setCopied] = useState(false)
+  const [copyError, setCopyError] = useState(false)
   if (!value) return <span className={`audit-muted ${className}`}>—</span>
   const copy = async (event) => {
     event.stopPropagation()
+    setCopyError(false)
     try {
       await navigator.clipboard.writeText(value)
       setCopied(true)
       window.setTimeout(() => setCopied(false), 1200)
     } catch {
       setCopied(false)
+      setCopyError(true)
     }
   }
   return <span className={`audit-copy-value ${className}`} title={value}>
@@ -31,6 +34,7 @@ function CopyValue({ value, className = '' }) {
     <button onClick={copy} aria-label={`Copy ${value}`} title={copied ? 'Copied' : 'Copy'}>
       {copied ? <Check size={13} /> : <Copy size={13} />}
     </button>
+    {copyError && <span role="status" style={{ display: 'block', maxWidth: 260, whiteSpace: 'normal', overflowWrap: 'anywhere' }}>Clipboard unavailable. Copy this full value manually: {value}</span>}
   </span>
 }
 

@@ -29,3 +29,5 @@
 @media (max-width: 1220px) { .trust-layout { grid-template-columns: 1fr; }.trust-side { display: grid; grid-template-columns: minmax(0, 1fr) minmax(210px, .65fr); }.trust-canvas { height: 680px; } }
 @media (max-width: 780px) { .agents-grid { grid-template-columns: 1fr; }.trust-side { display: flex; }.trust-canvas { height: 610px; }.trust-canvas__top span { display: none; } }
 @media (max-width: 520px) { .page-heading { align-items: start; flex-direction: column; }.agent-card { padding: 17px; }.agent-card__scopes { grid-template-columns: 1fr; }.trust-canvas { height: 540px; } }
+
+.trust-edge__label--revoked { border-color: #cc6e81; background: #3c202c; color: #f3b4c1; }
