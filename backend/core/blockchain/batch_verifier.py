@@ -5,6 +5,7 @@ from typing import Any
 
 from .audit_log import AuditRecord, canonicalize_record, hash_record
 from .merkle import _digest_bytes, _hex, hash_pair
+from .evidence import validate_deployment, validate_provenance
 
 
 def generate_proof(batch: dict[str, Any], leaf_index: int) -> dict[str, Any]:
@@ -101,7 +102,11 @@ def verify_anchored_batch(batch: dict[str, Any]) -> bool:
             "anchored_by": batch["blockchain_anchored_by"],
             "anchored_at": batch["blockchain_anchored_at"],
         }
-        web3 = chain.connect(blockchain.get("rpc_url") or chain.RPC_URL)
+        deployment = chain._read_json(chain.DEPLOYMENT_PATH, {})
+        validate_deployment(deployment, chain.NETWORK_PROFILE)
+        validate_provenance(blockchain, deployment)
+        # Stored proof metadata cannot select an arbitrary RPC endpoint.
+        web3 = chain.connect(chain.RPC_URL)
         if web3.eth.chain_id != blockchain["chain_id"]:
             return False
         address = Web3.to_checksum_address(blockchain["contract_address"])

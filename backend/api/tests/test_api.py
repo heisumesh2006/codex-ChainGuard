@@ -11,6 +11,9 @@ from backend.api.main import app
 from backend.core.blockchain.audit_log import AuditLogStore
 from backend.core.blockchain.batch_manager import BatchManager
 from backend.core.governance import pipeline
+from backend.core.governance.main import load_scenarios
+from backend.testing.signed_requests import run_signed_pipeline
+import joblib
 
 
 class PresentationApiTests(unittest.TestCase):
@@ -29,6 +32,12 @@ class PresentationApiTests(unittest.TestCase):
             BatchManager(cls.test_audit_store, Path(cls.audit_directory.name) / "batches.json"),
         )
         cls.batch_manager_patch.start()
+        # Persist genuine freshly evaluated evidence in this isolated local
+        # store. Public scenario replay is deliberately read-only.
+        scenarios = load_scenarios()
+        for category in ("NORMAL", "SELF_ESCALATION", "UNAUTHORIZED_DELEGATION", "SCOPE_CREEP", "POST_DECOMMISSION_ACTIVITY"):
+            pipeline._runtime["model"] = joblib.load(pipeline.MODEL_PATH)
+            run_signed_pipeline(next(action for name, _, action in scenarios if name == category))
         cls.client = TestClient(app)
 
     @classmethod
@@ -73,10 +82,15 @@ class PresentationApiTests(unittest.TestCase):
         self.assertEqual(status["status"], "REVOKED")
         self.assertTrue(status["proof_verified"])
 
-    def test_audit_api_seals_anchors_and_verifies_records(self):
+    def test_audit_api_verifies_records_and_saved_replay_is_read_only(self):
+        before = self.test_audit_store.count()
+        batches_before = pipeline.AUDIT_BATCH_MANAGER.list_batches()
         for _ in range(5):
             result = self.client.post("/api/scenarios/normal")
             self.assertEqual(result.status_code, 200)
+            self.assertEqual(result.json()["source"], "persisted_audit_record")
+        self.assertEqual(self.test_audit_store.count(), before)
+        self.assertEqual(pipeline.AUDIT_BATCH_MANAGER.list_batches(), batches_before)
         status = self.client.get("/api/audit/status").json()
         self.assertEqual(status["network"], "Hardhat Local")
         self.assertEqual(status["network_name"], "Hardhat Local")
@@ -129,16 +143,15 @@ class PresentationApiTests(unittest.TestCase):
         attack = self.client.post("/api/scenarios/self_escalation")
         self.assertEqual(attack.status_code, 200)
         self.assertEqual(attack.json()["verdict"]["governance_decision"], "BLOCK")
+        before = self.test_audit_store.count()
         spoof = self.client.post("/api/governance/evaluate", json={
             "actor": "Agent_D", "action": "CHECK_CREATE_AGENT",
             "permission": "CREATE_AGENT", "result": "ALLOWED",
         })
-        self.assertEqual(spoof.status_code, 200)
-        self.assertFalse(spoof.json()["authorized"])
-        self.assertEqual(spoof.json()["governance_decision"], "BLOCK")
-        self.assertTrue(spoof.json()["action"]["record_id"].startswith("synthetic:api:"))
+        self.assertEqual(spoof.status_code, 401)
+        self.assertEqual(self.test_audit_store.count(), before)
 
-    def test_websocket_stage_sequence_uses_measured_latency(self):
+    def test_websocket_saved_stage_sequence_does_not_invent_latency(self):
         with self.client.websocket_connect("/ws/governance") as socket:
             socket.send_json({"scenario": "normal"})
             events = [socket.receive_json() for _ in range(12)]
@@ -148,7 +161,7 @@ class PresentationApiTests(unittest.TestCase):
         self.assertTrue(events[-1]["verdict"]["authorized"])
         self.assertEqual(events[-1]["verdict"]["trace_context_verdict"], "VALID_CHAIN")
         self.assertEqual(events[2]["event"], "AUTHORIZATION_COMPLETE")
-        self.assertGreaterEqual(events[2]["latency_ms"], 0)
+        self.assertIsNone(events[2]["latency_ms"])
         self.assertEqual(events[-1]["total_latency_ms"], events[-1]["verdict"]["total_latency_ms"])
 
     def test_all_saved_scenarios_stream_real_verdicts(self):

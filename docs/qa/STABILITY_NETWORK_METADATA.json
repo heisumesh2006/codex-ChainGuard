@@ -1,0 +1,199 @@
+{
+  "surface": "supplementary isolated Edge; NOT connected Chrome HAR",
+  "requests": [
+    {
+      "origin": "http://127.0.0.1:8001",
+      "method": "GET",
+      "path": "/api/metrics",
+      "status": 200
+    },
+    {
+      "origin": "http://127.0.0.1:8001",
+      "method": "GET",
+      "path": "/api/system/overview",
+      "status": 200
+    },
+    {
+      "origin": "http://127.0.0.1:8001",
+      "method": "GET",
+      "path": "/api/metrics",
+      "status": 200
+    },
+    {
+      "origin": "http://127.0.0.1:8001",
+      "method": "GET",
+      "path": "/api/system/overview",
+      "status": 200
+    },
+    {
+      "origin": "http://127.0.0.1:8001",
+      "method": "GET",
+      "path": "/api/health",
+      "status": 200
+    },
+    {
+      "origin": "http://127.0.0.1:8001",
+      "method": "GET",
+      "path": "/api/health",
+      "status": 200
+    },
+    {
+      "origin": "http://127.0.0.1:8001",
+      "method": "GET",
+      "path": "/api/audit/status",
+      "status": 200
+    },
+    {
+      "origin": "http://127.0.0.1:8001",
+      "method": "GET",
+      "path": "/api/audit/logs",
+      "status": 200
+    },
+    {
+      "origin": "http://127.0.0.1:8001",
+      "method": "GET",
+      "path": "/api/audit/batches",
+      "status": 200
+    },
+    {
+      "origin": "http://127.0.0.1:8001",
+      "method": "GET",
+      "path": "/api/audit/logs",
+      "status": 200
+    },
+    {
+      "origin": "http://127.0.0.1:8001",
+      "method": "GET",
+      "path": "/api/audit/actions/audit%3A82901e7cfc0842a99643205d5ac63f98/proof",
+      "status": 200
+    },
+    {
+      "origin": "http://127.0.0.1:8001",
+      "method": "GET",
+      "path": "/api/audit/batches",
+      "status": 200
+    },
+    {
+      "origin": "http://127.0.0.1:8001",
+      "method": "GET",
+      "path": "/api/audit/status",
+      "status": 200
+    },
+    {
+      "origin": "http://127.0.0.1:8001",
+      "method": "GET",
+      "path": "/api/audit/actions/audit%3A82901e7cfc0842a99643205d5ac63f98",
+      "status": 200
+    },
+    {
+      "origin": "http://127.0.0.1:8001",
+      "method": "POST",
+      "path": "/api/audit/actions/audit%3A82901e7cfc0842a99643205d5ac63f98/verify",
+      "status": 200
+    },
+    {
+      "origin": "http://127.0.0.1:8001",
+      "method": "GET",
+      "path": "/api/audit/status",
+      "status": 200
+    },
+    {
+      "origin": "http://127.0.0.1:8001",
+      "method": "GET",
+      "path": "/api/audit/logs",
+      "status": 200
+    },
+    {
+      "origin": "http://127.0.0.1:8001",
+      "method": "GET",
+      "path": "/api/audit/batches",
+      "status": 200
+    },
+    {
+      "origin": "http://127.0.0.1:8001",
+      "method": "GET",
+      "path": "/api/system/overview",
+      "status": 200
+    },
+    {
+      "origin": "http://127.0.0.1:8001",
+      "method": "GET",
+      "path": "/api/metrics",
+      "status": 200
+    },
+    {
+      "origin": "http://127.0.0.1:8001",
+      "method": "GET",
+      "path": "/api/metrics",
+      "status": 200
+    },
+    {
+      "origin": "http://127.0.0.1:8001",
+      "method": "GET",
+      "path": "/api/system/overview",
+      "status": 200
+    },
+    {
+      "origin": "http://127.0.0.1:8001",
+      "method": "GET",
+      "path": "/api/health",
+      "status": 200
+    },
+    {
+      "origin": "http://127.0.0.1:8001",
+      "method": "GET",
+      "path": "/api/health",
+      "status": 200
+    },
+    {
+      "origin": "http://127.0.0.1:8001",
+      "method": "GET",
+      "path": "/api/audit/status",
+      "status": 200
+    },
+    {
+      "origin": "http://127.0.0.1:8001",
+      "method": "GET",
+      "path": "/api/audit/logs",
+      "status": 200
+    },
+    {
+      "origin": "http://127.0.0.1:8001",
+      "method": "GET",
+      "path": "/api/audit/batches",
+      "status": 200
+    }
+  ],
+  "failures": [],
+  "sockets": [
+    {
+      "origin": "ws://localhost:5173",
+      "path": "/",
+      "eventTypes": []
+    },
+    {
+      "origin": "ws://127.0.0.1:8001",
+      "path": "/ws/governance",
+      "eventTypes": [
+        "ACTION_RECEIVED",
+        "AUTHORIZATION_STARTED",
+        "AUTHORIZATION_COMPLETE",
+        "TRACE_STARTED",
+        "TRACE_COMPLETE",
+        "DRIFT_SCORING_STARTED",
+        "DRIFT_SCORING_COMPLETE",
+        "REVOCATION_CHECK_STARTED",
+        "REVOCATION_CHECK_COMPLETE",
+        "BLOCKCHAIN_VERIFY_STARTED",
+        "BLOCKCHAIN_VERIFY_COMPLETE",
+        "VERDICT_COMPLETE"
+      ]
+    },
+    {
+      "origin": "ws://localhost:5173",
+      "path": "/",
+      "eventTypes": []
+    }
+  ],
+  "errors": []
+}

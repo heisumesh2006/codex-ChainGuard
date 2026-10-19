@@ -1,0 +1,9 @@
+{
+  "input_timestamp": "2026-10-17T16:53:27.245393+00:00",
+  "source": "Read-only capture from active isolated benchmark audit JSONL",
+  "manifest_started_utc": "20261017T165326486370Z",
+  "event_generator": "backend.research.experiment1.audit_record",
+  "permission": "P",
+  "actor": "Agent_A",
+  "authorized": true
+}

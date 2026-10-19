@@ -1,6 +1,6 @@
 """Explicit behavioral features; Module 3 supplies authority facts."""
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import math
 
 ROLLING_N = 20
@@ -15,6 +15,13 @@ FEATURE_COLUMNS = CATEGORICAL_FEATURES + NUMERIC_FEATURES
 FORBIDDEN_COLUMNS = frozenset(("label", "category", "ground_truth", "is_attack", "is_anomaly", "expected_result"))
 
 
+def _aware_time(value):
+    parsed = datetime.fromisoformat(value)
+    if parsed.tzinfo is None or parsed.utcoffset() is None:
+        raise ValueError("Feature timestamps must include a timezone")
+    return parsed.astimezone(timezone.utc)
+
+
 def extract_features(action_log_entry, agent_history, trace_result):
     """Return only schema-approved model inputs, never ground-truth metadata."""
     if trace_result is None:
@@ -27,12 +34,12 @@ def extract_features(action_log_entry, agent_history, trace_result):
     recent = history[-ROLLING_N:]
     permission = action_log_entry.get("permission") or action_log_entry.get("requested_permission") or "UNKNOWN"
     action = action_log_entry["action"]
-    when = datetime.fromisoformat(action_log_entry["timestamp"])
+    when = _aware_time(action_log_entry["timestamp"])
     same_action = sum(item.get("action") == action for item in recent)
     same_permission = sum((item.get("permission") or item.get("requested_permission")) == permission for item in recent)
-    gaps = [max(0.0, (when - datetime.fromisoformat(item["timestamp"])).total_seconds()) for item in history[-1:]]
+    gaps = [max(0.0, (when - _aware_time(item["timestamp"])).total_seconds()) for item in history[-1:]]
     elapsed = gaps[0] if gaps else 86400.0
-    burst = sum(0 <= (when - datetime.fromisoformat(item["timestamp"])).total_seconds() <= BURST_WINDOW_SECONDS for item in history)
+    burst = sum(0 <= (when - _aware_time(item["timestamp"])).total_seconds() <= BURST_WINDOW_SECONDS for item in history)
     switches = sum(
         (recent[i].get("permission") or recent[i].get("requested_permission"))
         != (recent[i - 1].get("permission") or recent[i - 1].get("requested_permission"))

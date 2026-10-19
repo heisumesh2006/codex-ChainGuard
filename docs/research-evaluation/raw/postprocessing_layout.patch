@@ -1,0 +1,5 @@
+--- analysis at timing run
++++ final legend layout
+@@ -136 +136 @@
+-    ax.legend(loc="lower right"); save(fig,"experiment3_security_matrix")
++    ax.legend(loc="upper center", bbox_to_anchor=(.5,-.17), ncol=3); save(fig,"experiment3_security_matrix")

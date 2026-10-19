@@ -1,0 +1,344 @@
+{
+  "completed_utc": "2026-10-18T17:01:46.498669+00:00",
+  "branch": "research/security-evaluation",
+  "head": "de1f7d5c4369639306c1e1bd7b5ecb5686bd7ec0",
+  "business_pages_tested": 9,
+  "additional_unknown_route_tested": true,
+  "chrome_control_positions_tested": 121,
+  "journeys_completed": 6,
+  "findings_addressed": 11,
+  "python": {
+    "tests": 318,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "seconds": 466.993
+  },
+  "contract_tests": {
+    "passed": 11,
+    "failed": 0
+  },
+  "browser_tests": {
+    "full_readonly_fixture": 24,
+    "final_targeted_local": 6,
+    "distinct_cases": 30,
+    "not_a_single_combined_run": true
+  },
+  "api_matrix": 29,
+  "merkle_checks": 83,
+  "stress": {
+    "seconds": 124.2040427000029,
+    "workers": 10,
+    "distinct_attempts": 500,
+    "successful_actions": 500,
+    "deliberate_duplicate_rejections": 10,
+    "persisted_records": 500,
+    "persisted_duplicates": 0,
+    "lost_successful_actions": 0,
+    "batches": 100,
+    "mapped_actions": 500,
+    "lock_timeouts": 4,
+    "worker_results": [
+      {
+        "worker": 0,
+        "success": 50,
+        "duplicates": 1,
+        "timeouts": 0,
+        "errors": []
+      },
+      {
+        "worker": 4,
+        "success": 50,
+        "duplicates": 1,
+        "timeouts": 0,
+        "errors": []
+      },
+      {
+        "worker": 7,
+        "success": 50,
+        "duplicates": 1,
+        "timeouts": 1,
+        "errors": []
+      },
+      {
+        "worker": 8,
+        "success": 50,
+        "duplicates": 1,
+        "timeouts": 0,
+        "errors": []
+      },
+      {
+        "worker": 3,
+        "success": 50,
+        "duplicates": 1,
+        "timeouts": 0,
+        "errors": []
+      },
+      {
+        "worker": 9,
+        "success": 50,
+        "duplicates": 1,
+        "timeouts": 0,
+        "errors": []
+      },
+      {
+        "worker": 1,
+        "success": 50,
+        "duplicates": 1,
+        "timeouts": 1,
+        "errors": []
+      },
+      {
+        "worker": 2,
+        "success": 50,
+        "duplicates": 1,
+        "timeouts": 1,
+        "errors": []
+      },
+      {
+        "worker": 6,
+        "success": 50,
+        "duplicates": 1,
+        "timeouts": 0,
+        "errors": []
+      },
+      {
+        "worker": 5,
+        "success": 50,
+        "duplicates": 1,
+        "timeouts": 1,
+        "errors": []
+      }
+    ],
+    "jsonl_valid": true,
+    "mapping_valid": true,
+    "deterministic_merkle_from_persisted_order": true,
+    "size_threshold_clock_controlled": true
+  },
+  "public_verification": {
+    "completed_utc": "2026-10-18T16:52:02.579870+00:00",
+    "api_matrix": 29,
+    "merkle_checks": 83,
+    "governance_outcomes": [
+      "ALLOW",
+      "BLOCK",
+      "BLOCK",
+      "REVIEW",
+      "BLOCK"
+    ],
+    "original_proofs": [
+      "VERIFIED",
+      "VERIFIED",
+      "VERIFIED",
+      "VERIFIED",
+      "VERIFIED"
+    ],
+    "tampered_copies": [
+      "TAMPERED",
+      "TAMPERED",
+      "TAMPERED",
+      "TAMPERED",
+      "TAMPERED"
+    ],
+    "canonical_files_unchanged": true,
+    "contract": "0x61c74D0525f4f5A1a7b20f2eA561e485E71dd243",
+    "batch_root": "0xee6028db0fb103cc0c5e1685e586b24d9213515a806aa9717f3ed0b54341006c",
+    "batch_transaction": "0xae52c353001ff8754625054d8873eeda0b74b1702af775da3e6a4cd4d33b75c2",
+    "batch_records": 5,
+    "public_transactions": 0
+  },
+  "chrome_local_proofs": [
+    {
+      "action_id": "audit:82901e7cfc0842a99643205d5ac63f98",
+      "original": "VERIFIED",
+      "altered": "TAMPERED"
+    },
+    {
+      "action_id": "audit:f07d92863099408dbfffbab37fc2aed1",
+      "original": "VERIFIED",
+      "altered": "TAMPERED"
+    },
+    {
+      "action_id": "audit:3cab0f875c234496947e1f3d7cb52a8d",
+      "original": "VERIFIED",
+      "altered": "TAMPERED"
+    },
+    {
+      "action_id": "audit:7eaa7fad515c4d2f9103c579efed056d",
+      "original": "VERIFIED",
+      "altered": "TAMPERED"
+    },
+    {
+      "action_id": "audit:8070e9fce37e4c4387f8377b65cb3974",
+      "original": "VERIFIED",
+      "altered": "TAMPERED"
+    }
+  ],
+  "responsive_instrumented_samples": 34,
+  "horizontal_overflow_samples": 0,
+  "screenshots": 85,
+  "latest_chrome_console_errors": 0,
+  "extension_warnings": 6,
+  "protected_files_unchanged": 110,
+  "secrets_scan": {
+    "source_files": 15,
+    "hits": 0
+  },
+  "health": {
+    "rpc_connected": true,
+    "chain_id": 31337,
+    "contract_available": true,
+    "contract_address": "0x01fd4C7C545e628c9a000543d6fB3a96ffF4c40d",
+    "ml_model_available": true,
+    "status": "ONLINE"
+  },
+  "modified_source_files": [
+    "backend/api/demo_server.py",
+    "backend/api/services.py",
+    "backend/core/blockchain/diagnostics.py",
+    "backend/core/blockchain/persistence.py",
+    "backend/core/governance/runtime_evidence.py",
+    "frontend/src/App.jsx",
+    "frontend/src/hooks/useGovernanceStream.js",
+    "frontend/src/pages/AuditExplorer.jsx",
+    "frontend/src/pages/Evaluation.jsx",
+    "frontend/src/pages/Governance.jsx",
+    "frontend/src/pages/TrustGraph.jsx",
+    "frontend/src/styles/identity.css",
+    "frontend/tests/project.spec.js",
+    "backend/api/tests/test_demo_startup.py",
+    "frontend/playwright.local-qa.config.js"
+  ],
+  "source_sha256": {
+    "backend/api/demo_server.py": "2b49ea38ad4e609c465c761eaf8b4ea785fa8c7a4ae78554c4811ae167bd3df2",
+    "backend/api/services.py": "13eafc9676a16f5db99d86e7929da60d08c3a8d63edec180c6eb0f3487639f8c",
+    "backend/core/blockchain/diagnostics.py": "29ea2b994bb66c0950e6c3a44e965f8734c3c6f489ebe2382297a8b53265ec44",
+    "backend/core/blockchain/persistence.py": "059a24101ce65198185745aae4b4aa29515070a24e3481cd2a743ecd9fcbf807",
+    "backend/core/governance/runtime_evidence.py": "013424df646d8402445a67f4fa987de2fffbde5a2d36d783ae28cbbd2bb6c89d",
+    "frontend/src/App.jsx": "8611b1ff75eaf29e68366e54f3cf89b2271f7a305dd48bb224547b81b2fd274b",
+    "frontend/src/hooks/useGovernanceStream.js": "fcd91c18f179cc2f5631433ee9049cc4399558f5e796afadf062d8304344a16e",
+    "frontend/src/pages/AuditExplorer.jsx": "d8e6707e954b8990bfda7e3c289f72ffd54403b476975042ed91a7c0cec4288c",
+    "frontend/src/pages/Evaluation.jsx": "4db9082e47655babbea3a0be4e9f6efc3bfa2da67b7775faee50cb1486522aa1",
+    "frontend/src/pages/Governance.jsx": "d0c9858216ac5125ecdc3560af51d58a15bcf9951035cc44ea7810b34754861b",
+    "frontend/src/pages/TrustGraph.jsx": "4aee8f048786565c7fa392567fbfd5c34080e55ab43b62377d56e9e466503267",
+    "frontend/src/styles/identity.css": "b9143e3c5540566a73612f61da0f87ae373d23d96877c5a9f3184a00f6331722",
+    "frontend/tests/project.spec.js": "8283df7dc1df33600f369192594245e762373c9b952cc90570f79d0aa02ff376",
+    "backend/api/tests/test_demo_startup.py": "09468ff74d8d0a948abf9f16f5e2132271a172eddcdc4e4b16e2c4b0dafecfcb",
+    "frontend/playwright.local-qa.config.js": "0ea250238f37729e67db56b64400ada4b1969edf4a41f87b3a31e2ea9d4c6b0f"
+  },
+  "screenshot_sha256": {
+    "screenshots/agents-expanded.jpg": "1cf8320af52b87c19798604218a10ea69bb38bdfe67d36c3acdf50376f5ab09e",
+    "screenshots/agents-initial.jpg": "ef4e716dcd0258fae272595fc41839869359afa69e9ea8364af17d995a90c1ce",
+    "screenshots/analytics-initial.jpg": "2566188492a604ffd17de4427e7a095369c3370c0b8d19a5394166db561013e7",
+    "screenshots/audit-batch-details-final.jpg": "27401e7e20ecdacf6587d72d7b13902fd8ef42caef80d9fb837da6979bae5ca2",
+    "screenshots/audit-initial.jpg": "4980833fd9f71d749793d9bf96c569ef1e547d2ca466b5d4ae849393adfe4013",
+    "screenshots/audit-original-verified.jpg": "7fe58fb8c7b97b14a9e13ad89d11635ea98b357135b88ddf490dac00777956ac",
+    "screenshots/audit-tampered-copy.jpg": "9d6f26d0847b8511710af59200c26ce1480aae23c18de2d15d417612ccce05d4",
+    "screenshots/auto-demo-complete.jpg": "19c270c7e9b1677ff9e50433ca4747f4f84601f2f7e6075dbcf3072e96042d89",
+    "screenshots/auto-demo-paused.jpg": "0666e2c67df43cd6bed83e4a3a63c8ccdfa20682a0b7108d6a94a9c331e7d901",
+    "screenshots/clipboard-feedback-final.jpg": "290c3654c06dbd1aafe2a8614f853c8632e57c6529d903daa09cda652c8e292b",
+    "screenshots/dashboard-initial.jpg": "78e589baf02a964207a94b350e1db6f6d340ced9287b3b8a830cdd8073d4588b",
+    "screenshots/desktop-agents.jpg": "a786395767cb47899e871812e0064020807c0e8ced8a11584acb625be588e038",
+    "screenshots/desktop-blockchain-audit.jpg": "4ef013d2764cd3b8319970730228c1cae461c971d77efdeea26a55c76ef4c7d4",
+    "screenshots/desktop-dashboard.jpg": "e2949e8d819cb2eff7a13fb436619776e27c920f498a4308bdac4e1a6826b66d",
+    "screenshots/desktop-evaluation.jpg": "5ac7eaf70de1393baaba0e3de635b9ea19bd95fd11dc5d7b3fc2f9aa61e5d0ca",
+    "screenshots/desktop-governance.jpg": "d62b12c8099239b79ce9b9a8252fb1d302321b34cc4159632a039b796f91afe2",
+    "screenshots/desktop-live-governance.jpg": "491ca978a5bc031951623d0df9897cfb98ca8da22ca5b2a79474adaf169256de",
+    "screenshots/desktop-ml-analytics.jpg": "24b9045a10cfb3f9886c63fef7ab050c7530eedf319bfeb95d167dec6d4f72bb",
+    "screenshots/desktop-revocation.jpg": "689629bcbcac503da2a4bccc0fd0a16581a39883bb0975bcca5b735b13b15139",
+    "screenshots/desktop-threat-lab.jpg": "94b686f9ae0f66930b8e6a4bdf256f94a500906005594f3680d440fdc86fa43c",
+    "screenshots/desktop-trust-graph.jpg": "bfcfbfa13bdf1ed8fbe0dd860ea73354e3de706de9ea273daa8f63a17f74630b",
+    "screenshots/evaluation-initial.jpg": "c6fc6fed83ea879aac14dcde9063437485fa0ccb951e909c7f59c7145fa8ccd9",
+    "screenshots/final-agents.jpg": "bdd761357f0eb8e03aeec82d925cc57072c22285e420f2ad610401545d78fc92",
+    "screenshots/final-auto-demo-complete.jpg": "048dc39399d43bc2859e82f1067833d67a3e2fe23c3b0750e8632700dad64e2d",
+    "screenshots/final-batch-details.jpg": "7881884946accfaa6f1e3f15f189549a193820d93ec961ce37a0b78b9956e169",
+    "screenshots/final-blockchain-audit.jpg": "18964e2553574cdca96ec5fdcfb5b170ec657e06cb0897d99eea6744d9847eb7",
+    "screenshots/final-dashboard.jpg": "584431bd9244abf10566dd0456e064b316cd5d0b722bcfd3532647dd5e9ccb8a",
+    "screenshots/final-evaluation.jpg": "acd78f94313054a134ef5de10c7c04a10c46b0dec55e8a892ee321ac95bcade9",
+    "screenshots/final-live-chrome-audit.jpg": "f46256f23b4d07dcdf40c64af0dff6a13ae53b2ba3484fc92829ace97abbff6a",
+    "screenshots/final-live-governance.jpg": "24eb09d7891afc0011b4a862971477362349c01d677a081ea195b8688bc7dc07",
+    "screenshots/final-ml-analytics.jpg": "0c5f85c463b48ac00c85c8e00f5c26641cdd76ad9d6195ed01d53bf959bda8f9",
+    "screenshots/final-mobile-signed-form.jpg": "adb2d04099b37668eb8446e22d5428cc19e7134b94729ee588e843a963ee7dee",
+    "screenshots/final-normal-allow.jpg": "14db0557db3dbe0375efad0738e4e6ded42631d955198981573d80f2967b5210",
+    "screenshots/final-post-revocation-trace.jpg": "27126b500a831fa67b58708a192fd2d06f36ffb6fae0d041c7de5830b597f09e",
+    "screenshots/final-revocation.jpg": "76df0de3e9320a3e4c0073ee035d9647eba287e57647f0e91456ee9838b8000d",
+    "screenshots/final-revoked-link-details.jpg": "b6d50a673dec67db0424772d3444258659d837b0d3d4327c99ea3585e4c5779f",
+    "screenshots/final-tablet-signed-form.jpg": "dc812f02f3bf1a4228d7bf4dc17d5261b64b4b5a2e358575187a4f7713118799",
+    "screenshots/final-tampered-proof.jpg": "ce95a8fcf2e2d94304fa7ea79ec245329794739aa3d49f9141a525b7610b471e",
+    "screenshots/final-threat-lab.jpg": "041db792cc4964dd15932e601496425d76bc1de4f68dc9ada3faa5b45e06f4b7",
+    "screenshots/final-trust-graph.jpg": "d7d9dfef6547b177d3ed20602328a085c95cf54c5ed8ae38271fe2b2d2584c9a",
+    "screenshots/governance-before.jpg": "0af152586af926432d5f21523a873b28fcf9087795f686dbfeae8cce23429426",
+    "screenshots/governance-normal-final.jpg": "e81dd05b1c9bc56f2500e4681bf1b2337a04132726ce240ba33e1dfe011bcc09",
+    "screenshots/governance-post-decommission-final.jpg": "c335ec7b4817cba92d309b809575e7f856768a39c03f0c4175d6e952ff029fc3",
+    "screenshots/governance-scope-creep-final.jpg": "25d1bf12b49999e5ff6dc622527031b1e98b6e31f3fdf453282396108ce28ced",
+    "screenshots/governance-self-escalation-final.jpg": "4ca8dfd07275601b655f36a4bd8017caf4a1a5840b86e3a144598eba8fcf0a12",
+    "screenshots/governance-unauthorized-final.jpg": "cb5bbcd1443fbb4709987fe7f8c1eb2280c4c08ecb99e9cc3059cc19de34907d",
+    "screenshots/graph-before-pan.jpg": "80c05ff0ffbe13f910291ce2dc897655612e5c0768e6b08d22057097821d5080",
+    "screenshots/invalid-route-before.jpg": "29901d5b31d878a90e8a8efaa0b3187169fde0f46443ccffa43fe9cd8fd445f2",
+    "screenshots/invalid-route-fixed.jpg": "2753e44605979fea9ea9ac56d25b829f6a60861230525550563668ae1f3cac9c",
+    "screenshots/laptop-agents.jpg": "370f7cc3477f84114cb39092102ed52e576837379e85a141a91eb08c559aa6b3",
+    "screenshots/laptop-blockchain-audit.jpg": "5e1b4e30012bcd2215bca54cf5ce0b1bb92c6f21b890e0aa533fb3fce6921275",
+    "screenshots/laptop-dashboard.jpg": "c0d1d5bcd44d8deec3e4eb74847e5bceb828fe089905b416eb7ee77785d52448",
+    "screenshots/laptop-evaluation.jpg": "1ecf9e6a9f603b3efaadfa9b553a21637779f577b408aac36deec330e35c2c0b",
+    "screenshots/laptop-live-governance.jpg": "e9e7aef87ac9ce31712ab3af507704304fd2926d8ca1da29a390ea5d9662a1a4",
+    "screenshots/laptop-ml-analytics.jpg": "b6ef51c701a84a54da2b14e3297eda647212905191eecdec97f8b4d1f311f36b",
+    "screenshots/laptop-revocation.jpg": "f315f2e691a4890793284b847730751a01dd62d2af3b4d1f9e2fafe982254804",
+    "screenshots/laptop-threat-lab.jpg": "babf643150741eb124deb48669bf8b68752133bde56b27180933b58dc4cdd304",
+    "screenshots/laptop-trust-graph.jpg": "0d8a84a2f5e941fb44db9b9c2ce63b132da495dd53e6cd46823f6dfc49cd5608",
+    "screenshots/missing-proof-response.jpg": "44d44c815db14cbe744e0bc227f70c9771d2ba215b208efc3192de7e90263e2f",
+    "screenshots/mobile-agents.jpg": "de0299f51be9c35f250776949ff2a92969ce7bc32d9cf85535fc46ae9b918821",
+    "screenshots/mobile-blockchain-audit.jpg": "b73c37bbb1d1de81e5feadde2ccd3026e3096c733b36151a56695573f142be60",
+    "screenshots/mobile-dashboard.jpg": "5a428ebf7d5312df92f417c466bc97264cef36613baef58954b5d1eb8e3977b0",
+    "screenshots/mobile-evaluation.jpg": "aff745c8c7131a2ad717e6aabb887f54c3e93be6c2e90ba6faf85198713aa16b",
+    "screenshots/mobile-live-governance.jpg": "3eec754914e206fb63139b86c236849eb11112a23d1f528c19a211c82a4a6efb",
+    "screenshots/mobile-ml-analytics.jpg": "42e838cd9659e13933529a5ed12643bc62c5f7fababe3c297e54ed3255e04660",
+    "screenshots/mobile-revocation.jpg": "4a7fa7c5c60c74d9b5a6495cd2ad38bd83776b54f28cffa412d07cc7a227bd3b",
+    "screenshots/mobile-threat-lab.jpg": "aefa872d1c2e496f2402f88deee99bcb02bbad5b3e8049e299798ba9a181f2ed",
+    "screenshots/mobile-trust-graph.jpg": "72eb737af31ee06b3c7921c43309b2a27b6532477072fefac3ac4b85d2f862ee",
+    "screenshots/presentation-final-metrics.jpg": "b30e071f86f409ba324a2116f018c246cbee6d29ed1d34b77ead07631ea54d75",
+    "screenshots/revocation-initial.jpg": "2aed981110e670174e815f5672015a0c46fb4efb3862cfbe845cc6e4e3599f10",
+    "screenshots/revocation-unknown.jpg": "1a30f0494447ca105b4db927c64270c574df0b8b0fde405095d058609628a2ed",
+    "screenshots/signed-action-replay-rejected.jpg": "ecaeea4459816fa8bdfaba429b1e753a8325c2f101a0ba5d9c3391fb6db9950c",
+    "screenshots/signed-action-success-final.jpg": "0d96d3b6c0bddbac1934674db045b86122d9e03e62c7501e6b7101dc5ffd8e76",
+    "screenshots/tablet-agents.jpg": "8715d8cdf87dc33bcb9e5eeead6e644936cf02a751f7bf59c31ca1fdaf34811d",
+    "screenshots/tablet-blockchain-audit.jpg": "2c4e8650ede42e2aac0c65e2b207f97aa4d988beeb09ca9a108f9cec8360b6dd",
+    "screenshots/tablet-dashboard.jpg": "3c2fd091070b48c1a91a0400c9787d5a720021c072d95cd97b2ef261b8281a56",
+    "screenshots/tablet-evaluation.jpg": "d163129ffb093e76e6543c15c803ed239aa8ffae01707c435040b6214fd94ca3",
+    "screenshots/tablet-live-governance.jpg": "a6f438448b9f2016a47ee87987a615ec0efc8a1213db9482c1bc069d90589ab6",
+    "screenshots/tablet-ml-analytics.jpg": "92531e8179aa5b20130d72e3dad0cbc0a199711835fa2b66772e5b2c14cdfcf4",
+    "screenshots/tablet-revocation.jpg": "faab330dc031b7d9cb416d2cc1aeeace4b896c1d77513c8f81f8cf92146b20b9",
+    "screenshots/tablet-threat-lab.jpg": "3693f8d8c124bc631c5ebbcb807704d839e2dc14895a6a5f21fbbdf4d03559c6",
+    "screenshots/tablet-trust-graph.jpg": "453e6add11129428763f2eff37a0853399145b97856c9f4fd7ebe0554addf4a9",
+    "screenshots/threat-lab-initial.jpg": "bd47a7c366c394f9f6c6a44b7699d670ff8fe88a2b22efbf09607958c3cf2e9a",
+    "screenshots/trust-graph-edge-fixed.jpg": "0bd594993abd3900f48c6696e99da9da2fd499895d463d30326b446b17a4efec",
+    "screenshots/trust-graph-initial.jpg": "9f72c5c26e0a59e70ba33f010aaadd50072843db7c40d8caa932ea082b867cd4"
+  },
+  "git_status": " M backend/api/demo_server.py\n M backend/api/services.py\n M backend/core/blockchain/diagnostics.py\n M backend/core/blockchain/persistence.py\n M backend/core/governance/runtime_evidence.py\n M frontend/src/App.jsx\n M frontend/src/hooks/useGovernanceStream.js\n M frontend/src/pages/AuditExplorer.jsx\n M frontend/src/pages/Evaluation.jsx\n M frontend/src/pages/Governance.jsx\n M frontend/src/pages/TrustGraph.jsx\n M frontend/src/styles/identity.css\n M frontend/tests/project.spec.js\n?? \"CHAIN GUARD AI FINAL IEEE RESEARCH PACK.zip\"\n?? backend/api/tests/test_demo_startup.py\n?? docs/qa/\n?? frontend/playwright.local-qa.config.js\n",
+  "public_transactions": 0,
+  "main_modified": false,
+  "commits_created": 0,
+  "final_security_scan": {
+    "source_files": 15,
+    "total_source_and_qa_artifacts": 103,
+    "hits": 0,
+    "protected_files_unchanged": 110
+  },
+  "final_service_checks": [
+    {
+      "name": "frontend",
+      "status": 200
+    },
+    {
+      "name": "health",
+      "status": 200
+    },
+    {
+      "name": "graph",
+      "status": 200
+    },
+    {
+      "name": "audit",
+      "status": 200
+    }
+  ]
+}

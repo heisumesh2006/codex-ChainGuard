@@ -1,0 +1,89 @@
+{
+  "seconds": 85.65121590008494,
+  "workers": 10,
+  "distinct_attempts": 500,
+  "successful_actions": 500,
+  "deliberate_duplicate_rejections": 10,
+  "persisted_records": 500,
+  "persisted_duplicates": 0,
+  "lost_successful_actions": 0,
+  "batches": 100,
+  "mapped_actions": 500,
+  "lock_timeouts": 2,
+  "worker_results": [
+    {
+      "worker": 7,
+      "success": 50,
+      "duplicates": 1,
+      "timeouts": 0,
+      "errors": []
+    },
+    {
+      "worker": 3,
+      "success": 50,
+      "duplicates": 1,
+      "timeouts": 0,
+      "errors": []
+    },
+    {
+      "worker": 6,
+      "success": 50,
+      "duplicates": 1,
+      "timeouts": 0,
+      "errors": []
+    },
+    {
+      "worker": 2,
+      "success": 50,
+      "duplicates": 1,
+      "timeouts": 0,
+      "errors": []
+    },
+    {
+      "worker": 5,
+      "success": 50,
+      "duplicates": 1,
+      "timeouts": 0,
+      "errors": []
+    },
+    {
+      "worker": 9,
+      "success": 50,
+      "duplicates": 1,
+      "timeouts": 0,
+      "errors": []
+    },
+    {
+      "worker": 8,
+      "success": 50,
+      "duplicates": 1,
+      "timeouts": 1,
+      "errors": []
+    },
+    {
+      "worker": 4,
+      "success": 50,
+      "duplicates": 1,
+      "timeouts": 0,
+      "errors": []
+    },
+    {
+      "worker": 0,
+      "success": 50,
+      "duplicates": 1,
+      "timeouts": 1,
+      "errors": []
+    },
+    {
+      "worker": 1,
+      "success": 50,
+      "duplicates": 1,
+      "timeouts": 0,
+      "errors": []
+    }
+  ],
+  "jsonl_valid": true,
+  "mapping_valid": true,
+  "deterministic_merkle_from_persisted_order": true,
+  "size_threshold_clock_controlled": true
+}

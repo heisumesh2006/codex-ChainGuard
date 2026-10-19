@@ -1,13 +1,62 @@
 """ChainGuard-AI presentation API. Run from the project root with Uvicorn."""
 
 import asyncio
-from fastapi import FastAPI, HTTPException, Query, WebSocket, WebSocketDisconnect
+import logging
+import json
+from fastapi import FastAPI, HTTPException, Query, WebSocket, WebSocketDisconnect, Header
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from fastapi.exceptions import RequestValidationError
+from backend.core.blockchain.evidence import EvidenceError
 
+from backend.core.blockchain.diagnostics import safe_error, public_data, redact_text
 from backend.api import services
 from backend.api.schemas import ActionInput, AuditVerifyInput, GovernanceStreamRequest
+from backend.core.authorization.authentication import AuthenticationError
 
 app = FastAPI(title="ChainGuard-AI API", version="1.0.0")
+logger = logging.getLogger(__name__)
+
+
+@app.exception_handler(AuthenticationError)
+async def authentication_error(request, exc):
+    return JSONResponse(status_code=401, content={"detail": {"code": str(exc)}})
+
+
+def authentication_header(value):
+    if value is None:
+        return None
+    try:
+        if len(value) > 4096:
+            raise ValueError()
+        from backend.core.blockchain.evidence import decode_json
+        parsed = decode_json(value)
+        if not isinstance(parsed, dict):
+            raise ValueError()
+        return parsed
+    except (ValueError, TypeError):
+        raise AuthenticationError("INVALID_AUTHENTICATION") from None
+
+
+@app.exception_handler(RequestValidationError)
+async def invalid_request(request, exc):
+    # Never echo rejected bodies (including non-finite values or credentials).
+    details = [{"loc": error["loc"], "type": error["type"], "msg": redact_text(error["msg"])} for error in exc.errors()]
+    return JSONResponse(status_code=422, content={"detail": details})
+
+
+@app.exception_handler(EvidenceError)
+async def evidence_error(request, exc):
+    return JSONResponse(status_code=exc.status_code, content={"detail": {"code": exc.code}})
+
+
+@app.exception_handler(TimeoutError)
+@app.exception_handler(ConnectionError)
+@app.exception_handler(RuntimeError)
+async def provider_unavailable(request, exc):
+    diagnostic = safe_error(exc)
+    logger.error("Request failed: %s", diagnostic)
+    return JSONResponse(status_code=503, content={"detail": {"code": diagnostic.split(":", 1)[0]}})
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:5173"],
@@ -37,7 +86,7 @@ def agent_credentials(agent_id: str):
     try:
         return services.agent_credentials(agent_id)
     except LookupError as exc:
-        raise HTTPException(status_code=404, detail=str(exc)) from exc
+        raise HTTPException(status_code=404, detail=safe_error(exc)) from None
 
 
 @app.get("/api/trace")
@@ -92,7 +141,7 @@ def audit_batch(batch_id: str):
     try:
         return services.audit_batch(batch_id)
     except LookupError as exc:
-        raise HTTPException(status_code=404, detail=str(exc)) from exc
+        raise HTTPException(status_code=404, detail=safe_error(exc)) from None
 
 
 @app.get("/api/audit/actions/{action_id}")
@@ -100,7 +149,7 @@ def audit_action(action_id: str):
     try:
         return services.audit_action(action_id)
     except LookupError as exc:
-        raise HTTPException(status_code=404, detail=str(exc)) from exc
+        raise HTTPException(status_code=404, detail=safe_error(exc)) from None
 
 
 @app.get("/api/audit/actions/{action_id}/proof")
@@ -108,7 +157,7 @@ def audit_action_proof(action_id: str):
     try:
         return services.audit_action_proof(action_id)
     except LookupError as exc:
-        raise HTTPException(status_code=404, detail=str(exc)) from exc
+        raise HTTPException(status_code=404, detail=safe_error(exc)) from None
 
 
 @app.post("/api/audit/actions/{action_id}/verify")
@@ -118,12 +167,12 @@ def verify_audit_action(action_id: str, request: AuditVerifyInput | None = None)
             action_id, request.record_override if request is not None else None,
         )
     except LookupError as exc:
-        raise HTTPException(status_code=404, detail=str(exc)) from exc
+        raise HTTPException(status_code=404, detail=safe_error(exc)) from None
 
 
 @app.post("/api/governance/evaluate")
-def evaluate(action: ActionInput):
-    return services.evaluate(action)
+def evaluate(action: ActionInput, x_chainguard_authentication: str | None = Header(default=None)):
+    return services.evaluate(action, authentication_header(x_chainguard_authentication))
 
 
 @app.post("/api/scenarios/{scenario_name}")
@@ -151,10 +200,12 @@ async def governance_stream(websocket: WebSocket):
                     result = await asyncio.to_thread(services.run_scenario, request.scenario)
                     verdict = result["verdict"]
                 else:
-                    verdict = await asyncio.to_thread(services.evaluate, request.action)
+                    verdict = await asyncio.to_thread(services.evaluate, request.action, request.authentication)
                 for event in services.stage_events(verdict):
-                    await websocket.send_json(event)
+                    await websocket.send_json(public_data(event))
+            except WebSocketDisconnect:
+                return
             except Exception as exc:
-                await websocket.send_json({"event": "ERROR", "detail": str(exc)})
+                await websocket.send_json({"event": "ERROR", "detail": safe_error(exc)})
     except WebSocketDisconnect:
         return

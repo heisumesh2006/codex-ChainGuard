@@ -1,0 +1,50 @@
+--- original concurrency clock
++++ final controlled clock
+@@ -3 +3 @@
+-from datetime import datetime, timezone
++from datetime import datetime, timedelta, timezone
+@@ -21,0 +22,11 @@
++SIZE_TEST_TIME = datetime(2026, 10, 1, tzinfo=timezone.utc)
++
++
++class SizeThresholdBatchManager(BatchManager):
++    """Keep size-race tests independent of scheduling/host clock pauses.
++
++    All production persistence/locking/sealing code runs unchanged. Age-policy
++    boundaries are exercised separately below using explicit advancing times.
++    """
++    def seal_due_batches(self, now=None):
++        return super().seal_due_batches(now=SIZE_TEST_TIME if now is None else now)
+@@ -27 +38 @@
+-    return store, BatchManager(store, folder / 'batches.json', batch_size=size, lock_timeout=timeout)
++    return store, SizeThresholdBatchManager(store, folder / 'batches.json', batch_size=size, lock_timeout=timeout)
+@@ -83,0 +95,2 @@
++        elif mode == 'seal_age':
++            result['sealed'] = len(manager.seal_due_batches(now=SIZE_TEST_TIME + timedelta(seconds=31)))
+@@ -406,0 +420,23 @@
++    def test_concurrent_age_sealing_is_idempotent(self):
++        for i in range(2): self.store.append(record(i))
++        self.manager.seal_due_batches(now=SIZE_TEST_TIME)
++        results = self.run_workers('seal_age')
++        self.assertEqual(sum(result['sealed'] for result in results), 1)
++        state = self.integrity(2, 2)
++        self.assertEqual([batch['log_count'] for batch in state['batches']], [2])
++
++    def test_age_partial_batch_preserves_below_threshold_tail_until_due(self):
++        self.manager = BatchManager(self.store, self.manager.metadata_path, batch_size=5, max_age_seconds=30)
++        for i in range(2): self.store.append(record(i))
++        self.manager.seal_due_batches(now=SIZE_TEST_TIME)
++        self.manager.seal_due_batches(now=SIZE_TEST_TIME + timedelta(seconds=31))
++        for i in range(2, 10): self.store.append(record(i))
++        self.manager.seal_due_batches(now=SIZE_TEST_TIME + timedelta(seconds=31))
++        state = self.integrity(10, 7)
++        self.assertEqual([b['log_count'] for b in state['batches']], [2, 5])
++        self.assertEqual([r['action_id'] for r in self.manager.pending_records()],
++                         [record(i)['action_id'] for i in range(7, 10)])
++        self.manager.seal_due_batches(now=SIZE_TEST_TIME + timedelta(seconds=62))
++        state = self.integrity(10, 10)
++        self.assertEqual([b['log_count'] for b in state['batches']], [2, 5, 3])
++
+@@ -412 +448 @@
+-        result={'seconds':time.perf_counter()-start,'workers':10,'distinct_attempts':500,'successful_actions':500,'deliberate_duplicate_rejections':10,'persisted_records':500,'persisted_duplicates':0,'lost_successful_actions':0,'batches':len(state['batches']),'mapped_actions':len(state['action_index']),'lock_timeouts':sum(r['timeouts'] for r in results),'worker_results':results,'jsonl_valid':True,'mapping_valid':True,'deterministic_merkle_from_persisted_order':True}
++        result={'seconds':time.perf_counter()-start,'workers':10,'distinct_attempts':500,'successful_actions':500,'deliberate_duplicate_rejections':10,'persisted_records':500,'persisted_duplicates':0,'lost_successful_actions':0,'batches':len(state['batches']),'mapped_actions':len(state['action_index']),'lock_timeouts':sum(r['timeouts'] for r in results),'worker_results':results,'jsonl_valid':True,'mapping_valid':True,'deterministic_merkle_from_persisted_order':True,'size_threshold_clock_controlled':True}

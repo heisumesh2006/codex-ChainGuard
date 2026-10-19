@@ -1,0 +1,18 @@
+{
+  "changed_functions": [
+    "delegate_permission"
+  ],
+  "timed_functions_unchanged": true,
+  "setup_root_grant_unchanged": true,
+  "experiment1_calls_delegate_permission": false,
+  "measured_agents_sha256": "32a31fe4242896c9d5a40209009e688fb26cfb3f8206bce781c2425f9df81306",
+  "final_agents_sha256": "d4991b9ef4e52d360f437fd902c3f484d184a1e700c1ab120a90213089af10f7",
+  "validation": "AST of all other top-level definitions identical; source diff retained",
+  "reason": "Fix expired authority incorrectly contributing to delegation cycle discovery; this function is not called by Experiment1",
+  "additional_test_source_change": {
+    "path": "backend/core/authorization/tests/test_security.py",
+    "measured_sha256": "c9c9e42ec7f1d2186fc5e8a1e25294ab642b69f71c1344d5085f3eef3fe18c78",
+    "final_sha256": "64e6bd09445bce1838094b2311acb2ce457a522017a44c3f7b8a0b435b61a461",
+    "reason": "Added two permanent regressions and their helper; tests are not imported or executed by the audit benchmark"
+  }
+}

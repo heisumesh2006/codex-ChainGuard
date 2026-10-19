@@ -64,7 +64,7 @@ def verify_proof(record: dict, proof: dict) -> bool:
     """Check a transaction, emitted event and contract storage on the supplied chain.
 
     This intentionally reads neither Module 1 objects nor Module 2's local index.
-    The caller supplies a reachable RPC endpoint in the proof.
+    Network and registry provenance must match the selected deployment.
     """
     try:
         if not isinstance(record, dict) or not isinstance(proof, dict):
@@ -85,7 +85,11 @@ def verify_proof(record: dict, proof: dict) -> bool:
         if prepared["record_id"] != proof["source_record_id"]:
             return False
 
-        web3 = chain.connect(proof.get("rpc_url") or chain.RPC_URL)
+        from .evidence import read_object, validate_deployment, validate_provenance
+        deployment = read_object(chain.DEPLOYMENT_PATH)
+        validate_deployment(deployment, chain.NETWORK_PROFILE)
+        validate_provenance(proof, deployment)
+        web3 = chain.connect(chain.RPC_URL)
         if web3.eth.chain_id != proof["chain_id"]:
             return False
         address = Web3.to_checksum_address(proof["contract_address"])

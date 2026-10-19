@@ -7,11 +7,12 @@ import json
 from pathlib import Path
 import subprocess
 import sys
+import tempfile
 import time
 from unittest.mock import patch
-from uuid import uuid4
 
 from backend.core.blockchain import chain
+from backend.core.authorization.operator_signing import operator_credentials
 from backend.core.revocation import revocation as revocation_module
 from backend.core.revocation.audit import calculate_revocation_completeness, check_post_revocation_activity
 from backend.core.revocation.revocation import _bundle_context, _record_from_status, get_revocation_status, revoke, verify_revocation_proof
@@ -19,20 +20,29 @@ from backend.core.revocation.revocation import _bundle_context, _record_from_sta
 DATA_DIR = Path(__file__).resolve().parent / "data"
 
 
+def _operator_revoke(agent_id, permissions, reason):
+    """The CLI explicitly proves the registered root's signing identity."""
+    with _bundle_context():
+        credentials = operator_credentials("ROOT_AUTHORIZER", "decommission", {
+            "agent_id": agent_id, "reason": reason,
+        })
+    return revoke(agent_id, permissions, "ROOT_AUTHORIZER", reason, **credentials)
+
+
 @contextmanager
 def isolated_registry():
     """Fresh contract and files; restore production/demo configuration on exit."""
+    if chain.NETWORK_PROFILE != "hardhat":
+        raise RuntimeError("Isolated revocation demonstration requires local Hardhat")
     from backend.core.authorization import agents
     from backend.core.authorization import logger
 
-    suffix = uuid4().hex
-    DATA_DIR.mkdir(parents=True, exist_ok=True)
-    paths = {
-        "STATE_PATH": DATA_DIR / f".isolated-state-{suffix}.json",
-        "DEPLOYMENT_PATH": DATA_DIR / f".isolated-deployment-{suffix}.json",
-        "CREDENTIALS_PATH": DATA_DIR / f".isolated-credentials-{suffix}.json",
-    }
-    try:
+    with tempfile.TemporaryDirectory(prefix="chainguard-revocation-") as temporary:
+        folder = Path(temporary)
+        paths = {name: folder / filename for name, filename in (
+            ("STATE_PATH", "state.json"), ("DEPLOYMENT_PATH", "deployment.json"),
+            ("CREDENTIALS_PATH", "credentials.json"),
+        )}
         with ExitStack() as stack:
             for name, path in paths.items():
                 stack.enter_context(patch.object(chain, name, path))
@@ -43,15 +53,14 @@ def isolated_registry():
             ):
                 stack.enter_context(patch.object(revocation_module, name, path))
             stack.enter_context(patch.object(agents, "AGENTS", deepcopy(agents.AGENTS)))
+            stack.enter_context(patch.object(agents, "ROOT_AUTHORITY_RECORD", deepcopy(agents.ROOT_AUTHORITY_RECORD)))
+            stack.enter_context(patch.object(agents, "DELEGATION_LEDGER", deepcopy(agents.DELEGATION_LEDGER)))
+            stack.enter_context(patch.object(agents, "_policy_verifier", agents._policy_verifier))
             stack.enter_context(patch.object(logger, "ACTION_LOG", []))
             chain.deploy_registry()
             chain.register_identities()
             chain.issue_credential("Agent_D", "VERIFY_ORDER", "ROOT_AUTHORIZER", False)
             yield
-    finally:
-        for path in paths.values():
-            path.unlink(missing_ok=True)
-            path.with_suffix(path.suffix + ".tmp").unlink(missing_ok=True)
 
 
 def _cold_status_check():
@@ -118,7 +127,7 @@ def run_demo():
 
     print("\n=== DOUBLE REVOCATION TEST ===")
     before = c["chain_proof"]
-    existing = revoke("Agent_C", "ALL", "ROOT_AUTHORIZER", "idempotency check")
+    existing = _operator_revoke("Agent_C", "ALL", "idempotency check")
     after = get_revocation_status("Agent_C")["chain_proof"]
     assert existing["proof_verified"] and before["transaction_hash"] == after["transaction_hash"]
     assert before["block_number"] == after["block_number"] and before["record_id"] == after["record_id"]
@@ -145,7 +154,7 @@ def run_demo():
 
     with isolated_registry():
         started = time.perf_counter()
-        fresh = revoke("Agent_D", "ALL", "ROOT_AUTHORIZER", "isolated latency measurement")
+        fresh = _operator_revoke("Agent_D", "ALL", "isolated latency measurement")
         fresh_status = get_revocation_status("Agent_D")
         elapsed_ms = (time.perf_counter() - started) * 1000
         assert fresh["proof_verified"] and verify_revocation_proof("Agent_D", fresh_status["chain_proof"])

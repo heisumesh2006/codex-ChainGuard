@@ -4,7 +4,7 @@ import {
   Copy, ExternalLink, Fingerprint, Layers3, RefreshCw, ScanSearch,
   ShieldCheck, ShieldX, Timer, XCircle,
 } from 'lucide-react'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import StatusPill from '../components/StatusPill'
 import Skeleton from '../components/Skeleton'
 import { api } from '../services/api'
@@ -15,15 +15,18 @@ const seconds = (value) => value == null ? '—' : `${Number(value).toFixed(1)} 
 
 function CopyValue({ value, className = '' }) {
   const [copied, setCopied] = useState(false)
+  const [copyError, setCopyError] = useState(false)
   if (!value) return <span className={`audit-muted ${className}`}>—</span>
   const copy = async (event) => {
     event.stopPropagation()
+    setCopyError(false)
     try {
       await navigator.clipboard.writeText(value)
       setCopied(true)
       window.setTimeout(() => setCopied(false), 1200)
     } catch {
       setCopied(false)
+      setCopyError(true)
     }
   }
   return <span className={`audit-copy-value ${className}`} title={value}>
@@ -31,6 +34,7 @@ function CopyValue({ value, className = '' }) {
     <button onClick={copy} aria-label={`Copy ${value}`} title={copied ? 'Copied' : 'Copy'}>
       {copied ? <Check size={13} /> : <Copy size={13} />}
     </button>
+    {copyError && <span role="status" style={{ display: 'block', maxWidth: 260, whiteSpace: 'normal', overflowWrap: 'anywhere' }}>Clipboard unavailable. Copy this full value manually: {value}</span>}
   </span>
 }
 
@@ -41,6 +45,8 @@ function resultTone(result) {
 }
 
 export default function AuditExplorer() {
+  const loadingRequest = useRef(false)
+  const proofRequest = useRef(0)
   const [status, setStatus] = useState(null)
   const [logs, setLogs] = useState([])
   const [batches, setBatches] = useState([])
@@ -53,6 +59,8 @@ export default function AuditExplorer() {
   const [error, setError] = useState(null)
 
   const load = useCallback(async (quiet = false) => {
+    if (loadingRequest.current) return
+    loadingRequest.current = true
     if (quiet) setRefreshing(true)
     else setLoading(true)
     try {
@@ -70,6 +78,7 @@ export default function AuditExplorer() {
     } catch (cause) {
       setError(cause.message || 'Audit API is unavailable')
     } finally {
+      loadingRequest.current = false
       setLoading(false)
       setRefreshing(false)
     }
@@ -82,18 +91,21 @@ export default function AuditExplorer() {
   }, [load])
 
   const selectAction = async (actionId) => {
+    const requestId = ++proofRequest.current
     setSelectedAction(actionId)
     setProof(null)
     if (!actionId) return
     try {
-      setProof(await api.auditActionProof(actionId))
+      const nextProof = await api.auditActionProof(actionId)
+      if (requestId === proofRequest.current) setProof(nextProof)
     } catch (cause) {
-      setError(cause.message)
+      if (requestId === proofRequest.current) setError(cause.message)
     }
   }
 
   const verify = async (tamper = false) => {
     if (!selectedAction) return
+    const requestId = ++proofRequest.current
     setVerifying(true)
     try {
       let override
@@ -101,10 +113,10 @@ export default function AuditExplorer() {
         const result = await api.auditAction(selectedAction)
         override = { ...result.record, target: `${result.record.target || 'audit-record'} [tampered demo copy]` }
       }
-      setProof(await api.verifyAuditAction(selectedAction, override))
-      setError(null)
+      const nextProof = await api.verifyAuditAction(selectedAction, override)
+      if (requestId === proofRequest.current) { setProof(nextProof); setError(null) }
     } catch (cause) {
-      setError(cause.message)
+      if (requestId === proofRequest.current) setError(cause.message)
     } finally {
       setVerifying(false)
     }
@@ -121,6 +133,8 @@ export default function AuditExplorer() {
 
   const explorer = status?.explorer_url
   const isSepolia = status?.chain_id === 11155111
+  const isHardhat = status?.chain_id === 31337
+  const networkLabel = status ? (isSepolia ? 'PUBLIC TEST NETWORK' : isHardhat ? 'LOCAL DEVELOPMENT NETWORK' : 'UNKNOWN NETWORK') : error ? 'NETWORK UNAVAILABLE' : 'CHECKING NETWORK'
   const pendingPercent = useMemo(() => status?.batch_size
     ? Math.min(100, (status.pending_log_count / status.batch_size) * 100) : 0, [status])
   const latestLogs = logs
@@ -137,21 +151,21 @@ export default function AuditExplorer() {
     {error && <div className="error-banner audit-error"><AlertTriangle size={17} /><span>{error}</span><button onClick={() => load(true)}>Retry</button></div>}
 
     <section className="audit-network panel">
-      <div className="audit-network__identity"><span className="audit-network__icon"><Blocks size={21} /></span><div><span className="section-heading__overline">{isSepolia ? 'PUBLIC TEST NETWORK' : 'LOCAL DEVELOPMENT NETWORK'}</span><h2>{status?.network_name || status?.network || 'Loading network'}</h2></div><StatusPill label={!status ? 'CHECKING' : status.rpc_connected ? 'RPC CONNECTED' : (isSepolia ? 'SEPOLIA RPC OFFLINE' : 'RPC OFFLINE')} tone={!status ? 'cyan' : status.rpc_connected ? 'emerald' : 'red'} pulse={Boolean(status?.rpc_connected)} /></div>
+      <div className="audit-network__identity"><span className="audit-network__icon"><Blocks size={21} /></span><div><span className="section-heading__overline">{networkLabel}</span><h2>{status?.network_name || status?.network || (error ? 'Network unavailable' : 'Loading network')}</h2></div><StatusPill label={!status ? (error ? 'UNAVAILABLE' : 'CHECKING') : status.rpc_connected ? 'RPC CONNECTED' : (isSepolia ? 'SEPOLIA RPC OFFLINE' : 'RPC OFFLINE')} tone={!status ? 'cyan' : status.rpc_connected ? 'emerald' : 'red'} pulse={Boolean(status?.rpc_connected)} /></div>
       <div className="audit-network__fields">
         <div><span>Chain ID</span><strong>{status?.chain_id ?? '—'}</strong></div>
         <div><span>Latest block</span><strong>{status?.latest_block ?? status?.current_block ?? '—'}</strong></div>
         <div className="audit-network__contract"><span>Registry contract</span><CopyValue value={status?.contract_address} /></div>
       </div>
-      {!status?.contract_available && <div className={`audit-network__alert ${status?.rpc_connected ? 'audit-network__alert--contract' : ''}`} role="status">{status?.rpc_connected ? 'CONTRACT NOT DEPLOYED ON CURRENT NETWORK' : (isSepolia ? 'SEPOLIA RPC OFFLINE' : 'BLOCKCHAIN RPC OFFLINE')}</div>}
-      <div className="audit-network__note">{isSepolia ? 'Sepolia is a public Ethereum test network using test ETH, not Ethereum Mainnet. Audit roots are committed by ROOT_AUTHORIZER.' : 'Hardhat Local · Chain 31337 · Merkle roots are committed by ROOT_AUTHORIZER. No public explorer is configured.'}</div>
+      {status && !status.contract_available && <div className={`audit-network__alert ${status?.rpc_connected ? 'audit-network__alert--contract' : ''}`} role="status">{status?.rpc_connected ? 'CONTRACT NOT DEPLOYED ON CURRENT NETWORK' : (isSepolia ? 'SEPOLIA RPC OFFLINE' : 'BLOCKCHAIN RPC OFFLINE')}</div>}
+      <div className="audit-network__note">{!status ? (error ? 'Network metadata could not be loaded. Retry to check the configured network.' : 'Checking the configured network and registry connection?') : isSepolia ? 'Sepolia is a public Ethereum test network using test ETH, not Ethereum Mainnet. Audit roots are committed by ROOT_AUTHORIZER.' : 'Hardhat Local · Chain 31337 · Merkle roots are committed by ROOT_AUTHORIZER. No public explorer is configured.'}</div>
       {status?.explorer?.contract_url && <a className="audit-explorer-link audit-contract-link" href={status.explorer.contract_url} target="_blank" rel="noopener noreferrer">View Contract on Etherscan <ExternalLink size={14} /></a>}
     </section>
 
     <section className="audit-kpis" aria-label="Audit queue metrics">
       <motion.article className="panel audit-kpi" whileHover={{ y: -2 }}><span className="audit-kpi__icon audit-kpi__icon--cyan"><Layers3 size={18} /></span><span className="audit-kpi__label">PENDING LOGS</span><strong>{loading ? '—' : status?.pending_log_count ?? '—'}</strong><small>off-chain, not yet assigned</small></motion.article>
       <motion.article className="panel audit-kpi" whileHover={{ y: -2 }}><span className="audit-kpi__icon"><ScanSearch size={18} /></span><span className="audit-kpi__label">BATCH THRESHOLD</span><strong>{loading ? '—' : `${status?.batch_size ?? '—'} logs`}</strong><div className="audit-progress"><span style={{ width: `${pendingPercent}%` }} /></div><small>{status?.batch_max_age_seconds ?? '—'} s maximum pending age</small></motion.article>
-      <motion.article className="panel audit-kpi" whileHover={{ y: -2 }}><span className="audit-kpi__icon audit-kpi__icon--amber"><Timer size={18} /></span><span className="audit-kpi__label">OLDEST PENDING AGE</span><strong>{loading ? '—' : seconds(status?.oldest_pending_age_seconds)}</strong><small>{status?.oldest_pending_action_id ? short(status.oldest_pending_action_id, 11, 5) : 'queue is clear'}</small></motion.article>
+      <motion.article className="panel audit-kpi" whileHover={{ y: -2 }}><span className="audit-kpi__icon audit-kpi__icon--amber"><Timer size={18} /></span><span className="audit-kpi__label">OLDEST PENDING AGE</span><strong>{loading ? '—' : seconds(status?.oldest_pending_age_seconds)}</strong><small>{status?.oldest_pending_action_id ? short(status.oldest_pending_action_id, 11, 5) : status ? 'queue is clear' : 'queue status unavailable'}</small></motion.article>
       <motion.article className="panel audit-kpi" whileHover={{ y: -2 }}><span className="audit-kpi__icon audit-kpi__icon--green"><ShieldCheck size={18} /></span><span className="audit-kpi__label">ANCHORED BATCHES</span><strong>{loading ? '—' : status?.anchored_batch_count ?? '—'}</strong><small>verified registry commitments</small></motion.article>
     </section>
 
@@ -173,7 +187,7 @@ export default function AuditExplorer() {
           <div className="audit-open-row"><span>Latest action</span><code>{short(status.current_batch.last_action_id, 16, 7)}</code></div>
           <div className="audit-open-row"><span>Queue age</span><strong>{seconds(status.oldest_pending_age_seconds)}</strong></div>
           <p className="audit-open-note">Pending records remain off-chain until the size or age trigger seals this batch.</p>
-        </> : <div className="audit-empty audit-empty--compact"><Check size={22} /><strong>No open batch</strong><span>All logged actions are currently assigned to batches.</span></div>}
+        </> : !status ? <div className="audit-empty audit-empty--compact"><Clock3 size={22} /><strong>{error ? 'Queue unavailable' : 'Checking queue'}</strong><span>Waiting for audit status.</span></div> : <div className="audit-empty audit-empty--compact"><Check size={22} /><strong>No open batch</strong><span>All logged actions are currently assigned to batches.</span></div>}
       </section>
     </div>
 

@@ -1,0 +1,31 @@
+flowchart LR
+    root["Genuine Root Authorizer key"]
+    ga["Grant gA: Agent A, scope P"]
+    gb["Grant gB: A to B, parent gA"]
+    gc["Grant gC: B to C, parent gB"]
+    gd["Grant gD: C to D, parent gC"]
+    independent["Independent root grant gC2: Agent C, scope P"]
+    newchild["New explicit C to D grant gD2, parent gC2"]
+    revoke["Authenticated root decommissions B or extension revokes gB"]
+    invalid["gB and paths gC / gD invalid through that ancestry"]
+    valid["Independent gC2 remains valid; gD2 valid if newly authenticated and otherwise permitted"]
+    history["Old grants retained; a later root grant does not resurrect old child IDs"]
+    root -->|signed issuance| ga
+    ga -->|A signature binds scope, B and gA| gb
+    gb -->|B signature binds scope, C and gB| gc
+    gc -->|C signature binds scope, D and gC| gd
+    root -->|separate signed issuance| independent
+    independent -->|separate authenticated delegation| newchild
+    revoke --> invalid
+    gb -. invalidation propagates .-> invalid
+    gc -. invalidation propagates .-> invalid
+    gd -. invalidation propagates .-> invalid
+    independent --> valid
+    newchild --> valid
+    invalid --> history
+    subgraph evidence["Two distinct evidence layers"]
+        offchain["Python: verify retained signatures and current local status"]
+        onchain["Local-only GrantAuthority: root-attested immutable parents, wasValidAt and isValidNow"]
+    end
+    history --> offchain
+    history -. for previously anchored grants .-> onchain

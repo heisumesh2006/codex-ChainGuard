@@ -1,5 +1,5 @@
 import { lazy } from 'react'
-import { BrowserRouter, Route, Routes } from 'react-router-dom'
+import { BrowserRouter, Link, Route, Routes } from 'react-router-dom'
 import AppLayout from './layouts/AppLayout'
 
 const Dashboard = lazy(() => import('./pages/Dashboard'))
@@ -26,6 +26,11 @@ export default function App() {
           <Route path="revocation" element={<Revocation />} />
           <Route path="evaluation" element={<Evaluation />} />
           <Route path="blockchain-audit" element={<AuditExplorer />} />
+          <Route path="*" element={<section className="panel" style={{ padding: 24 }}>
+            <h1>Page not found</h1>
+            <p>The requested page does not exist. Use the navigation or return to the dashboard.</p>
+            <Link className="button-primary" to="/">Return to dashboard</Link>
+          </section>} />
         </Route>
       </Routes>
     </BrowserRouter>

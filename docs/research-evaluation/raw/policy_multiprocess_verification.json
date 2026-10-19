@@ -1,0 +1,10 @@
+{
+  "tests": 2,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0,
+  "elapsed_seconds": 23.29731539997738,
+  "independent_processes_per_case": 2,
+  "temporary_storage_only": true,
+  "public_transactions": 0
+}

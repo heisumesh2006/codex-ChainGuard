@@ -13,6 +13,7 @@ from backend.core.blockchain import chain
 from backend.core.blockchain.audit_log import AuditLogStore
 from backend.core.blockchain.batch_manager import BatchManager
 from backend.core.revocation import revocation as module5_revocation
+from backend.testing.signed_requests import run_signed_pipeline
 from backend.core.governance import pipeline
 from backend.core.governance.main import load_scenarios
 from backend.core.governance.report import build_report, write_reports
@@ -62,7 +63,7 @@ class PipelineTests(unittest.TestCase):
             ("POST_DECOMMISSION_ACTIVITY", "AUTHORITY_REVOKED_AT_TIME_OF_ACTION"),
         ):
             with self.subTest(category=category):
-                result = pipeline.run_governance_pipeline(self._action(category))
+                result = run_signed_pipeline(self._action(category))
                 self.assertIsInstance(result, pipeline.GovernanceVerdict)
                 self.assertEqual(result.governance_decision, "BLOCK")
                 self.assertEqual(result.trace_context_verdict, expected)
@@ -74,7 +75,7 @@ class PipelineTests(unittest.TestCase):
     def test_authorized_scope_creep_is_review_not_block(self):
         actions = [action for name, expected, action in self.scenarios if name == "SCOPE_CREEP"]
         self.assertEqual(len(actions), 5)
-        result = pipeline.run_governance_pipeline(actions[0])
+        result = run_signed_pipeline(actions[0])
         self.assertTrue(result.authorized)
         self.assertEqual(result.trace_context_verdict, "VALID_CHAIN")
         self.assertTrue(result.chain_verified)
@@ -83,7 +84,7 @@ class PipelineTests(unittest.TestCase):
     def test_clean_action_not_hard_blocked_by_ml(self):
         actions = [action for name, expected, action in self.scenarios if name == "NORMAL"]
         self.assertEqual(len(actions), 5)
-        result = pipeline.run_governance_pipeline(actions[0])
+        result = run_signed_pipeline(actions[0])
         self.assertTrue(result.authorized)
         self.assertIn(result.governance_decision, ("ALLOW", "REVIEW"))
         self.assertEqual(result.trace_context_verdict, "VALID_CHAIN")
@@ -101,7 +102,7 @@ class PipelineTests(unittest.TestCase):
         with patch.object(pipeline, "trace_action", wraps=original) as tracer_call:
             with patch.object(pipeline, "score_action", side_effect=score_wrapper):
                 with patch("backend.core.drift_detection.detector.trace_action", side_effect=AssertionError("redundant trace")):
-                    result = pipeline.run_governance_pipeline(action)
+                    result = run_signed_pipeline(action)
         self.assertEqual(tracer_call.call_count, 1)
         self.assertEqual(len(seen), 1)
         self.assertEqual(seen[0]["verdict"], result.trace_context_verdict)
@@ -109,16 +110,16 @@ class PipelineTests(unittest.TestCase):
 
     def test_failed_proof_differs_from_unrooted_authority(self):
         action = self._action("SELF_ESCALATION")
-        ordinary = pipeline.run_governance_pipeline(action)
+        ordinary = run_signed_pipeline(action)
         self.assertEqual(ordinary.chain_check_status, "VERIFIED_NO_VALID_AUTHORITY")
         with patch.object(pipeline, "get_proof", side_effect=KeyError("simulated missing proof")):
-            failed = pipeline.run_governance_pipeline(action)
+            failed = run_signed_pipeline(action)
         self.assertEqual(failed.chain_check_status, "FAILED")
         self.assertFalse(failed.chain_verified)
         self.assertEqual(failed.governance_decision, "BLOCK")
 
     def test_root_has_no_fabricated_ml_score(self):
-        result = pipeline.run_governance_pipeline(self._action("ROOT_PERMISSION_GRANTED"))
+        result = run_signed_pipeline(self._action("ROOT_PERMISSION_GRANTED"))
         self.assertFalse(result.drift_applicable)
         self.assertFalse(result.drift_flagged)
         self.assertIsNone(result.drift_score)
@@ -135,7 +136,7 @@ class PipelineTests(unittest.TestCase):
         )
         appended = []
         for action, expected in examples:
-            result = pipeline.run_governance_pipeline(action)
+            result = run_signed_pipeline(action)
             self.assertEqual(result.governance_decision, expected)
             self.assertEqual(store.count(), before + len(appended) + 1)
             appended.append(store.list_records()[-1])
@@ -157,13 +158,13 @@ class PipelineTests(unittest.TestCase):
                 # reset model history so test order cannot change the outcome.
                 pipeline._runtime["model"] = joblib.load(pipeline.MODEL_PATH)
                 action = next(action for name, _, action in self.scenarios if name == category)
-                result = pipeline.run_governance_pipeline(action)
+                result = run_signed_pipeline(action)
                 self.assertEqual(result.governance_decision, expected)
 
     def test_governance_audit_batch_anchors_on_canonical_registry(self):
         action = self._action("NORMAL")
         for _ in range(5):
-            pipeline.run_governance_pipeline(action)
+            run_signed_pipeline(action)
         anchored = [batch for batch in pipeline.AUDIT_BATCH_MANAGER.list_batches()
                     if batch["status"] == "ANCHORED"]
         self.assertTrue(anchored)
@@ -174,9 +175,9 @@ class PipelineTests(unittest.TestCase):
 
     def test_replaying_same_source_action_gets_distinct_audit_instance_ids(self):
         action = self._action("SELF_ESCALATION")
-        first = pipeline.run_governance_pipeline(action)
+        first = run_signed_pipeline(action)
         first_audit = pipeline.AUDIT_LOG_STORE.list_records()[-1]
-        second = pipeline.run_governance_pipeline(action)
+        second = run_signed_pipeline(action)
         second_audit = pipeline.AUDIT_LOG_STORE.list_records()[-1]
         self.assertEqual(first.governance_decision, second.governance_decision)
         self.assertEqual(first_audit["metadata"]["source_action_id"], action["record_id"])
@@ -184,7 +185,7 @@ class PipelineTests(unittest.TestCase):
         self.assertNotEqual(first_audit["action_id"], second_audit["action_id"])
 
     def test_latency_fields_and_consistency(self):
-        result = pipeline.run_governance_pipeline(self._action("SELF_ESCALATION"))
+        result = run_signed_pipeline(self._action("SELF_ESCALATION"))
         self.assertEqual(set(result.step_latencies), {
             "authorization_ms", "trace_context_ms", "drift_scoring_ms",
             "revocation_check_ms", "chain_verification_ms", "verdict_assembly_ms",
@@ -204,8 +205,8 @@ class PipelineTests(unittest.TestCase):
         self.assertTrue(all(action["record_id"].startswith("synthetic:") for _, kind, action in self.scenarios if kind in ("NORMAL", "ANOMALY")))
 
     def test_reports_contain_real_metrics_and_both_formats(self):
-        attack = pipeline.run_governance_pipeline(self._action("SELF_ESCALATION"))
-        normal = pipeline.run_governance_pipeline(next(action for name, _, action in self.scenarios if name == "NORMAL"))
+        attack = run_signed_pipeline(self._action("SELF_ESCALATION"))
+        normal = run_signed_pipeline(next(action for name, _, action in self.scenarios if name == "NORMAL"))
         report = build_report([
             ("SELF_ESCALATION", "ATTACK", attack), ("NORMAL", "NORMAL", normal),
         ], {"integration_test": {"passed": True, "test_count": 1}})

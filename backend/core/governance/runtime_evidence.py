@@ -8,6 +8,7 @@ from collections import Counter
 import json
 from pathlib import Path
 from statistics import mean
+from backend.core.blockchain.evidence import read_object, validate_record, validate_inventory, validate_model_metrics, EvidenceError
 
 ROOT = Path(__file__).resolve().parents[3]
 ATTACK_CODES = {
@@ -24,8 +25,15 @@ def scenario_category(record: dict) -> tuple[str, str]:
     # guessing scope creep from the model's predicted flag or final decision.
     source_id = record["metadata"].get("source_action_id")
     data = ROOT / "backend/core/drift_detection/data"
-    logs = json.loads((data / "synthetic_logs.json").read_text(encoding="utf-8"))
-    labels = json.loads((data / "ground_truth.json").read_text(encoding="utf-8"))
+    try:
+        logs = json.loads((data / "synthetic_logs.json").read_text(encoding="utf-8"))
+        labels = json.loads((data / "ground_truth.json").read_text(encoding="utf-8"))
+        if not isinstance(logs, list) or not isinstance(labels, list) or len(logs) != len(labels):
+            raise ValueError()
+        if any(not isinstance(action, dict) for action in logs) or any(not isinstance(label, dict) or not isinstance(label.get("category"), str) or type(label.get("label")) not in (int, bool) for label in labels):
+            raise ValueError()
+    except (OSError, UnicodeError, ValueError):
+        raise EvidenceError("EVIDENCE_CORRUPT") from None
     for action, label in zip(logs, labels, strict=True):
         if action.get("record_id") == source_id:
             return label["category"], "ANOMALY" if label["label"] else "NORMAL"
@@ -47,6 +55,8 @@ def source_action(record: dict) -> dict:
 def saved_verdict(record: dict) -> dict:
     """Replay saved decisions without rescoring, appending records or anchoring."""
     from .report import STEPS
+
+    validate_record(record)
 
     metadata = record["metadata"]
     anomaly = record["anomaly_result"]
@@ -72,10 +82,14 @@ def build_persisted_report(data_dir: Path, manager) -> dict:
     from .report import STEPS, _scenario_row
     from types import SimpleNamespace
 
-    state = json.loads((data_dir / "ethereum_state.json").read_text(encoding="utf-8"))
-    deployment = json.loads((data_dir / "deployment.json").read_text(encoding="utf-8"))
-    records = manager.audit_store.list_records()
-    batches = manager.list_batches()
+    from backend.core.blockchain import chain
+    state = read_object(data_dir / "ethereum_state.json")
+    deployment = read_object(data_dir / "deployment.json")
+    with manager.snapshot() as (records, batch_state):
+        batches = batch_state["batches"]
+    validate_inventory(state, batches, deployment, chain.NETWORK_PROFILE)
+    if not set(batch_state["action_index"]).issubset(record["action_id"] for record in records):
+        raise EvidenceError("EVIDENCE_CORRUPT")
     rows = []
     for record in records:
         verdict = saved_verdict(record)
@@ -93,7 +107,8 @@ def build_persisted_report(data_dir: Path, manager) -> dict:
                if (record["revocation_status"] or {}).get("lookup_latency_ms") is not None]
     attacks = [row for row in rows if row["expected_class"] in ("ATTACK", "ANOMALY")]
     counts = Counter(row["expected_class"] for row in rows)
-    drift = json.loads((ROOT / "backend/core/drift_detection/data/metrics.json").read_text(encoding="utf-8"))
+    drift = read_object(ROOT / "backend/core/drift_detection/data/metrics.json")
+    validate_model_metrics(drift)
     return {
         "evidence_source": "profile_persisted_audit_records",
         "metric_provenance": {
@@ -104,7 +119,7 @@ def build_persisted_report(data_dir: Path, manager) -> dict:
             "proofs": "Live verification is available through audit proof and scenario trace endpoints",
         },
         "system_configuration": {"agents": len(identities) - 1, "trust_root": "ROOT_AUTHORIZER",
-                                 "blockchain": "Ethereum Sepolia", "ml_model": "IsolationForest",
+                                 "blockchain": "Ethereum Sepolia" if deployment["chain_id"] == 11155111 else "Hardhat Local", "ml_model": "IsolationForest",
                                  "revocation_scope": "FULL_AGENT_ONLY"},
         "blockchain_deployment": {"contract_address": deployment["contract_address"], "chain_id": deployment["chain_id"]},
         "scenario_counts": {**dict(counts), "total": len(rows)}, "scenarios": rows,
@@ -131,8 +146,8 @@ def build_persisted_report(data_dir: Path, manager) -> dict:
                                "unavailable_steps": list(STEPS)},
         "overall_test_results": None,
         "known_limitations": ["Pipeline timings and trace benchmark accuracy were not persisted and are unavailable.",
-                              "Shared model metrics use synthetic held-out data, not Sepolia traffic.",
+                              "Shared model metrics use synthetic held-out data, not live network traffic.",
                               "Inventory anchoring counts use saved metadata; proof endpoints verify current Ethereum evidence.",
                               "Saved governance outcomes are preserved; current historical traces may add revocation context.",
-                              "Sepolia is a public testnet; these results do not establish production performance."],
+                              "Local Hardhat and public testnet demonstrations do not establish production performance."],
     }

@@ -1,0 +1,276 @@
+{
+  "completed_utc": "2026-10-17T17:53:04.407779+00:00",
+  "api_matrix": 29,
+  "merkle_checks": 83,
+  "governance_outcomes": [
+    "ALLOW",
+    "BLOCK",
+    "BLOCK",
+    "REVIEW",
+    "BLOCK"
+  ],
+  "original_proofs": [
+    "VERIFIED",
+    "VERIFIED",
+    "VERIFIED",
+    "VERIFIED",
+    "VERIFIED"
+  ],
+  "tampered_copies": [
+    "TAMPERED",
+    "TAMPERED",
+    "TAMPERED",
+    "TAMPERED",
+    "TAMPERED"
+  ],
+  "canonical_files_unchanged": true,
+  "canonical_sha256": {
+    "backend/core/governance/data/sepolia/audit_logs.jsonl": "27f02d83bb50fa0dfd7271bb9ad2618a443258fb7fa6709f1f39c67fbc4ae5fe",
+    "backend/core/governance/data/sepolia/batches.json": "0307dc8936ac3f4cf561788fba351fa9e53485f0af84446ed9f56c1effe49a0a",
+    "backend/core/governance/data/sepolia/credentials.json": "01803337369ab83f782ea7090ed786d99e123f8f1d7005ad314385cdf1dbc86c",
+    "backend/core/governance/data/sepolia/deployment.json": "1d030d67eb1cb112afc1295df15e928bfc328f59428fbc700a8e01a9eca387ff",
+    "backend/core/governance/data/sepolia/ethereum_state.json": "276142103465c0cf047e637e8036162234be90c5aa3f7c3a8397d4ba38c2b896",
+    "backend/core/blockchain/data/sepolia/credentials.json": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+    "backend/core/blockchain/data/sepolia/deployment.json": "1d030d67eb1cb112afc1295df15e928bfc328f59428fbc700a8e01a9eca387ff",
+    "backend/core/blockchain/data/sepolia/ethereum_state.json": "14878b35f5bc76473d95185fae0803a0d713883e72540d5020bd7d23bdc92e77"
+  },
+  "contract": "0x61c74D0525f4f5A1a7b20f2eA561e485E71dd243",
+  "batch_root": "0xee6028db0fb103cc0c5e1685e586b24d9213515a806aa9717f3ed0b54341006c",
+  "batch_transaction": "0xae52c353001ff8754625054d8873eeda0b74b1702af775da3e6a4cd4d33b75c2",
+  "batch_records": 5,
+  "public_transactions": 0,
+  "rpc_counts": {
+    "web3_clientVersion": 106,
+    "eth_chainId": 686,
+    "eth_getCode": 89,
+    "eth_call": 268,
+    "eth_getTransactionReceipt": 52,
+    "eth_getTransactionByHash": 50,
+    "eth_blockNumber": 5,
+    "eth_accounts": 16,
+    "eth_getBlockByNumber": 51,
+    "eth_getLogs": 2
+  },
+  "checks": [
+    {
+      "method": "GET",
+      "path": "/api/health",
+      "http": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/audit/status",
+      "http": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/audit/logs",
+      "http": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/audit/batches",
+      "http": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/audit/batches/batch:0xee6028db0fb103cc0c5e1685e586b24d9213515a806aa9717f3ed0b54341006c",
+      "http": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/audit/actions/audit:126e3b1a51264fc68d665ffdd2b2e80d",
+      "http": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/audit/actions/audit:126e3b1a51264fc68d665ffdd2b2e80d/proof",
+      "http": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/system/overview",
+      "http": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/agents",
+      "http": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/agents/Agent_B/credentials",
+      "http": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/trace?agent_id=Agent_C&permission=CREATE_AGENT",
+      "http": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/delegation-graph",
+      "http": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/metrics",
+      "http": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/revocation/Agent_C",
+      "http": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/final-report",
+      "http": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/audit/actions/invalid",
+      "http": 404
+    },
+    {
+      "method": "GET",
+      "path": "/api/audit/actions/invalid/proof",
+      "http": 404
+    },
+    {
+      "method": "GET",
+      "path": "/api/audit/batches/invalid",
+      "http": 404
+    },
+    {
+      "method": "GET",
+      "path": "/api/audit/logs?limit=0",
+      "http": 422
+    },
+    {
+      "method": "GET",
+      "path": "/api/trace/scenario/invalid",
+      "http": 404
+    },
+    {
+      "method": "GET",
+      "path": "/api/trace/scenario/normal",
+      "http": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/trace/scenario/self_escalation",
+      "http": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/trace/scenario/unauthorized_delegation",
+      "http": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/trace/scenario/scope_creep",
+      "http": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/trace/scenario/post_decommission",
+      "http": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/audit/actions/audit:126e3b1a51264fc68d665ffdd2b2e80d/verify",
+      "http": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/audit/actions/audit:126e3b1a51264fc68d665ffdd2b2e80d/verify",
+      "http": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/audit/actions/invalid/verify",
+      "http": 404
+    },
+    {
+      "method": "OPTIONS",
+      "path": "/api/health",
+      "http": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/scenarios/normal",
+      "http": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/scenarios/self_escalation",
+      "http": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/scenarios/unauthorized_delegation",
+      "http": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/scenarios/scope_creep",
+      "http": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/scenarios/post_decommission",
+      "http": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/audit/actions/audit:126e3b1a51264fc68d665ffdd2b2e80d/verify",
+      "http": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/audit/actions/audit:126e3b1a51264fc68d665ffdd2b2e80d/verify",
+      "http": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/audit/actions/audit:c71c4e1a1817441ba430349f4b6bdc1f/verify",
+      "http": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/audit/actions/audit:c71c4e1a1817441ba430349f4b6bdc1f/verify",
+      "http": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/audit/actions/audit:68a71bb68986480594858223f4db1002/verify",
+      "http": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/audit/actions/audit:68a71bb68986480594858223f4db1002/verify",
+      "http": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/audit/actions/audit:d1eb93fcc6b6452bb5a92b7bcd7bb728/verify",
+      "http": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/audit/actions/audit:d1eb93fcc6b6452bb5a92b7bcd7bb728/verify",
+      "http": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/audit/actions/audit:3c774ea620b84c139a5f3456c506671d/verify",
+      "http": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/audit/actions/audit:3c774ea620b84c139a5f3456c506671d/verify",
+      "http": 200
+    }
+  ]
+}

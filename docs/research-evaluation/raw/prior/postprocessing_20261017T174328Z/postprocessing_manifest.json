@@ -1,0 +1,31 @@
+{
+  "analysis_source_sha256": "11b6c454f1b5ed821d6b2170358b614838122d9fe72b150beb2b21a0b9a62bf2",
+  "numeric_aggregates_unchanged_after_layout_fix": true,
+  "layout_change": "Move security-matrix legend outside data bars; no calculation or raw data changes",
+  "inputs": {
+    "experiment1_manifest.json": "5f37038237b5c869ad9280056e3188239825f1625b1abb7a7b3be4692ac0c078",
+    "experiment2_manifest.json": "172088589d93d441a184024a0548d1b237e740d9449ea83c600c5a4690a890e8",
+    "experiment3_manifest.json": "fdf316c8af253b71900caab602ef70c9a3a92e5ed3a874b5fac2aa9f7430b3c9"
+  },
+  "figures_sha256": {
+    "experiment1_performance.pdf": "fe872a0d5742c1368ba5448f7e16d8d039ac64e7d96686ee844434c40cf3b834",
+    "experiment1_performance.png": "8f93d51d43251b6db33a1d606cf3f4869fe07756053f68e8514b5dc2f6e4f257",
+    "experiment1_performance.svg": "2d1c44b427991f53fa34a0c2bbd8f087817979e8fae0bc50e2bfd4a3fc042688",
+    "experiment1_tampering.pdf": "932f48bcaf075057e7d107b8fddd0eacc0edaf18c823de61ae42b58d846c7637",
+    "experiment1_tampering.png": "af6efbbf89f0f78dce0d73d7cbfdc04ccbe84c785479cd9e236d211766768da9",
+    "experiment1_tampering.svg": "aad0e4209a2c415e3e267e0625a3461ef3c6e9d51c341dc7e3b971cef61a81d0",
+    "experiment2_revocation.pdf": "1da6ae2f91a796f41f161c13230b8021488c721e04456f6d35f93c7a2e9c6609",
+    "experiment2_revocation.png": "f8c3b93b481d320f8a5908e76bceaf6573bf058057795fc93812bd018684d16f",
+    "experiment2_revocation.svg": "0eedc2fadb5914c8a528ece6b08ae01a39c3a7a5b7c3819aa456ba0ce77b5d5c",
+    "experiment3_security_matrix.pdf": "de29c7f00a1496ebea051c539368a28696bb062e8bb4b62ed2906fae9e0854d7",
+    "experiment3_security_matrix.png": "1776bdfa7a4826ec04ad298a110ccd481ef752bb534d41fc4df614f7f7fd20b0",
+    "experiment3_security_matrix.svg": "89185bf5d4dadea49cb59c2022f905ac9f7013828d413ce1d38c269fc444638a"
+  },
+  "aggregate_sha256": {
+    "docs\\research-evaluation\\raw\\aggregated_experiment1.csv": "bd6cba20f29ba3851b604dc87c448be3256320640fc1089f434088b76560caab",
+    "docs\\research-evaluation\\raw\\aggregated_experiment2.csv": "6786f02a3753a51126d2be5c17e0860ee4fcf09d0882b8beb2a7b2b1e293cf07",
+    "docs\\research-evaluation\\raw\\aggregated_experiment3.csv": "f6c6e6b65f28795fef0604e074461426260e98d452f445dec2544a71e88ded5d",
+    "docs\\research-evaluation\\raw\\aggregated_tampering.csv": "903a9e06f2443ea71daca0aca6a52f568dddf8040970751b994564fcabf91c8f",
+    "docs\\research-evaluation\\results_summary.json": "ebdf5e5d30a861b4bfcaffad6e8e4f09e34d0f15785ce13aaaf81114a35d9241"
+  }
+}

@@ -1,6 +1,7 @@
 """Sepolia profile safety checks; tests never connect to a public RPC."""
 
 import json
+from contextlib import nullcontext
 import os
 from pathlib import Path
 import subprocess
@@ -48,6 +49,7 @@ class NetworkConfigurationTests(unittest.TestCase):
             manager = Mock()
             manager.pending_summary.return_value = {"pending_log_count": 0}
             manager.list_batches.return_value = []
+            manager.snapshot.return_value = nullcontext(([], {"batches": []}))
             manager.batch_size = 5
             manager.max_age_seconds = 30
             with (

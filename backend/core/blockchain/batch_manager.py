@@ -1,18 +1,32 @@
 """Create and persist deterministic Merkle batches of off-chain audit records."""
 
 from dataclasses import asdict, dataclass
+from contextlib import contextmanager
+from copy import deepcopy
 from datetime import datetime, timedelta, timezone
 import json
 import os
 from pathlib import Path
-import threading
 from typing import Any
 
+from backend.core.blockchain.diagnostics import safe_error, safe_exception
+
 from web3 import Web3
+from web3.exceptions import MismatchedABI, LogTopicError
 
 from .audit_log import AuditLogStore, hash_record
 from .batch_verifier import generate_proof
 from .merkle import build_merkle_tree
+from .persistence import FileLock, atomic_write
+from .evidence import read_object, validate_batch_state, EvidenceError
+
+
+class AnchorSubmissionUncertain(RuntimeError):
+    """A previous owner may have submitted; do not automatically resubmit."""
+
+
+class BatchStateConflict(RuntimeError):
+    """A retained snapshot is stale; retry against newly loaded state."""
 
 
 DATA_DIR = Path(__file__).resolve().parent / "data"
@@ -71,23 +85,68 @@ def batch_key(batch_id: str) -> bytes:
     return Web3.keccak(text=batch_id)
 
 
-def _matching_batch_event(web3, contract, key: bytes, root: bytes):
+def _matching_batch_event(web3, contract, key: bytes, root: bytes, *, deployment=None, anchored_at=None, transaction_hash=None):
+    """Receipt-first recovery; fallback queries only the anchor timestamp's blocks."""
+    if transaction_hash:
+        receipt = web3.eth.get_transaction_receipt(transaction_hash)
+        matches = []
+        for log in receipt.logs:
+            if log["address"].lower() != contract.address.lower():
+                continue
+            try:
+                event = contract.events.AuditBatchAnchored().process_log(log)["args"]
+            except (ValueError, KeyError, MismatchedABI, LogTopicError):
+                continue
+            if event["batchId"] == key and event["merkleRoot"] == root:
+                matches.append(event)
+        if receipt.status != 1 or len(matches) != 1:
+            raise EvidenceError("RECOVERY_EVIDENCE_INVALID")
+        return receipt
     signature = "AuditBatchAnchored(bytes32,bytes32,uint64,uint64,uint64,address,uint64)"
-    logs = web3.eth.get_logs({
-        "fromBlock": 0,
-        "toBlock": "latest",
-        "address": contract.address,
-        "topics": [Web3.keccak(text=signature), key, root],
-    })
+    logs = _bounded_event_logs(web3, contract.address, [Web3.keccak(text=signature), key, root], deployment or {}, anchored_at)
     if len(logs) != 1:
-        raise RuntimeError(f"Expected one AuditBatchAnchored event; found {len(logs)}")
-    return web3.eth.get_transaction_receipt(logs[0].transactionHash)
+        raise EvidenceError("RECOVERY_EVIDENCE_INVALID")
+    return _matching_batch_event(web3, contract, key, root, transaction_hash=Web3.to_hex(logs[0].transactionHash))
+
+
+def _bounded_event_logs(web3, address, topics, deployment, anchored_at):
+    """Bound discovery to at most 256 blocks at the authenticated anchor time."""
+    start = deployment.get("block_number")
+    end = int(web3.eth.block_number)
+    if type(start) is not int or start < 0 or start > end or type(anchored_at) is not int:
+        raise EvidenceError("RECOVERY_EVIDENCE_UNAVAILABLE")
+    # Lower/upper timestamp bounds: at most 2*log2(chain height) read calls.
+    def bound(strict):
+        low, high = start, end + 1
+        while low < high:
+            mid = (low + high) // 2
+            timestamp = int(web3.eth.get_block(mid).timestamp)
+            if timestamp < anchored_at or strict and timestamp == anchored_at:
+                low = mid + 1
+            else:
+                high = mid
+        return low
+    first, last = bound(False), bound(True) - 1
+    if first > last or last - first + 1 > 256:
+        raise EvidenceError("RECOVERY_RANGE_UNAVAILABLE")
+    def query(low, high):
+        try:
+            return web3.eth.get_logs({"fromBlock": low, "toBlock": high, "address": address,
+                                     "topics": topics})
+        except Exception as exc:
+            # Provider limits differ; bisect a bounded range, never expand it.
+            if low == high or not any(term in safe_error(exc).lower() for term in ("range", "limit", "too many")):
+                raise EvidenceError("RPC_RECOVERY_UNAVAILABLE") from None
+            mid = (low + high) // 2
+            return query(low, mid) + query(mid + 1, high)
+    logs = []
+    for low in range(first, last + 1, 64):
+        logs.extend(query(low, min(last, low + 63)))
+    return logs
 
 
 class BatchManager:
     """Manage FIFO pending selection and immutable record-to-batch assignment."""
-
-    _lock = threading.RLock()
 
     def __init__(
         self,
@@ -95,9 +154,12 @@ class BatchManager:
         metadata_path: Path | str | None = None,
         batch_size: int | None = None,
         max_age_seconds: float | None = None,
+        lock_timeout: float = 10.0,
     ):
         self.audit_store = audit_store or AuditLogStore()
-        self.metadata_path = Path(metadata_path) if metadata_path is not None else BATCH_METADATA_PATH
+        self.metadata_path = (Path(metadata_path) if metadata_path is not None else BATCH_METADATA_PATH).resolve()
+        self._lock = FileLock(str(self.metadata_path) + ".lock", lock_timeout)
+        self.lock_timeout = lock_timeout
         self.batch_size = BATCH_SIZE if batch_size is None else batch_size
         self.max_age_seconds = BATCH_MAX_AGE_SECONDS if max_age_seconds is None else max_age_seconds
         if not isinstance(self.batch_size, int) or self.batch_size < 1:
@@ -106,28 +168,42 @@ class BatchManager:
             raise ValueError("max_age_seconds must be greater than zero")
 
     def _read_state(self) -> dict[str, Any]:
+        with self._lock:
+            return self._read_state_unlocked()
+
+    def _read_state_unlocked(self) -> dict[str, Any]:
         if not self.metadata_path.exists():
             return {"schema_version": BATCH_SCHEMA_VERSION, "batches": [], "action_index": {}, "pending_since": {}}
-        try:
-            with self.metadata_path.open("r", encoding="utf-8") as handle:
-                state = json.load(handle)
-        except (OSError, json.JSONDecodeError) as exc:
-            raise ValueError(f"Could not read batch metadata: {self.metadata_path}") from exc
-        if (not isinstance(state, dict) or not isinstance(state.get("batches"), list)
-                or not isinstance(state.get("action_index"), dict)):
-            raise ValueError("Batch metadata has an invalid shape")
+        state = read_object(self.metadata_path)
+        validate_batch_state(state)
         state.setdefault("pending_since", {})
         return state
 
     def _write_state(self, state: dict[str, Any]) -> None:
-        self.metadata_path.parent.mkdir(parents=True, exist_ok=True)
-        temporary = self.metadata_path.with_suffix(self.metadata_path.suffix + ".tmp")
-        with temporary.open("w", encoding="utf-8", newline="\n") as handle:
-            json.dump(state, handle, sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False)
-            handle.write("\n")
-            handle.flush()
-            os.fsync(handle.fileno())
-        os.replace(temporary, self.metadata_path)
+        with self._lock:
+            validate_batch_state(state)
+            current = self._read_state_unlocked()
+            revision = current.get("revision", 0)
+            if state.get("revision", 0) != revision:
+                raise BatchStateConflict("BATCH_STATE_CONFLICT: reload before retrying")
+            updated = {**state, "revision": revision + 1}
+            encoded = json.dumps(updated, sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False).encode("utf-8")
+            atomic_write(self.metadata_path, encoded + b"\n")
+            state["revision"] = revision + 1
+
+    @contextmanager
+    def state_transaction(self):
+        """Short local read-modify-write transaction; never perform RPC here."""
+        with self._lock:
+            state = self._read_state()
+            yield state
+            self._write_state(state)
+
+    @contextmanager
+    def snapshot(self):
+        """Consistent audit + batch view; lock order is metadata then audit."""
+        with self._lock, self.audit_store._lock:
+            yield self.audit_store.list_records(), self._read_state()
 
     def pending_records(self) -> list[dict[str, Any]]:
         """Return audit rows without a durable batch assignment, in append order."""
@@ -242,6 +318,15 @@ class BatchManager:
                 pending = pending[len(selected):]
         return sealed
 
+    def _persist_batch(self, batch: dict[str, Any]) -> None:
+        """Merge this owner's batch into fresh state; preserve other writers."""
+        with self.state_transaction() as state:
+            current = next((item for item in state["batches"] if item["batch_id"] == batch["batch_id"]), None)
+            if current is None:
+                raise KeyError("Audit batch disappeared during anchoring")
+            current.clear()
+            current.update(deepcopy(batch))
+
     def anchor_batch(self, batch_id: str) -> dict[str, Any]:
         """Anchor one sealed root through ROOT_AUTHORIZER and persist its receipt.
 
@@ -249,9 +334,10 @@ class BatchManager:
         mined but the process failed before saving JSON metadata, its original
         event receipt is reused instead of submitting a second transaction.
         """
-        with self._lock:
-            state = self._read_state()
-            batch = next((item for item in state["batches"] if item["batch_id"] == batch_id), None)
+        operation_lock = FileLock(str(self.metadata_path) + "." + batch_key(batch_id).hex() + ".anchor.lock", self.lock_timeout)
+        # Per-batch ownership may span RPC; global snapshot locks never do.
+        with operation_lock:
+            batch = self.get_batch(batch_id)
             if batch is None:
                 raise KeyError(f"Unknown audit batch: {batch_id}")
             if batch["status"] == "ANCHORED":
@@ -275,17 +361,48 @@ class BatchManager:
                             or stored[2] != start_timestamp or stored[3] != end_timestamp
                             or Web3.to_checksum_address(stored[4]) != root_authorizer):
                         raise RuntimeError("Existing on-chain batch ID has conflicting metadata")
-                    receipt = _matching_batch_event(web3, contract, key, merkle_root)
+                    receipt = _matching_batch_event(web3, contract, key, merkle_root, deployment=deployment, anchored_at=int(stored[5]), transaction_hash=batch.get("anchor_claim", {}).get("transaction_hash") or batch.get("blockchain_tx_hash"))
                 else:
-                    tx_hash = chain.submit_transaction(
-                        web3,
-                        contract.functions.anchorAuditBatch(
-                            key, merkle_root, batch["log_count"], start_timestamp, end_timestamp,
-                        ),
-                        root_authorizer,
-                    )
+                    if batch.get("anchor_claim", {}).get("phase") in ("SUBMITTING", "SUBMITTED"):
+                        known_hash = batch["anchor_claim"].get("transaction_hash")
+                        if known_hash:
+                            from web3.exceptions import TransactionNotFound
+                            try:
+                                prior_receipt = web3.eth.get_transaction_receipt(known_hash)
+                            except TransactionNotFound:
+                                prior_receipt = None
+                            if prior_receipt is not None and prior_receipt.status == 0:
+                                batch.pop("anchor_claim", None)
+                                self._persist_batch(batch)
+                                raise RuntimeError("Prior audit-batch transaction reverted; retry is safe")
+                        raise AnchorSubmissionUncertain("TRANSACTION_FAILED: prior submission is uncertain; reconciliation required")
+                    # Intent is durable BEFORE any send. A crash in/after send
+                    # cannot turn into permission for another automatic send.
+                    # Serialize nonce selection + send for different batches in
+                    # this profile too. This is NOT the global storage lock;
+                    # readers, appends and sealing remain available during RPC.
+                    submission_lock = FileLock(str(self.metadata_path) + ".submission.lock", self.lock_timeout)
+                    with submission_lock:
+                        batch["anchor_claim"] = {"phase": "SUBMITTING"}
+                        self._persist_batch(batch)
+                        def remember_signed(tx_hash, nonce):
+                            batch["anchor_claim"] = {"phase": "SUBMITTED", "transaction_hash": tx_hash, "nonce": nonce}
+                            self._persist_batch(batch)
+                        send_options = {"before_send": remember_signed} if chain.NETWORK_PROFILE == "sepolia" else {}
+                        tx_hash = chain.submit_transaction(
+                            web3,
+                            contract.functions.anchorAuditBatch(
+                                key, merkle_root, batch["log_count"], start_timestamp, end_timestamp,
+                            ),
+                            root_authorizer, **send_options,
+                        )
+                        batch["anchor_claim"].update(phase="SUBMITTED", transaction_hash=Web3.to_hex(tx_hash))
+                        self._persist_batch(batch)
                     receipt = web3.eth.wait_for_transaction_receipt(tx_hash, timeout=120)
                     if receipt.status != 1:
+                        # A confirmed failed receipt proves no successful send
+                        # is pending, so this specific failure can be retried.
+                        batch.pop("anchor_claim", None)
                         raise RuntimeError("Ethereum audit-batch transaction reverted")
                 confirmed = contract.functions.auditBatches(key).call()
                 if (not confirmed[6] or confirmed[0] != merkle_root
@@ -301,20 +418,21 @@ class BatchManager:
                     "blockchain_block_number": receipt.blockNumber,
                     "blockchain_contract_address": contract.address,
                     "blockchain_chain_id": web3.eth.chain_id,
-                    "blockchain_rpc_url": deployment.get("rpc_url", ""),
+                    "blockchain_rpc_url": "" if chain.NETWORK_PROFILE == "sepolia" else deployment.get("rpc_url", ""),
                     "blockchain_anchored_by": Web3.to_checksum_address(confirmed[4]),
                     "blockchain_anchored_at": confirmed[5],
                     "anchor_retry": False,
                     "anchor_error": None,
                 })
-                self._write_state(state)
+                batch.pop("anchor_claim", None)
+                self._persist_batch(batch)
                 return batch
             except Exception as exc:
                 batch["status"] = "SEALED_UNANCHORED"
                 batch["anchor_retry"] = True
-                batch["anchor_error"] = str(exc)
-                self._write_state(state)
-                raise
+                batch["anchor_error"] = safe_error(exc)
+                self._persist_batch(batch)
+                raise safe_exception(exc) from None
 
     def anchor_unanchored_batches(self) -> list[dict[str, Any]]:
         """Attempt every sealed batch and retain failures as retryable metadata."""
@@ -347,7 +465,7 @@ class BatchManager:
                 action_id = action_id_or_leaf_index
                 resolved_batch_id = state["action_index"].get(action_id)
                 if resolved_batch_id is None:
-                    raise KeyError(f"Audit action is not assigned to a sealed batch: {action_id}")
+                    raise EvidenceError("PROOF_UNAVAILABLE", 503)
                 batch = self.get_batch(resolved_batch_id)
                 if batch is None:
                     raise ValueError("Action index points to a missing batch")

@@ -53,6 +53,15 @@ class DetectorTests(unittest.TestCase):
         self.assertEqual(set(base), set(FEATURE_COLUMNS))
         self.assertFalse(set(FEATURE_COLUMNS) & FORBIDDEN_COLUMNS)
 
+    def test_naive_feature_timestamps_fail_closed(self):
+        log = dict(self.logs[0], timestamp="2026-10-01T00:00:00")
+        with self.assertRaises(ValueError):extract_features(log, [], log["trace_result"])
+
+    def test_feature_timezone_normalization_is_deterministic(self):
+        utc = dict(self.logs[0], timestamp="2026-10-01T00:00:00Z")
+        offset = dict(utc, timestamp="2026-10-01T05:30:00+05:30")
+        self.assertEqual(extract_features(utc, [], utc["trace_result"]), extract_features(offset, [], offset["trace_result"]))
+
     def test_unseen_categorical_values(self):
         model = deepcopy(self.model)
         log = dict(self.logs[0], action="NEW_ACTION_TYPE", permission="NEVER_SEEN_PERMISSION", target="new-target")

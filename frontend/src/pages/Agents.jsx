@@ -15,13 +15,17 @@ function AgentCard({ agent, index }) {
   const [expanded, setExpanded] = useState(false)
   const [details, setDetails] = useState(null)
   const [error, setError] = useState(null)
+  const [loadingDetails, setLoadingDetails] = useState(false)
   const revoked = agent.status === 'DECOMMISSIONED'
   const proofFailed = details?.credentials?.some((item) => item.proof_status !== 'PASS')
   const state = revoked ? 'REVOKED' : proofFailed ? 'REVIEW' : 'ACTIVE'
 
   const toggle = () => {
     setExpanded((value) => !value)
-    if (!details && !error) api.agentCredentials(agent.agent_id).then(setDetails).catch((cause) => setError(cause.message))
+    if (!expanded && !details && !loadingDetails) {
+      setError(null); setLoadingDetails(true)
+      api.agentCredentials(agent.agent_id).then(setDetails).catch((cause) => setError(cause.message)).finally(() => setLoadingDetails(false))
+    }
   }
 
   return <motion.article className={`agent-card panel ${revoked ? 'agent-card--revoked' : ''}`} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * .08 }}>

@@ -13,6 +13,8 @@ import time
 from typing import TypedDict
 from unittest.mock import patch
 
+from backend.core.blockchain.diagnostics import safe_error
+
 from web3 import Web3
 
 from backend.core.blockchain import chain, integration
@@ -58,7 +60,7 @@ class RevocationRecord(TypedDict):
 class RevocationAnchoringError(RuntimeError):
     def __init__(self, cause: Exception, blockchain_anchored=False):
         self.code = "REVOCATION_PROOF_FAILED" if blockchain_anchored else "REVOCATION_ANCHORING_FAILED"
-        super().__init__(f"{self.code}: local decommission succeeded but Ethereum anchoring/proof failed: {cause}")
+        super().__init__(f"{self.code}: local decommission succeeded but Ethereum anchoring/proof failed: {safe_error(cause)}")
         self.local_revocation = True
         self.blockchain_anchored = blockchain_anchored
         self.revocation_complete = False
@@ -66,7 +68,9 @@ class RevocationAnchoringError(RuntimeError):
 
 def _registry():
     """Connect from RPC/deployment/ABI only; no unlocked account is required."""
-    deployment = json.loads(BUNDLE_DEPLOYMENT_PATH.read_text(encoding="utf-8"))
+    from backend.core.blockchain.evidence import read_object, validate_deployment
+    deployment = read_object(BUNDLE_DEPLOYMENT_PATH)
+    validate_deployment(deployment, chain.NETWORK_PROFILE)
     web3 = chain.connect(deployment.get("rpc_url") or chain.RPC_URL)
     if web3.eth.chain_id != deployment["chain_id"]:
         raise RuntimeError("Configured chain ID differs from Ethereum")
@@ -275,7 +279,15 @@ def _validate_full_request(requested, current_permissions):
     raise ValueError("PARTIAL_REVOCATION_NOT_SUPPORTED")
 
 
-def revoke(agent_id, permissions_to_revoke, revoked_by, reason) -> RevocationRecord:
+def revoke(agent_id, permissions_to_revoke, revoked_by, reason, *, authentication=None, verifier=None) -> RevocationRecord:
+    from backend.core.authorization.authentication import authenticated_operation
+    with authenticated_operation(authentication, "decommission", {"agent_id": agent_id, "reason": reason},
+                                 revoked_by, verifier):
+        return _revoke_authenticated(agent_id, permissions_to_revoke, revoked_by, reason,
+                                     authentication=authentication, verifier=verifier)
+
+
+def _revoke_authenticated(agent_id, permissions_to_revoke, revoked_by, reason, *, authentication, verifier) -> RevocationRecord:
     """Fully decommission locally and anchor before declaring success.
 
     Selective revocation is future work. A prior local-only failure is retried
@@ -305,7 +317,8 @@ def revoke(agent_id, permissions_to_revoke, revoked_by, reason) -> RevocationRec
             raise RuntimeError("Local agent is decommissioned but its revocation event is unavailable")
         event = candidates[-1]
     else:
-        result = module1_agents.decommission_agent(agent_id, revoked_by=revoked_by, reason=reason)
+        result = module1_agents.decommission_agent(agent_id, revoked_by=revoked_by, reason=reason,
+                                                   authentication=authentication, verifier=verifier)
         if result["result"] != "REVOKED":
             raise RuntimeError(f"Module 1 decommission failed: {result}")
         event = next(item for item in reversed(get_action_log()) if item.get("action") == "AGENT_DECOMMISSIONED"
@@ -320,4 +333,4 @@ def revoke(agent_id, permissions_to_revoke, revoked_by, reason) -> RevocationRec
             raise RuntimeError("Ethereum still reports agent active after anchoring")
         return _record_from_status(agent_id, status)
     except Exception as exc:
-        raise RevocationAnchoringError(exc, blockchain_anchored=anchored) from exc
+        raise RevocationAnchoringError(exc, blockchain_anchored=anchored) from None

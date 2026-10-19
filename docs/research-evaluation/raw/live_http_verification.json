@@ -1,0 +1,14 @@
+{
+  "transport": "real loopback TCP / Uvicorn / urllib HTTP",
+  "chain_id": 31337,
+  "authenticated_http": 200,
+  "authenticated_governance_decision": "REVIEW",
+  "chain_verified": true,
+  "replay_http": 401,
+  "modified_body_http": 401,
+  "unsigned_http": 401,
+  "root_impersonation_http": 401,
+  "persisted_audit_records": 1,
+  "rejected_requests_persisted": 0,
+  "public_transactions": 0
+}

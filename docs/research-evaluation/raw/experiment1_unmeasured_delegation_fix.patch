@@ -1,0 +1,33 @@
+--- agents.py measured
++++ agents.py final
+@@ -227 +227,4 @@
+-    # Reject cycles even when an independent root path would mask one.
++    # Reject cycles in effective authenticated authority, not expired or
++    # otherwise invalid local rows that could deny a legitimate new grant.
++    live_grants = {path[-1] for agent_id in AGENTS
++                   for path in authority_paths(agent_id, permission)}
+@@ -232 +235 @@
+-                        and g["permission"] == permission}
++                        and g["permission"] == permission and g["record_id"] in live_grants}
+--- test_security.py measured
++++ test_security.py final
+@@ -202,0 +203,19 @@
++    def expiry_cycle_fixture(self, parent_expires):
++        expiry = datetime.now(timezone.utc)+timedelta(seconds=60)
++        self.grant("Agent_B", expires_at=expiry.isoformat() if parent_expires else None)
++        self.delegate("Agent_B", "Agent_A", expires_at=None if parent_expires else expiry.isoformat())
++        self.grant("Agent_A")
++        class Clock(datetime):
++            @classmethod
++            def now(cls, tz=None): return expiry+timedelta(seconds=1)
++        with patch.object(a, "datetime", Clock):
++            self.assertEqual(self.delegate("Agent_A", "Agent_B")["result"], "ALLOWED")
++            self.assertTrue(a.authority_paths("Agent_B", "P"))
++            self.assertEqual(len(a.DELEGATION_LEDGER), 2)
++
++    def test_expired_delegation_does_not_create_false_cycle(self):
++        self.expiry_cycle_fixture(parent_expires=False)
++
++    def test_expired_parent_does_not_create_false_cycle(self):
++        self.expiry_cycle_fixture(parent_expires=True)
++

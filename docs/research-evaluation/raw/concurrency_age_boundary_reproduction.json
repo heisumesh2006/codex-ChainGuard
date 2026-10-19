@@ -1,0 +1,11 @@
+{
+  "persisted": 10,
+  "mapped_before_drain": 7,
+  "pending_before_drain": 3,
+  "batch_sizes_before_drain": [
+    2,
+    5
+  ],
+  "mapped_after_due_clock": 10,
+  "root_cause": "Size-only concurrency assertion used a live age clock; aged partial groups can leave a legitimate below-threshold tail. No AuditRecords lost."
+}

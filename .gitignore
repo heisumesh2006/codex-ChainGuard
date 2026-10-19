@@ -133,3 +133,11 @@ temp*/
 # Sepolia runtime state; public deployment metadata is stored separately.
 /backend/core/governance/data/sepolia/
 /backend/core/blockchain/data/sepolia/
+
+# Stable OS coordination sidecars; never canonical evidence.
+*.lock
+
+# Mutable identity replay and local authority snapshots.
+authentication_nonces.json
+authorization_state*.json
+grant_authority.json
