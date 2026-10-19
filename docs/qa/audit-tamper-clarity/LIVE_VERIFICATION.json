@@ -1,0 +1,20 @@
+{
+  "context": "restored disposable Hardhat; approved local-only startup",
+  "chain_id": 31337,
+  "contract": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
+  "action_id": "audit:d1505095436d4f79bd260fe0cfd87ec1",
+  "target_original": "order-51",
+  "target_modified": "order-51 [tampered demo copy]",
+  "original_hash": "0xb96815c87d89515c7bd4fb0d70279f8a4f2e62db76c83667173a0b18b40f1833",
+  "modified_hash": "0x2fbec476a58d5cbea9462038ddbc04141a86b7faded34e8f3b69ef80c93ed6a5",
+  "anchored_root": "0x390a7b3ae050d700f8d2916be213b22f0060a26e32a5929d1b89c2fc8d8b85ba",
+  "results": [
+    "VERIFIED",
+    "TAMPERED",
+    "VERIFIED"
+  ],
+  "runtime_files_unchanged": 8,
+  "local_block_unchanged": "0x1c",
+  "record_count_unchanged": true,
+  "public_transactions": 0
+}
