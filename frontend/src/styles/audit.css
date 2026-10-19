@@ -71,3 +71,11 @@
 .audit-transaction-cell{display:inline-flex;align-items:center;gap:2px;max-width:100%}
 .audit-cell-link{display:inline-flex;align-items:center;justify-content:center;margin-left:4px;padding:3px;color:#67e8f9;border-radius:4px}
 .audit-cell-link:hover{background:rgba(34,211,238,.12);color:#a5f3fc}
+.audit-simulation { margin-top: 18px; padding: 18px; border: 1px solid #744650; border-radius: 10px; background: #241b2b66; min-width: 0; }
+.audit-comparison-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.audit-comparison-grid > div { min-width: 0; padding: 10px; background: #0c1929aa; border-radius: 7px; }
+.audit-comparison-grid > div > span { display: block; color: #a7bacb; font-size: 11px; margin-bottom: 7px; }
+.audit-comparison-grid code, .audit-summary-line code { overflow-wrap: anywhere; white-space: pre-wrap; }
+.audit-comparison-grid .audit-copy-value { max-width: 100%; }
+.audit-proof-explanation, .audit-comparison-grid p { color: #b0c3d2; line-height: 1.65; font-size: 12px; overflow-wrap: anywhere; }
+@media (max-width: 760px) { .audit-comparison-grid { grid-template-columns: 1fr; } }
