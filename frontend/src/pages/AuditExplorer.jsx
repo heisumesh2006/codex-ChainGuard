@@ -47,16 +47,19 @@ function resultTone(result) {
 export default function AuditExplorer() {
   const loadingRequest = useRef(false)
   const proofRequest = useRef(0)
+  const verificationBusy = useRef(false)
   const [status, setStatus] = useState(null)
   const [logs, setLogs] = useState([])
   const [batches, setBatches] = useState([])
   const [selectedBatch, setSelectedBatch] = useState(null)
   const [selectedAction, setSelectedAction] = useState('')
   const [proof, setProof] = useState(null)
+  const [simulation, setSimulation] = useState(null)
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
   const [verifying, setVerifying] = useState(false)
   const [error, setError] = useState(null)
+  const [proofError, setProofError] = useState(null)
 
   const load = useCallback(async (quiet = false) => {
     if (loadingRequest.current) return
@@ -72,8 +75,13 @@ export default function AuditExplorer() {
       setBatches(nextBatches.batches || [])
       setError(null)
       if (selectedAction && !(nextLogs.records || []).some((record) => record.action_id === selectedAction)) {
+        ++proofRequest.current
+        verificationBusy.current = false
+        setVerifying(false)
         setSelectedAction('')
         setProof(null)
+        setSimulation(null)
+        setProofError(null)
       }
     } catch (cause) {
       setError(cause.message || 'Audit API is unavailable')
@@ -94,31 +102,55 @@ export default function AuditExplorer() {
     const requestId = ++proofRequest.current
     setSelectedAction(actionId)
     setProof(null)
+    setSimulation(null)
+    setProofError(null)
+    verificationBusy.current = false
+    setVerifying(Boolean(actionId))
     if (!actionId) return
     try {
       const nextProof = await api.auditActionProof(actionId)
       if (requestId === proofRequest.current) setProof(nextProof)
     } catch (cause) {
-      if (requestId === proofRequest.current) setError(cause.message)
+      if (requestId === proofRequest.current) setProofError(cause.message)
+    } finally {
+      if (requestId === proofRequest.current) setVerifying(false)
     }
   }
 
   const verify = async (tamper = false) => {
-    if (!selectedAction) return
+    if (!selectedAction || verificationBusy.current) return
+    verificationBusy.current = true
     const requestId = ++proofRequest.current
     setVerifying(true)
+    setSimulation(null)
+    setProof(null)
+    setProofError(null)
     try {
-      let override
+      const original = await api.verifyAuditAction(selectedAction)
+      if (requestId !== proofRequest.current) return
+      setProof(original)
       if (tamper) {
-        const result = await api.auditAction(selectedAction)
-        override = { ...result.record, target: `${result.record.target || 'audit-record'} [tampered demo copy]` }
+        if (original.result !== 'VERIFIED' || !original.blockchain_root) {
+          setProofError('Simulation requires a successfully verified original and an available anchored root.')
+          return
+        }
+        const originalValue = original.record.target
+        const modifiedValue = `${originalValue || 'audit-record'} [tampered demo copy]`
+        const candidate = { ...original.record, target: modifiedValue }
+        const modified = await api.verifyAuditAction(selectedAction, candidate)
+        if (requestId !== proofRequest.current) return
+        const confirmed = modified.result === 'TAMPERED' && modified.record_hash !== original.record_hash
+          && modified.action_id === original.action_id && modified.batch_id === original.batch_id
+          && modified.blockchain_root?.toLowerCase() === original.blockchain_root.toLowerCase()
+        setSimulation({ originalValue, modifiedValue, modified, confirmed })
       }
-      const nextProof = await api.verifyAuditAction(selectedAction, override)
-      if (requestId === proofRequest.current) { setProof(nextProof); setError(null) }
     } catch (cause) {
-      if (requestId === proofRequest.current) setError(cause.message)
+      if (requestId === proofRequest.current) setProofError(cause.message)
     } finally {
-      setVerifying(false)
+      if (requestId === proofRequest.current) {
+        verificationBusy.current = false
+        setVerifying(false)
+      }
     }
   }
 
@@ -143,12 +175,12 @@ export default function AuditExplorer() {
     <div className="eyebrow"><span className="eyebrow__line" /> IMMUTABLE ACTION EVIDENCE</div>
     <div className="page-heading audit-heading">
       <div><h1>Blockchain Audit</h1><p>Off-chain action logs, deterministic Merkle proofs, and on-chain batch commitments.</p></div>
-      <button className="button-secondary audit-refresh" onClick={() => load(true)} disabled={refreshing}>
+      <button className="button-secondary audit-refresh" onClick={() => { selectAction(selectedAction); load(true) }} disabled={refreshing}>
         <RefreshCw size={15} className={refreshing ? 'audit-spin' : ''} /> {refreshing ? 'Refreshing' : 'Refresh'}
       </button>
     </div>
 
-    {error && <div className="error-banner audit-error"><AlertTriangle size={17} /><span>{error}</span><button onClick={() => load(true)}>Retry</button></div>}
+    {(error || proofError) && <div className="error-banner audit-error"><AlertTriangle size={17} /><span>{proofError || error}</span><button onClick={() => proofError ? selectAction(selectedAction) : load(true)}>Retry</button></div>}
 
     <section className="audit-network panel">
       <div className="audit-network__identity"><span className="audit-network__icon"><Blocks size={21} /></span><div><span className="section-heading__overline">{networkLabel}</span><h2>{status?.network_name || status?.network || (error ? 'Network unavailable' : 'Loading network')}</h2></div><StatusPill label={!status ? (error ? 'UNAVAILABLE' : 'CHECKING') : status.rpc_connected ? 'RPC CONNECTED' : (isSepolia ? 'SEPOLIA RPC OFFLINE' : 'RPC OFFLINE')} tone={!status ? 'cyan' : status.rpc_connected ? 'emerald' : 'red'} pulse={Boolean(status?.rpc_connected)} /></div>
@@ -197,24 +229,41 @@ export default function AuditExplorer() {
         <option value="">Select a logged action</option>
         {latestLogs.map((record) => <option value={record.action_id} key={record.action_id}>{record.agent_id} · {record.action} · {short(record.action_id, 15, 6)}</option>)}
       </select>
-      <button className="button-primary" onClick={() => verify(false)} disabled={!selectedAction || verifying}><ShieldCheck size={15} /> {verifying ? 'Verifying…' : 'Verify action'}</button>
-      <button className="button-secondary audit-tamper-button" onClick={() => verify(true)} disabled={!selectedAction || verifying}><ShieldX size={15} /> Test tamper detection</button></div>
+      <button className="button-primary" onClick={() => verify(false)} disabled={!selectedAction || verifying}><ShieldCheck size={15} /> {verifying ? 'Verifying…' : 'Verify Original'}</button>
+      <button className="button-secondary audit-tamper-button" onClick={() => verify(true)} disabled={!selectedAction || verifying}><ShieldX size={15} /> Simulate Tampering</button></div>
 
       {proof ? <div className="audit-proof-layout">
-        <div className="audit-record-summary"><div className="audit-proof-subhead"><span>ORIGINAL RECORD</span><StatusPill label={proof.result} tone={resultTone(proof.result)} /></div>
+        <div className="audit-record-summary"><div className="audit-proof-subhead"><span>{simulation ? 'ORIGINAL STORED RECORD' : 'ORIGINAL AUDIT RECORD'}</span><StatusPill label={proof.result} tone={resultTone(proof.result)} /></div>
           <div className="audit-summary-line"><span>Agent / action</span><strong>{proof.record?.agent_id} <i>·</i> {proof.record?.action}</strong></div>
           <div className="audit-summary-line"><span>Governance verdict</span><strong>{proof.record?.governance_verdict || '—'}</strong></div>
           <div className="audit-summary-line"><span>Timestamp</span><strong>{time(proof.record?.timestamp)}</strong></div>
+          <div className="audit-summary-line"><span>Action ID</span><CopyValue value={proof.action_id} /></div>
+          <div className="audit-summary-line"><span>Target</span><code>{JSON.stringify(proof.record?.target ?? null)}</code></div>
           <div className="audit-summary-line"><span>Batch</span><CopyValue value={proof.batch_id} /></div>
-          <div className="audit-summary-line"><span>Leaf hash</span><CopyValue value={proof.record_hash} /></div>
+          <div className="audit-summary-line"><span>Original leaf hash</span><CopyValue value={proof.record_hash} /></div>
+          <p className="audit-proof-explanation">{proof.result === 'VERIFIED' ? 'The original audit record matches the cryptographic commitment anchored on the selected blockchain.' : 'The original record has not been verified against an available blockchain commitment. Pending, missing or failed evidence is not a successful verification.'}</p>
         </div>
         <div className="audit-proof-path"><div className="audit-proof-subhead"><span>MERKLE PROOF</span><span>{proof.proof_siblings?.length ?? 0} siblings</span></div>
-          {proof.proof_siblings?.length ? <div className="audit-siblings">{proof.proof_siblings.map((sibling, index) => <div className="audit-sibling" key={`${sibling.hash}-${index}`}><span className={`audit-sibling__side audit-sibling__side--${sibling.position}`}>{sibling.position.toUpperCase()}</span><CopyValue value={sibling.hash} /></div>)}</div> : <div className="audit-proof-pending"><Timer size={16} /> Proof path becomes available when this action is assigned to a sealed batch.</div>}
-          <div className="audit-root-grid"><div><span>Calculated root</span><CopyValue value={proof.calculated_root} /></div><div><span>On-chain root</span><CopyValue value={proof.blockchain_root} /></div></div>
+          {proof.proof_siblings?.length ? <div className="audit-siblings">{proof.proof_siblings.map((sibling, index) => <div className="audit-sibling" key={`${sibling.hash}-${index}`}><span className={`audit-sibling__side audit-sibling__side--${sibling.position}`}>{sibling.position.toUpperCase()}</span><CopyValue value={sibling.hash} /></div>)}</div> : <div className="audit-proof-pending"><Timer size={16} /> {proof.batch_id && proof.calculated_root ? 'A single-record proof needs no siblings: its leaf is the root.' : 'Proof path is unavailable until this action belongs to a valid sealed batch.'}</div>}
+          <div className="audit-root-grid"><div><span>Reconstructed original root</span><CopyValue value={proof.calculated_root} /></div><div><span>Anchored root</span><CopyValue value={proof.blockchain_root} /></div></div>
+          <p className="audit-proof-explanation">{status?.network_name || 'Network unavailable'} · Chain {proof.blockchain?.chain_id ?? status?.chain_id ?? 'unknown'} · Original record → Canonical JSON → Keccak-256 leaf → Merkle proof → Anchored root → {proof.result}</p>
           {proof.blockchain?.transaction_hash && <div className="audit-proof-tx"><div><span>Transaction</span><CopyValue value={proof.blockchain.transaction_hash} /></div><div><span>Block / chain</span><strong>{proof.blockchain.block_number} <i>·</i> {proof.blockchain.chain_id}</strong></div>{explorer && <a href={`${explorer}/tx/${proof.blockchain.transaction_hash}`} target="_blank" rel="noreferrer">View on explorer <ExternalLink size={13} /></a>}</div>}
         </div>
-      </div> : <div className="audit-verify-placeholder"><ScanSearch size={23} /><span>Select an action to inspect its canonical leaf hash and batch proof.</span></div>}
-      <AnimatePresence>{proof?.result === 'TAMPERED' && <motion.div className="audit-tamper-result" initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}><XCircle size={18} /><div><strong>TAMPERING DETECTED</strong><span>The submitted record copy does not reconstruct the anchored Merkle root. The stored audit log was not modified.</span></div></motion.div>}</AnimatePresence>
+      </div> : <div className="audit-verify-placeholder" role="status"><ScanSearch size={23} /><span>{verifying ? "Verifying the selected record. Please wait." : selectedAction ? "Verification evidence is unavailable. Check the error above or verify the original again." : "Select an action to inspect its canonical leaf hash and batch proof."}</span></div>}
+      <AnimatePresence>{simulation && <motion.section className="audit-simulation" aria-label="Simulated modified copy" initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
+        <div className="audit-proof-subhead"><span>SIMULATED MODIFIED COPY</span><StatusPill label={simulation.confirmed ? 'TAMPERED' : 'NOT CONFIRMED'} tone={simulation.confirmed ? 'red' : 'amber'} /></div>
+        <div className="audit-comparison-grid">
+          <div><span>Changed field</span><strong>Target (target)</strong></div>
+          <div><span>Original target value</span><code>{JSON.stringify(simulation.originalValue ?? null)}</code></div>
+          <div><span>Modified target value</span><code>{JSON.stringify(simulation.modifiedValue)}</code></div>
+          <div><span>Original leaf hash</span><CopyValue value={proof.record_hash} /></div>
+          <div><span>Modified leaf hash</span><CopyValue value={simulation.modified.record_hash} /></div>
+          <div><span>Stored blockchain root</span><CopyValue value={simulation.modified.blockchain_root} /></div>
+          <div><span>Modified reconstructed root</span>{simulation.modified.calculated_root ? <CopyValue value={simulation.modified.calculated_root} /> : <p>Unavailable: the verifier rejects the changed committed leaf before returning a valid reconstructed root.</p>}</div>
+        </div>
+        <p className="audit-proof-explanation">Modified copy → Canonical JSON → Recomputed leaf → Original Merkle proof → {simulation.confirmed ? 'FAILED against the anchored commitment' : 'Comparison not confirmed'}</p>
+        <div className="audit-tamper-result" role="status"><XCircle size={18} /><div><strong>{simulation.confirmed ? 'TAMPERING DETECTED' : 'SIMULATION NOT CONFIRMED'}</strong><span>{simulation.confirmed ? 'The selected record is unchanged. A temporary copy with a modified target fails validation against the original blockchain-anchored Merkle root. No audit record, batch or blockchain transaction was created or changed.' : 'The verification evidence is incomplete or inconsistent. This is not a successful tamper-detection demonstration; verify the original again.'}</span></div></div>
+      </motion.section>}</AnimatePresence>
     </section>
 
     <AnimatePresence>{selectedBatch && <motion.aside className="audit-drawer-backdrop" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setSelectedBatch(null)}>

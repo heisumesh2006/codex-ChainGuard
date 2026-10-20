@@ -78,9 +78,10 @@ test('audit original and tampered proof controls and drawer', async ({ page, con
     await page.locator('#audit-action-select').selectOption({ index })
     await expect(page.locator('.audit-record-summary')).toContainText('VERIFIED')
   }
-  await page.getByRole('button', { name: 'Test tamper detection' }).click()
-  await expect(page.locator('.audit-record-summary')).toContainText('TAMPERED')
-  await page.getByRole('button', { name: 'Verify action', exact: true }).click()
+  await page.getByRole('button', { name: 'Simulate Tampering' }).click()
+  await expect(page.locator('.audit-simulation')).toContainText('TAMPERED')
+  await expect(page.locator('.audit-record-summary')).toContainText('VERIFIED')
+  await page.getByRole('button', { name: 'Verify Original', exact: true }).click()
   await expect(page.locator('.audit-record-summary')).toContainText('VERIFIED')
   await page.locator('.audit-table tbody tr').click()
   await expect(page.getByRole('heading', { name: 'Batch details' })).toBeVisible()
